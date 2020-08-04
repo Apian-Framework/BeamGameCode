@@ -8,13 +8,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-      <ProjectReference Include="..\..\..\GameModeMgr\src\GameModeMgr\GameModeMgr.csproj" />
-      <ProjectReference Include="..\..\..\P2pNet\src\P2pNet.Redis\P2pNet.Redis.csproj" />
-      <ProjectReference Include="..\..\..\Apian.NET\src\Apian\Apian.csproj" />
+      <PackageReference Include="P2pNet.Redis"  Version="1.0.3" Condition="'$(P2pNetSource)' != 'local'" />
+      <ProjectReference Include="..\..\..\P2pNet\src\P2pNet.Redis\P2pNet.Redis.csproj" Condition="'$(P2pNetSource)' == 'local'"/>
+
+      <PackageReference Include="Apian"  Version="1.0.1" Condition="'$(ApianSource)' != 'local'" />
+      <ProjectReference Include="..\..\..\Apian.NET\src\Apian\Apian.csproj" Condition="'$(ApianSource)' == 'local'"/>
   </ItemGroup>
 
   <ItemGroup Condition=" '$(UNITY_2019_1_OR_NEWER)' == '' ">
-    <ProjectReference Include="../../../NotUnityEngine/src/UnityEngine/UnityEngine.csproj" />
+    <PackageReference Include="NotUnityEngine"  Version="1.1.0" Condition="'$(NotUnityEngineSource)' != 'local'" />
+    <ProjectReference Include="../../../NotUnityEngine/src/NotUnityEngine/NotUnityEngine.csproj" Condition="'$(NotUnityEngineSource)' == 'local'"/>
   </ItemGroup>
 
   <ItemGroup>
