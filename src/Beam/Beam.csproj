@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Version>1.0.0</Version>
+    <RepositoryUrl>https://github.com/Apian-Framework/Beam</RepositoryUrl>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+  </PropertyGroup>
+
+  <ItemGroup>
+      <ProjectReference Include="..\..\..\GameModeMgr\src\GameModeMgr\GameModeMgr.csproj" />
+      <ProjectReference Include="..\..\..\P2pNet\src\P2pNet.Redis\P2pNet.Redis.csproj" />
+      <ProjectReference Include="..\..\..\Apian.NET\src\Apian\Apian.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(UNITY_2019_1_OR_NEWER)' == '' ">
+    <ProjectReference Include="../../../NotUnityEngine/src/UnityEngine/UnityEngine.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+  </ItemGroup>
+
+</Project>
