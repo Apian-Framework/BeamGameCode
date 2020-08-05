@@ -1,13 +1,11 @@
-﻿using BeamBackend;
-
-namespace BikeControl
+﻿namespace BikeControl
 {
     public class RemoteControl : BikeControlBase
     {
-        public override void SetupImpl() 
+        public override void SetupImpl()
         {
-            
-        } 
+
+        }
 
     }
 }
