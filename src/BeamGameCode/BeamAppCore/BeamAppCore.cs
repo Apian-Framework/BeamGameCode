@@ -508,8 +508,13 @@ namespace BeamGameCode
         {
             logger.Verbose($"OnPlaceHitObsEvt(): Bike: {args.bike.bikeId} Place: {BeamPlace.PlacePos(args.xIdx, args.zIdx).ToString()}");
             BeamPlace place = CoreData.GetPlace(args.xIdx, args.zIdx);
-            ScoreEvent evType = place.bike.team == args.bike.team ? ScoreEvent.kHitFriendPlace : ScoreEvent.kHitEnemyPlace;
-            apian.SendPlaceHitObs(FrameApianTime, args.bike, args.xIdx, args.zIdx, args.entryHead, args.exitHead, ComputeScoreUpdate(args.bike, evType, place));
+            if (place != null)
+            {
+                ScoreEvent evType = place.bike.team == args.bike.team ? ScoreEvent.kHitFriendPlace : ScoreEvent.kHitEnemyPlace;
+                apian.SendPlaceHitObs(FrameApianTime, args.bike, args.xIdx, args.zIdx, args.entryHead, args.exitHead, ComputeScoreUpdate(args.bike, evType, place));
+            } else {
+                logger.Warn($"OnPlaceHitObsEvt(): Bike: {args.bike.bikeId} No place found at: {BeamPlace.PlacePos(args.xIdx, args.zIdx).ToString()}");
+            }
 
         }
 
