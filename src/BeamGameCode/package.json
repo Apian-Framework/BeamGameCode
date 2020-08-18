@@ -1,0 +1,12 @@
+{
+    "name": "com.apian-framework.beamgamecode",
+    "displayName": "BeamGameCode",
+    "version": "1.0.0",
+    "unity": "2018.1",
+    "description": "Platform-independent code for Beam",
+    "keywords": [
+        "beam",
+        "unity"
+    ],
+    "category": "Unity"
+}
