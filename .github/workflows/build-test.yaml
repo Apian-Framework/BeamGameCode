@@ -18,6 +18,18 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 3.1.301
+    - name: Checkout Apian dependencies (P2pNet)
+      uses: actions/checkout@v2
+      with:
+        repository: Apian-Framework/Apian.Net
+    - name: Checkout Apian dependencies (Apian)
+      uses: actions/checkout@v2
+      with:
+        repository: Apian-Framework/Apian.Net
+    - name: Checkout Apian dependencies (NotUnityEngine)
+      uses: actions/checkout@v2
+      with:
+        repository: Apian-Framework/NotUnityEngine
     - name: Install dependencies
       run: dotnet restore
     - name: Build
