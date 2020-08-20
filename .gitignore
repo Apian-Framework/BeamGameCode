@@ -8,4 +8,5 @@
 srcassets/
 .vscode/
 *.meta
+*.asmdef
 inspectcode.xml
