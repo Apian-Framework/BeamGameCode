@@ -1,12 +1,18 @@
 {
-    "name": "com.apian-framework.beamgamecode",
-    "displayName": "BeamGameCode",
-    "version": "1.0.0",
-    "unity": "2018.1",
-    "description": "Platform-independent code for Beam",
-    "keywords": [
-        "beam",
-        "unity"
-    ],
-    "category": "Unity"
+  "name": "com.apian-framework.beamgamecode",
+  "displayName": "BeamGameCode",
+  "version": "1.0.0",
+  "unity": "2018.1",
+  "description": "Platform-independent code for Beam",
+  "keywords": [
+    "apian",
+    "beam",
+    "unity"
+  ],
+  "category": "Unity",
+  "type": "library",
+  "dependencies": {
+    "com.apian-framework.apian": "1.0.4",
+    "com.apian-framework.p2pnet.redis": "1.0.0"
+  }
 }

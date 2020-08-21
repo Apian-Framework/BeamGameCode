@@ -5,16 +5,14 @@
     <RepositoryUrl>https://github.com/Apian-Framework/BeamGameCode</RepositoryUrl>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-
-
   </PropertyGroup>
 
   <ItemGroup>
-      <PackageReference Include="P2pNet.Redis"  Version="1.0.3" Condition="'$(P2pNetSource)' == 'package'" />
-      <ProjectReference Include="..\..\..\P2pNet\src\P2pNet.Redis\P2pNet.Redis.csproj" Condition="'$(P2pNetSource)' != 'package'"/>
-
       <PackageReference Include="Apian"  Version="1.0.1" Condition="'$(ApianSource)' == 'package'" />
       <ProjectReference Include="..\..\..\Apian.NET\src\Apian\Apian.csproj" Condition="'$(ApianSource)' != 'package'"/>
+
+      <PackageReference Include="P2pNet.Redis"  Version="1.0.3" Condition="'$(P2pNetSource)' == 'package'" />
+      <ProjectReference Include="..\..\..\P2pNet\src\P2pNet.Redis\P2pNet.Redis.csproj" Condition="'$(P2pNetSource)' != 'package'"/>
   </ItemGroup>
 
   <ItemGroup Condition=" '$(UNITY_2019_1_OR_NEWER)' == '' ">

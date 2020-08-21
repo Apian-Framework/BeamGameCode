@@ -3,7 +3,6 @@ using System;
 using System.Text;
 using System.Security.Cryptography; // for MD5 hash
 using System.Collections.Generic;
-using GameNet;
 using Apian;
 using Newtonsoft.Json;
 using UnityEngine;
