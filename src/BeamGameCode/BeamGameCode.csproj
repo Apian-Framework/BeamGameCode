@@ -9,7 +9,7 @@
 
   <ItemGroup>
       <PackageReference Include="Apian"  Version="1.0.1" Condition="'$(ApianSource)' == 'package'" />
-      <ProjectReference Include="..\..\..\Apian.NET\src\Apian\Apian.csproj" Condition="'$(ApianSource)' != 'package'"/>
+      <ProjectReference Include="..\..\..\Apian.Net\src\Apian\Apian.csproj" Condition="'$(ApianSource)' != 'package'"/>
 
       <PackageReference Include="P2pNet.Redis"  Version="1.0.3" Condition="'$(P2pNetSource)' == 'package'" />
       <ProjectReference Include="..\..\..\P2pNet\src\P2pNet.Redis\P2pNet.Redis.csproj" Condition="'$(P2pNetSource)' != 'package'"/>
