@@ -10,7 +10,7 @@ namespace BeamGameCode
 {
     public static class UserSettingsMgr
     {
-        public const string currentVersion = "100";
+        public const string currentVersion = "101";
         public const string subFolder = ".beam";
         public const string defaultBaseName= "beamsettings";
         public static string fileBaseName;
@@ -84,10 +84,13 @@ namespace BeamGameCode
         public Dictionary<string, string> logLevels;
         public Dictionary<string, string> tempSettings; // dict of cli-set, non-peristent values
 
+        public Dictionary<string, string> driverSettings; // dict of persistent, but driver-specific, settings
+
         public BeamUserSettings()
         {
             logLevels = new Dictionary<string, string>();
             tempSettings = new Dictionary<string, string>();
+            driverSettings = new Dictionary<string, string>();
         }
 
         public BeamUserSettings(BeamUserSettings source)
@@ -105,6 +108,7 @@ namespace BeamGameCode
             defaultLogLevel = source.defaultLogLevel;
             logLevels = source.logLevels ?? new Dictionary<string, string>();
             tempSettings = source.tempSettings ?? new Dictionary<string, string>();
+            driverSettings = source.driverSettings ?? new Dictionary<string, string>();
         }
 
         public static BeamUserSettings CreateDefault()
@@ -128,7 +132,8 @@ namespace BeamGameCode
                     {"GameInstance", UniLogger.LevelNames[UniLogger.Level.Warn]},
                     {"BeamMode", UniLogger.LevelNames[UniLogger.Level.Warn]},
                 },
-                tempSettings = new Dictionary<string, string>()
+                tempSettings = new Dictionary<string, string>(),
+                driverSettings = new Dictionary<string, string>()
             };
         }
     }
