@@ -260,6 +260,17 @@ namespace BeamGameCode
                 }
 
             }
+            else
+            {
+                // TODO: Haaack!!!! A claim of a place not on the map means "Blow it up!"
+                // Fix this both here and in the BaseBike code.
+                if (b != null) // might already be gone
+                {
+                    logger.Info($"OnPlaceClaimCmd() - OFF MAP! Boom! Now: {FrameApianTime} Ts: {msg.TimeStamp} Bike: {b?.bikeId}");
+                    ApplyScoreUpdate( new Dictionary<string,int>(){ {b.bikeId, -b.score} });
+                }
+
+            }
         }
 
         public void OnPlaceHitCmd(PlaceHitMsg msg)
