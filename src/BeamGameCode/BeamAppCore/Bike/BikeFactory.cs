@@ -1,6 +1,5 @@
-﻿using System.Collections;
+﻿using System.Linq;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 namespace BeamGameCode
@@ -28,9 +27,14 @@ namespace BeamGameCode
 
 		static  Vector2 PickRandomPos( Heading head, Vector2 basePos, float radius)
 		{
-			Vector2 p = Ground.NearestGridPoint(
+			Vector2 closestPos = Ground.NearestGridPoint(
 						new Vector2(Random.Range(-radius, radius), Random.Range(-radius, radius)) + basePos );
-			return p + GameConstants.UnitOffset2ForHeading(head) * .5f * Ground.gridSize;
+
+			// Random fractional offset so bikes created at the same time aren't so exactly "in sync" (Issue BeamGameCode#7)
+			float offsetFrac =  Random.Range(-.35f, .35f);
+
+			// offset from center point between basPos and next point given the heading
+			return  closestPos + GameConstants.UnitOffset2ForHeading(head) * (.5f + offsetFrac) * Ground.gridSize;
 		}
 		public static Vector2 PositionForNewBike(List<IBike> otherBikes, Heading head, Vector2 basePos, float radius)
 		{

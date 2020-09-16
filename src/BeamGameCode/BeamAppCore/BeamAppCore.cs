@@ -256,6 +256,8 @@ namespace BeamGameCode
                     //logger.Verbose($"   at Timestamp:  BikePos: {b.PosAtTime(msg.TimeStamp, FrameApianTime).ToString()}, Time: {msg.TimeStamp} ");
                     PlaceClaimedEvt?.Invoke(this, p);
                 } else {
+                    // &&&& Debugger crap for BeamGameCode#5
+                    // p = CoreData.GetPlace(msg.xIdx, msg.zIdx);
                     logger.Warn($"OnPlaceClaimCmd()) failed. Place already claimed.");
                 }
 
