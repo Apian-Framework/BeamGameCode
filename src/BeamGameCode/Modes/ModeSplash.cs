@@ -14,10 +14,13 @@ namespace BeamGameCode
         static public readonly int kCmdTargetCamera = 1;
 	    static public readonly int kSplashBikeCount = 12;
         protected const float kRespawnCheckInterval = 1.3f;
+        protected const float kCamTargetInterval = 10.0f;
         protected float _secsToNextRespawnCheck = kRespawnCheckInterval;
         public BeamAppCore game = null;
         protected bool bikesCreated;
         protected bool localPlayerJoined;
+
+        protected float _camTargetSecsLeft = 0; // assign as soon as there's a bike
 
         private enum ModeState {
             JoiningGame = 1,
@@ -55,7 +58,7 @@ namespace BeamGameCode
 
                 // Note that the target bike is probably NOT created yet at this point.
                 // This robably needs to happen differently
-                game.frontend?.OnStartMode(BeamModeFactory.kSplash, new TargetIdParams{targetId = cameraTargetBikeId} );
+                game.frontend?.OnStartMode(BeamModeFactory.kSplash);
                 bikesCreated = true;
                 _CurrentState = ModeState.Playing;
             }
@@ -69,6 +72,18 @@ namespace BeamGameCode
                     if (game.CoreData.Bikes.Count() < kSplashBikeCount)
                         CreateADemoBike();
                     _secsToNextRespawnCheck = kRespawnCheckInterval;
+                }
+
+                if ( game.CoreData.Bikes.Count() > 0)
+                {
+                    int idx = (int)UnityEngine.Random.Range(0, game.CoreData.Bikes.Count() - .0001f);
+                    string bikeId = game.CoreData.Bikes.Values.ElementAt(idx).bikeId;
+                    _camTargetSecsLeft -= frameSecs;
+                    if (_camTargetSecsLeft <= 0)
+                    {
+                        game.frontend?.DispatchModeCmd(appl.modeMgr.CurrentModeId(), kCmdTargetCamera, new TargetIdParams(){targetId=bikeId} );
+                        _camTargetSecsLeft = kCamTargetInterval;
+                    }
                 }
             }
         }
@@ -91,6 +106,11 @@ namespace BeamGameCode
             game.PostBikeCreateData(bb); // will result in OnBikeInfo()
             logger.Debug($"{this.ModeName()}: SpawnAiBike({ bb.bikeId})");
             return bb.bikeId;  // the bike hasn't been added yet, so this id is not valid yet.
+        }
+
+        protected void SetCameraTarget()
+        {
+
         }
 
         public void OnPeerJoinedGameEvt(object sender, PeerJoinedGameArgs ga)

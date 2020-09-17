@@ -10,8 +10,8 @@ namespace BeamGameCode
     public interface IFrontendModeHelper
     {
         void OnStartMode(int modeId, object param);
-        void DispatchCmd(int modeId, int cmdId, object param);
         void OnEndMode(int modeId, object param);
+        void DispatchCmd(int modeId, int cmdId, object param);
     }
 
     public interface IBeamFrontend
@@ -23,6 +23,7 @@ namespace BeamGameCode
         // Game Modes
         void OnStartMode(int modeId, object param = null);
         void OnEndMode(int modeId, object param = null);
+        void DispatchModeCmd(int modeId, int cmdId, object param = null);
 
         // Players
         void OnPeerJoinedGameEvt(object sender, PeerJoinedGameArgs pa);
