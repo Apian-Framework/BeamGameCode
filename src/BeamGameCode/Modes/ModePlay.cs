@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace BeamGameCode
 {
-    public enum GroupCreateMode
+    public enum CreateMode
     {
         JoinOnly = 0,
         CreateIfNeeded = 1,
@@ -17,8 +17,9 @@ namespace BeamGameCode
     public class ModePlay : BeamGameMode
     {
         protected string gameId;
-        protected string apianGroupId;
-        protected GroupCreateMode groupCreateMode;
+        protected CreateMode gameCreateMode = CreateMode.CreateIfNeeded;
+        protected string groupId;
+        protected CreateMode groupCreateMode = CreateMode.CreateIfNeeded;
         public BeamUserSettings settings;
 
         protected Dictionary<string, ApianGroupInfo> announcedGroups;
@@ -56,7 +57,7 @@ namespace BeamGameCode
             appl.PeerJoinedGameEvt += OnPeerJoinedGameEvt;
             appl.AddAppCore(null);
 
-            // Setup/connect fake network
+            // Setup/connect network
             appl.ConnectToNetwork(settings.p2pConnectionString);
 
             if (gameId == null)
@@ -143,27 +144,27 @@ namespace BeamGameCode
                 // TODO: Hoist all this!!!
                 // Stop listening for groups and either create or join (or fail)
                 appl.GroupAnnounceEvt -= OnGroupAnnounceEvt; // stop listening
-                bool targetGroupExisted = (apianGroupId != null) && announcedGroups.ContainsKey(apianGroupId);
+                bool targetGroupExisted = (groupId != null) && announcedGroups.ContainsKey(groupId);
 
                 switch (groupCreateMode)
                 {
-                case GroupCreateMode.JoinOnly:
+                case CreateMode.JoinOnly:
                     if (targetGroupExisted)
                     {
-                        game.apian.InitExistingGroup(announcedGroups[apianGroupId]); // Like create, but for a remotely-created group
+                        game.apian.InitExistingGroup(announcedGroups[groupId]); // Like create, but for a remotely-created group
                         _SetState(kJoiningGroup);
                     }
                     else
-                        _SetState(kFailed, $"Apian Group \"{apianGroupId}\" Not Found");
+                        _SetState(kFailed, $"Apian Group \"{groupId}\" Not Found");
                     break;
-                case GroupCreateMode.CreateIfNeeded:
+                case CreateMode.CreateIfNeeded:
                     if (targetGroupExisted)
-                        game.apian.InitExistingGroup(announcedGroups[apianGroupId]);
+                        game.apian.InitExistingGroup(announcedGroups[groupId]);
                     else
                         _CreateGroup();
                     _SetState(kJoiningGroup);
                     break;
-                case GroupCreateMode.MustCreate:
+                case CreateMode.MustCreate:
                     if (targetGroupExisted)
                         _SetState(kFailed, "Apian Group Already Exists");
                     else
@@ -189,33 +190,56 @@ namespace BeamGameCode
         }
 
         // utils
+        private void FailWithError(string errMsg)
+        {
+            throw(new Exception(errMsg));
+        }
+
         private void _ParseGameAndGroup()
         {
+            // Syntax is "gameName/groupName"
+            // If either name has an appended + character then the item should be created if it does not already exist.
+            // If either name has an appended * character then the item must be created, and cannot already exist.
+            // Otherwise, the item cannot be created - only joined.
+            // If either name is missing then it is an error
+
             string gameIdSetting;
             string[] parts = {};
 
             if (settings.tempSettings.TryGetValue("gameId", out gameIdSetting))
                 parts = gameIdSetting.Split('/');
+            else
+                FailWithError($"GameId (name/group) setting missing.");
 
-            // format is gameId/groupId/[j|c|m]   (joinOnly/createIfNeeded/mustCreate)
-            groupCreateMode = parts.Count() < 3 ? GroupCreateMode.CreateIfNeeded :  (GroupCreateMode)"jcm".IndexOf(parts[2]);
-            apianGroupId = parts.Count() < 2 ? null : parts[1]; // null means create a new group
-            gameId = parts.Count() < 1 ? null : parts[0]; // null means create a new game
+            if (parts.Count() != 2)
+                FailWithError($"Bad GameId: {gameIdSetting}");
 
-            logger.Verbose($"{(ModeName())}: _ParseGameAndGroup() game: {gameId}, group: {apianGroupId}, mode: {groupCreateMode}");
+            gameCreateMode = parts[0].EndsWith("+") ? CreateMode.CreateIfNeeded
+                                : parts[0].EndsWith("*") ? CreateMode.MustCreate
+                                    : CreateMode.JoinOnly;
+
+            groupCreateMode = parts[1].EndsWith("+") ? CreateMode.CreateIfNeeded
+                                : parts[1].EndsWith("*") ? CreateMode.MustCreate
+                                    : CreateMode.JoinOnly;
+
+            char[] trimChars = {'+','*'};
+            gameId = parts[0].TrimEnd(trimChars);
+            groupId = parts[1].TrimEnd(trimChars);
+
+            logger.Verbose($"{(ModeName())}: _ParseGameAndGroup() GameID: {gameId} ({gameCreateMode}), GroupID: {groupId} ({groupCreateMode})");
         }
 
         private void _CreateGroup()
         {
             logger.Verbose($"{(ModeName())}: _CreateGroup()");
-            apianGroupId = apianGroupId ?? "BEAMGRP" + System.Guid.NewGuid().ToString();
-            game.apian.CreateNewGroup(apianGroupId, "GRPNAME_" + apianGroupId);
+            groupId = groupId ?? "BEAMGRP" + System.Guid.NewGuid().ToString();
+            game.apian.CreateNewGroup(groupId, "GRPNAME_" + groupId);
         }
 
         private void _JoinGroup()
         {
             BeamPlayer mb = new BeamPlayer(appl.LocalPeer.PeerId, appl.LocalPeer.Name);
-            game.apian.JoinGroup(apianGroupId, mb.ApianSerialized());
+            game.apian.JoinGroup(groupId, mb.ApianSerialized());
         }
 
         // Event handlers
