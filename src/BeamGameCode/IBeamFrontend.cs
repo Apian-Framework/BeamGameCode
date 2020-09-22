@@ -5,6 +5,8 @@ using UnityEngine;
 
 namespace BeamGameCode
 {
+    public enum MessageSeverity { Info, Warning, Error };
+
     public class TargetIdParams {public string targetId;}
 
     public interface IFrontendModeHelper
@@ -19,6 +21,8 @@ namespace BeamGameCode
         void SetAppCore(IBeamAppCore core); // TODO: This is not really what we want
 
         BeamUserSettings GetUserSettings();
+
+        void DisplayMessage(MessageSeverity level, string msgText);
 
         // Game Modes
         void OnStartMode(int modeId, object param = null);
@@ -46,6 +50,7 @@ namespace BeamGameCode
 
         // Game Events
         void OnReadyToPlay(object sender, EventArgs e);
+
 
     }
 
