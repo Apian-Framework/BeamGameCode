@@ -33,9 +33,11 @@ namespace BeamGameCode
         protected BaseBike playerBike = null;
 
         // mode substates
-        protected const int kCreatingGame = 0;
-        protected const int kJoiningGame = 1;
-        protected const int kCheckingForGroups = 2;
+
+        protected const int kConnecting = 0;
+        protected const int kCreatingGame = 1;
+        protected const int kJoiningGame = 2;
+        protected const int kCheckingForGroups = 3;
         protected const int kJoiningGroup = 4;
         protected const int kWaitingForMembers = 5;
         protected const int kPlaying = 6;
@@ -51,20 +53,10 @@ namespace BeamGameCode
 
             settings = appl.frontend.GetUserSettings();
 
-            _ParseGameAndGroup();
-
             appl.GameCreatedEvt += OnGameCreatedEvt;
             appl.PeerJoinedGameEvt += OnPeerJoinedGameEvt;
             appl.AddAppCore(null);
-
-            // Setup/connect network
-            appl.ConnectToNetwork(settings.p2pConnectionString);
-
-            if (gameId == null)
-                _SetState(kCreatingGame, new BeamGameNet.GameCreationData());
-            else
-                _SetState(kJoiningGame, gameId);
-
+            _SetState(kConnecting);
             appl.frontend?.OnStartMode(ModeId(), null );
         }
 
@@ -77,11 +69,14 @@ namespace BeamGameCode
 		public override object End() {
             appl.GameCreatedEvt -= OnGameCreatedEvt;
             appl.PeerJoinedGameEvt -= OnPeerJoinedGameEvt;
-            game.PlayerJoinedEvt -= OnPlayerJoinedEvt;
-            game.NewBikeEvt -= OnNewBikeEvt;
-            game.frontend?.OnEndMode(appl.modeMgr.CurrentModeId(), null);
-            game.End();
-            appl.gameNet.LeaveGame();
+            if (game != null)
+            {
+                game.PlayerJoinedEvt -= OnPlayerJoinedEvt;
+                game.NewBikeEvt -= OnNewBikeEvt;
+                game.frontend?.OnEndMode(appl.modeMgr.CurrentModeId(), null);
+                game.End();
+                appl.gameNet.LeaveGame();
+            }
             appl.AddAppCore(null);
             return null;
         }
@@ -95,6 +90,20 @@ namespace BeamGameCode
             _loopFunc = _DoNothingLoop; // default
             switch (newState)
             {
+            case kConnecting:
+                logger.Verbose($"{(ModeName())}: SetState: kConnecting");
+                try {
+                    _ParseGameAndGroup();
+                    appl.ConnectToNetwork(settings.p2pConnectionString);
+                } catch (Exception ex) {
+                    _SetState(kFailed, ex.Message);
+                    return;
+                }
+                if (gameId == null)
+                    _SetState(kCreatingGame, new BeamGameNet.GameCreationData());
+                else
+                    _SetState(kJoiningGame, gameId);
+                break;
             case kCreatingGame:
                 logger.Verbose($"{(ModeName())}: SetState: kCreatingGame");
                 appl.CreateNetworkGame((BeamGameNet.GameCreationData)startParam);
@@ -128,6 +137,8 @@ namespace BeamGameCode
                 break;
             case kFailed:
                 logger.Error($"{(ModeName())}: SetState: kFailed  Reason: {(string)startParam}");
+                appl.frontend.DisplayMessage(MessageSeverity.Error, (string)startParam);
+                this.manager.PopMode();
                 break;
             default:
                 logger.Error($"ModeConnect._SetState() - Unknown state: {newState}");
@@ -166,10 +177,11 @@ namespace BeamGameCode
                     break;
                 case CreateMode.MustCreate:
                     if (targetGroupExisted)
-                        _SetState(kFailed, "Apian Group Already Exists");
-                    else
+                        _SetState(kFailed, "Cannot create.  Apian Group already exists");
+                    else {
                         _CreateGroup();
                         _SetState(kJoiningGroup);
+                    }
                     break;
                 }
             }
@@ -190,10 +202,6 @@ namespace BeamGameCode
         }
 
         // utils
-        private void FailWithError(string errMsg)
-        {
-            throw(new Exception(errMsg));
-        }
 
         private void _ParseGameAndGroup()
         {
@@ -209,10 +217,11 @@ namespace BeamGameCode
             if (settings.tempSettings.TryGetValue("gameId", out gameIdSetting))
                 parts = gameIdSetting.Split('/');
             else
-                FailWithError($"GameId (name/group) setting missing.");
+                throw new Exception($"GameId (name/group) setting missing.");
+
 
             if (parts.Count() != 2)
-                FailWithError($"Bad GameId: {gameIdSetting}");
+                throw new Exception($"Bad GameId: {gameIdSetting}");
 
             gameCreateMode = parts[0].EndsWith("+") ? CreateMode.CreateIfNeeded
                                 : parts[0].EndsWith("*") ? CreateMode.MustCreate
@@ -239,7 +248,11 @@ namespace BeamGameCode
         private void _JoinGroup()
         {
             BeamPlayer mb = new BeamPlayer(appl.LocalPeer.PeerId, appl.LocalPeer.Name);
-            game.apian.JoinGroup(groupId, mb.ApianSerialized());
+            //try {
+                game.apian.JoinGroup(groupId, mb.ApianSerialized());
+            //} catch (Exception ex) {
+            //    _SetState(kFailed, ex.Message);
+            //}
         }
 
         // Event handlers
