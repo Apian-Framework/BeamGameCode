@@ -64,9 +64,18 @@ namespace BeamGameCode
 
         public void OnSwitchModeReq(int newModeId, object modeParam)
         {
-           //logger.Error("backend.OnSwitchModeReq() not working");
            modeMgr.SwitchToMode(newModeId, modeParam);
         }
+
+        public void OnPushModeReq(int newModeId, object modeParam)
+        {
+           modeMgr.PushMode(newModeId, modeParam);
+        }
+        public void OnPopModeReq(object resultParam)
+        {
+           modeMgr.PopMode(resultParam);
+        }
+
 
         private void _UpdateLocalPeer()
         {

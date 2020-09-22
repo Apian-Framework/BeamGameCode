@@ -138,7 +138,7 @@ namespace BeamGameCode
             case kFailed:
                 logger.Error($"{(ModeName())}: SetState: kFailed  Reason: {(string)startParam}");
                 appl.frontend.DisplayMessage(MessageSeverity.Error, (string)startParam);
-                this.manager.PopMode();
+                _loopFunc = _FailedLoop;
                 break;
             default:
                 logger.Error($"ModeConnect._SetState() - Unknown state: {newState}");
@@ -199,6 +199,11 @@ namespace BeamGameCode
                     _secsToNextRespawnCheck = kRespawnCheckInterval;
                 }
             }
+        }
+
+        protected void _FailedLoop(float frameSecs)
+        {
+            //if (_curStateSecs > 5)
         }
 
         // utils

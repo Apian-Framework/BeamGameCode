@@ -30,7 +30,11 @@ namespace BeamGameCode
 		public virtual void Loop(float frameSecs) {}
 
 		public virtual void Pause() {}
-		public virtual void Resume(string prevModeName, object prevModeResult) {}
+
+		public virtual void Resume( string prevModeName, object param = null)	{
+            logger.Info($"Resuming {(ModeName())} from {prevModeName}");
+        }
+
 		public virtual object End() => null;
         public virtual string ModeName() => this.GetType().Name;
 

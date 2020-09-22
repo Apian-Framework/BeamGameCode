@@ -34,6 +34,16 @@ namespace BeamGameCode
         {
             logger.Info("Starting Splash");
             base.Start();
+            _DoStartup(null, param);
+        }
+
+		protected void _DoStartup(string prevModeName, object param = null)
+        {
+            _secsToNextRespawnCheck = kRespawnCheckInterval;
+            game = null;
+            bikesCreated = false;
+            localPlayerJoined = false;
+            _camTargetSecsLeft = 0;
 
             appl.PeerJoinedGameEvt += OnPeerJoinedGameEvt;
             appl.AddAppCore(null); // TODO: THis is beam only. Need better way. ClearGameInstances()? Init()?
@@ -43,7 +53,6 @@ namespace BeamGameCode
             appl.JoinNetworkGame(GameName);
             _CurrentState = ModeState.JoiningGame;
             // Now wait for OnPeerJoinedGame()
-
         }
 
 
@@ -88,7 +97,10 @@ namespace BeamGameCode
             }
         }
 
-		public override object End() {
+		public override object End() { return _DoCleanup(); }
+
+        protected object _DoCleanup()
+        {
             appl.PeerJoinedGameEvt -= OnPeerJoinedGameEvt;
             game.PlayerJoinedEvt -= OnPlayerJoinedEvt;
             game.GroupJoinedEvt -= OnGroupJoinedEvt;
