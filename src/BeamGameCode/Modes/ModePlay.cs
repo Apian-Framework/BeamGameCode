@@ -136,12 +136,12 @@ namespace BeamGameCode
                 _loopFunc = _PlayLoop;
                 break;
             case kFailed:
-                logger.Error($"{(ModeName())}: SetState: kFailed  Reason: {(string)startParam}");
+                logger.Warn($"{(ModeName())}: SetState: kFailed  Reason: {(string)startParam}");
                 appl.frontend.DisplayMessage(MessageSeverity.Error, (string)startParam);
                 _loopFunc = _FailedLoop;
                 break;
             default:
-                logger.Error($"ModeConnect._SetState() - Unknown state: {newState}");
+                logger.Error($"{(ModeName())}._SetState() - Unknown state: {newState}");
                 break;
             }
         }
