@@ -147,7 +147,7 @@ namespace BeamGameCode
             // filter out any that are expired as of the command timestamp
             string[] placesData = activePlaces.Values
                 .Where( p => p.expirationTimeMs > sArgs.timeStamp ) // not expired as of command timestamp
-                .Where ( p => Bikes.ContainsKey(p.bike.bikeId))  // just to make sure the bike hasn;t gone away
+                .Where ( p => Bikes.ContainsKey(p.bike?.bikeId))  // just to make sure the bike hasn;t gone away (note the p.bike? as well as the Bikes dict check)
                 .OrderBy(p => p.expirationTimeMs).ThenBy(p => p.PosHash)
                 .Select(p => p.ApianSerialized(new BeamPlace.SerialArgs(bikeIndicesDict))).ToArray();
 
