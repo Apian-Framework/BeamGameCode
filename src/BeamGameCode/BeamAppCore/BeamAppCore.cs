@@ -174,7 +174,9 @@ namespace BeamGameCode
         {
             logger.Debug($"OnApianCommand() Seq#: {cmd.SequenceNum} Cmd: {cmd.CliMsgType}");
             CoreData.UpdateCommandSequenceNumber(cmd.SequenceNum);
+            CoreData.ResetRemovalSideEffects();
             commandHandlers[cmd.ClientMsg.MsgType](cmd.ClientMsg as BeamMessage);
+            CoreData.DoRemovals();
         }
 
         public void OnNewPlayerCmd(NewPlayerMsg msg)
@@ -329,6 +331,7 @@ namespace BeamGameCode
 
         public void PostBikeCommand(IBike bike, BikeCommand cmd)
         {
+            // TODO: BikeCommand is a bad name - these are NOT Apian Commands
             apian.SendBikeCommandReq(FrameApianTime, bike, cmd, (bike as BaseBike).UpcomingGridPoint(bike.basePosition));
         }
 
@@ -454,7 +457,7 @@ namespace BeamGameCode
             foreach (IBike ib in CoreData.LocalBikes(p2pId))
                 _RemoveBike(ib, true); // Blow em up just for yuks.
 
-            CoreData.Players.Remove(p2pId);
+            CoreData.PostPlayerRemoval(p2pId);
             return true;
         }
 
@@ -533,6 +536,7 @@ namespace BeamGameCode
 
         public void ClearPlaces()
         {
+            // TODO: Clean this up. This method probably shouldn;t even be here.
             CoreData.ClearPlaces(); // notifies FE.
         }
 

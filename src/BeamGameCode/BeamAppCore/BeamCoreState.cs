@@ -51,8 +51,11 @@ namespace BeamGameCode
 
         // Ancillary data (initialize to empty if loading state data)
         protected Stack<BeamPlace> freePlaces = null; // re-use released/expired ones
-        protected List<string> _bikeIdsToRemoveAfterLoop; // at end of Loop() any bikes listed here get removed
-        protected List<BeamPlace> _placesToRemoveAfterLoop; // Places also are not destroyed until the end of the data loop
+
+        // TODO: Is there an elegant way to get rid of these next 3 "side effect" members and still do what they do?
+        protected List<string> _playerIdsToRemove;
+        protected List<string> _bikeIdsToRemove; // Bikes destroyed during a command don;t get removed until the command has been applied completely
+        protected List<BeamPlace> _placesToRemove; // Same goes for places.
         protected Dictionary<int, BeamPlace> _reportedTimedOutPlaces; // places that have been reported as timed out, but not removed yet
 
         public BeamCoreState(IBeamFrontend fep)
@@ -63,7 +66,8 @@ namespace BeamGameCode
             Ground = new Ground();
             InitPlaces();
 
-            _bikeIdsToRemoveAfterLoop = new List<string>();
+            ResetRemovalSideEffects();
+
         }
 
         public void Init()
@@ -77,8 +81,26 @@ namespace BeamGameCode
         {
             activePlaces = new Dictionary<int, BeamPlace>();
             freePlaces = new Stack<BeamPlace>();
-            _placesToRemoveAfterLoop = new List<BeamPlace>();
             _reportedTimedOutPlaces  = new Dictionary<int, BeamPlace>(); // check this before reporting. delete entry when removed.
+        }
+
+        public void ResetRemovalSideEffects()
+        {
+            _playerIdsToRemove = new List<string>();
+            _bikeIdsToRemove = new List<string>();
+            _placesToRemove = new List<BeamPlace>();
+        }
+
+        public void PostPlayerRemoval(string playerId) => _playerIdsToRemove.Add(playerId);
+        public void PostBikeRemoval(string bikeId) => _bikeIdsToRemove.Add(bikeId);
+
+        public void PostPlaceRemoval(BeamPlace p) => _placesToRemove.Add(p);
+
+        public void DoRemovals()
+        {
+            _placesToRemove.RemoveAll( p => { RemoveActivePlace(p); return true; } ); // do places before bikes
+            _bikeIdsToRemove.RemoveAll( bid => {Bikes.Remove(bid); return true; });
+            _playerIdsToRemove.RemoveAll( pid => {Players.Remove(pid); return true; });
         }
 
         public void Loop(long nowMs, long frameMs)
@@ -87,9 +109,6 @@ namespace BeamGameCode
                 ib.Loop(nowMs);  // Bike might get "destroyed" here and need to be removed
 
             LoopPlaces(nowMs);
-
-            _placesToRemoveAfterLoop.RemoveAll( p => { RemoveActivePlace(p); return true; } ); // send removal messages for places before bikes
-            _bikeIdsToRemoveAfterLoop.RemoveAll( bid => {Bikes.Remove(bid); return true; });
 
         }
 
@@ -107,7 +126,7 @@ namespace BeamGameCode
                 if ( !_reportedTimedOutPlaces.ContainsKey(p.PosHash))
                 {
                     _reportedTimedOutPlaces[p.PosHash] = p;
-                    PlaceTimeoutEvt?.Invoke(this,p); // causes GameInst to post a PlaceRemovedMsg
+                    PlaceTimeoutEvt?.Invoke(this,p); // causes GameInst to post a PlaceRemovedMsg request
                 }
             }
         }
@@ -208,9 +227,6 @@ namespace BeamGameCode
             try { return Bikes[bikeId] as BaseBike;} catch (KeyNotFoundException){ return null;}
         }
 
-        public void PostBikeRemoval(string bikeId) => _bikeIdsToRemoveAfterLoop.Add(bikeId);
-
-
         public IBike ClosestBike(long curTime, IBike thisBike)
         {
             BikeDynState thisBikeState = thisBike.DynamicState(curTime);
@@ -261,8 +277,6 @@ namespace BeamGameCode
             AnnounceNewPlace(p);
             return p;
         }
-
-        public void PostPlaceRemoval(BeamPlace p) => _placesToRemoveAfterLoop.Add(p);
 
         protected void RemoveActivePlace(BeamPlace p)
         {
