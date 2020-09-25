@@ -66,18 +66,6 @@ namespace BeamGameCode
         void PostBikeTurn(IBike bike, TurnDir dir);
         void PostBikeCreateData(IBike ib, string destId);
 
-        // API for Apian Core
-
-        // What Apian expects to call in the app instance
-        void OnGroupJoined(string groupId); // local peer has joined a group (status: Joining)
-        void OnNewPlayerCmd(NewPlayerMsg msg);
-        void OnPlayerLeftCmd(PlayerLeftMsg msg);
-        void OnCreateBikeCmd(BikeCreateDataMsg msg);
-        void OnPlaceHitCmd(PlaceHitMsg msg);
-        void OnPlaceClaimCmd(PlaceClaimMsg msg); // delay since the claim was originally made
-        void OnBikeCommandCmd(BikeCommandMsg msg);
-        void OnBikeTurnCmd(BikeTurnMsg msg);
-
     }
 
 

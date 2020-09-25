@@ -48,7 +48,7 @@ namespace BeamGameCode
         public event EventHandler ReadyToPlayEvt;
         public event EventHandler RespawnPlayerEvt;
 
-        protected Dictionary<string, Action<BeamMessage>> commandHandlers;
+        protected Dictionary<string, Action<BeamMessage, long>> commandHandlers;
 
         public BeamAppCore(IBeamFrontend fep)
         {
@@ -57,17 +57,17 @@ namespace BeamGameCode
             CoreData = new BeamCoreState(frontend);
             OnNewCoreState();
 
-            commandHandlers = new  Dictionary<string, Action<BeamMessage>>()
+            commandHandlers = new  Dictionary<string, Action<BeamMessage, long>>()
             {
-                [BeamMessage.kNewPlayer] = (msg) => OnNewPlayerCmd(msg as NewPlayerMsg),
-                [BeamMessage.kPlayerLeft] = (msg) => OnPlayerLeftCmd(msg as PlayerLeftMsg),
-                [BeamMessage.kBikeCreateData] = (msg) => this.OnCreateBikeCmd(msg as BikeCreateDataMsg),
-                [BeamMessage.kRemoveBikeMsg] = (msg) => this.OnRemoveBikeCmd(msg as RemoveBikeMsg),
-                [BeamMessage.kBikeTurnMsg] = (msg) => this.OnBikeTurnCmd(msg as BikeTurnMsg),
-                [BeamMessage.kBikeCommandMsg] =(msg) => this.OnBikeCommandCmd(msg as BikeCommandMsg),
-                [BeamMessage.kPlaceClaimMsg] = (msg) => this.OnPlaceClaimCmd(msg as PlaceClaimMsg),
-                [BeamMessage.kPlaceHitMsg] = (msg) => this.OnPlaceHitCmd(msg as PlaceHitMsg),
-                [BeamMessage.kPlaceRemovedMsg] = (msg) => this.OnPlaceRemovedCmd(msg as PlaceRemovedMsg),
+                [BeamMessage.kNewPlayer] = (msg, seqNum) => OnNewPlayerCmd(msg as NewPlayerMsg, seqNum),
+                [BeamMessage.kPlayerLeft] = (msg, seqNum) => OnPlayerLeftCmd(msg as PlayerLeftMsg, seqNum),
+                [BeamMessage.kBikeCreateData] = (msg, seqNum) => this.OnCreateBikeCmd(msg as BikeCreateDataMsg, seqNum),
+                [BeamMessage.kRemoveBikeMsg] = (msg, seqNum) => this.OnRemoveBikeCmd(msg as RemoveBikeMsg, seqNum),
+                [BeamMessage.kBikeTurnMsg] = (msg, seqNum) => this.OnBikeTurnCmd(msg as BikeTurnMsg, seqNum),
+                [BeamMessage.kBikeCommandMsg] =(msg, seqNum) => this.OnBikeCommandCmd(msg as BikeCommandMsg, seqNum),
+                [BeamMessage.kPlaceClaimMsg] = (msg, seqNum) => this.OnPlaceClaimCmd(msg as PlaceClaimMsg, seqNum),
+                [BeamMessage.kPlaceHitMsg] = (msg, seqNum) => this.OnPlaceHitCmd(msg as PlaceHitMsg, seqNum),
+                [BeamMessage.kPlaceRemovedMsg] = (msg, seqNum) => this.OnPlaceRemovedCmd(msg as PlaceRemovedMsg, seqNum),
             };
         }
 
@@ -175,26 +175,26 @@ namespace BeamGameCode
             logger.Debug($"OnApianCommand() Seq#: {cmd.SequenceNum} Cmd: {cmd.CliMsgType}");
             CoreData.UpdateCommandSequenceNumber(cmd.SequenceNum);
             CoreData.ResetRemovalSideEffects();
-            commandHandlers[cmd.ClientMsg.MsgType](cmd.ClientMsg as BeamMessage);
+            commandHandlers[cmd.ClientMsg.MsgType](cmd.ClientMsg as BeamMessage, cmd.SequenceNum);
             CoreData.DoRemovals();
         }
 
-        public void OnNewPlayerCmd(NewPlayerMsg msg)
+        public void OnNewPlayerCmd(NewPlayerMsg msg, long seqNum)
         {
             BeamPlayer newPlayer = msg.newPlayer;
-            logger.Info($"OnNewPlayerCmd() {((newPlayer.PeerId == LocalPeerId)?"Local":"Remote")} name: {newPlayer.Name}");
+            logger.Info($"OnNewPlayerCmd(#{seqNum}) {((newPlayer.PeerId == LocalPeerId)?"Local":"Remote")} name: {newPlayer.Name}");
             _AddPlayer(newPlayer);
         }
 
-        public void OnPlayerLeftCmd(PlayerLeftMsg msg)
+        public void OnPlayerLeftCmd(PlayerLeftMsg msg, long seqNum)
         {
-            logger.Info($"OnPlayerLeftCmd({msg.peerId})");
+            logger.Info($"OnPlayerLeftCmd(#{seqNum}, {msg.peerId})");
             _RemovePlayer(msg.peerId);
         }
 
-        public void OnCreateBikeCmd(BikeCreateDataMsg msg)
+        public void OnCreateBikeCmd(BikeCreateDataMsg msg, long seqNum)
         {
-            logger.Verbose($"OnCreateBikeCmd(): {msg.bikeId}.");
+            logger.Verbose($"OnCreateBikeCmd(#{seqNum}): {msg.bikeId}.");
             IBike ib = msg.ToBike(CoreData);
             logger.Verbose($"** OnCreateBike() created {ib.bikeId} at ({ib.basePosition.x}, {ib.basePosition.y})");
             if (_AddBike(ib))
@@ -204,17 +204,17 @@ namespace BeamGameCode
             }
         }
 
-        public void OnBikeCommandCmd(BikeCommandMsg msg)
+        public void OnBikeCommandCmd(BikeCommandMsg msg, long seqNum)
         {
             BaseBike bb = CoreData.GetBaseBike(msg.bikeId);
-            logger.Verbose($"OnBikeCommandCmd({msg.cmd}) Now: {FrameApianTime} Ts: {msg.TimeStamp} Bike:{msg.bikeId}");
+            logger.Verbose($"OnBikeCommandCmd(#{seqNum}, {msg.cmd}) Now: {FrameApianTime} Ts: {msg.TimeStamp} Bike:{msg.bikeId}");
             bb.ApplyCommand(msg.cmd, new Vector2(msg.nextPtX, msg.nextPtZ), msg.TimeStamp);
         }
 
-        public void OnBikeTurnCmd(BikeTurnMsg msg)
+        public void OnBikeTurnCmd(BikeTurnMsg msg, long seqNum)
         {
             BaseBike bb = CoreData.GetBaseBike(msg.bikeId);
-            logger.Verbose($"OnBikeTurnCmd({msg.dir}) Now: {FrameApianTime} Ts: {msg.TimeStamp} Bike:{msg.bikeId}");
+            logger.Verbose($"OnBikeTurnCmd(#{seqNum}, {msg.dir}) Now: {FrameApianTime} Ts: {msg.TimeStamp} Bike:{msg.bikeId}");
             if (bb == null)
                 logger.Warn($"OnBikeTurnCmd() Bike:{msg.bikeId} not found!");
             bb?.ApplyTurn(msg.dir, msg.entryHead, new Vector2(msg.nextPtX, msg.nextPtZ),  msg.TimeStamp, msg.bikeState);
@@ -234,7 +234,7 @@ namespace BeamGameCode
             }
         }
 
-        public void OnPlaceClaimCmd(PlaceClaimMsg msg)
+        public void OnPlaceClaimCmd(PlaceClaimMsg msg, long seqNum)
         {
             // Apian has said this message is authoritative
             BaseBike b = CoreData.GetBaseBike(msg.bikeId);
@@ -242,7 +242,7 @@ namespace BeamGameCode
             {
                 if (b == null)
                 {
-                    logger.Warn($"OnPlaceClaimCmd() Bike:{msg.bikeId} not found!"); // can happen if RemoveCmd and ClaimObs interleave
+                    logger.Warn($"OnPlaceClaimCmd(#{seqNum}) Bike:{msg.bikeId} not found!"); // can happen if RemoveCmd and ClaimObs interleave
                     return;
                 }
 
@@ -253,14 +253,14 @@ namespace BeamGameCode
                 if (p != null)
                 {
                     ApplyScoreUpdate(msg.scoreUpdates);
-                    logger.Verbose($"OnPlaceClaimCmd() Bike: {b.bikeId} claimed {BeamPlace.PlacePos( msg.xIdx, msg.zIdx).ToString()} at {msg.TimeStamp}");
+                    logger.Verbose($"OnPlaceClaimCmd(#{seqNum}) Bike: {b.bikeId} claimed {BeamPlace.PlacePos( msg.xIdx, msg.zIdx).ToString()} at {msg.TimeStamp}");
                     //logger.Verbose($"                  BikePos: {b.position.ToString()}, FrameApianTime: {FrameApianTime} ");
                     //logger.Verbose($"   at Timestamp:  BikePos: {b.PosAtTime(msg.TimeStamp, FrameApianTime).ToString()}, Time: {msg.TimeStamp} ");
                     PlaceClaimedEvt?.Invoke(this, p);
                 } else {
                     // &&&& Debugger crap for BeamGameCode#5
                     // p = CoreData.GetPlace(msg.xIdx, msg.zIdx);
-                    logger.Warn($"OnPlaceClaimCmd()) failed. Place already claimed.");
+                    logger.Warn($"OnPlaceClaimCmd(#{seqNum})) failed. Place already claimed.");
                 }
 
             }
@@ -270,14 +270,14 @@ namespace BeamGameCode
                 // Fix this both here and in the BaseBike code.
                 if (b != null) // might already be gone
                 {
-                    logger.Info($"OnPlaceClaimCmd() - OFF MAP! Boom! Now: {FrameApianTime} Ts: {msg.TimeStamp} Bike: {b?.bikeId}");
+                    logger.Info($"OnPlaceClaimCmd(#{seqNum}) - OFF MAP! Boom! Now: {FrameApianTime} Ts: {msg.TimeStamp} Bike: {b?.bikeId}");
                     ApplyScoreUpdate( new Dictionary<string,int>(){ {b.bikeId, -b.score} });
                 }
 
             }
         }
 
-        public void OnPlaceHitCmd(PlaceHitMsg msg)
+        public void OnPlaceHitCmd(PlaceHitMsg msg, long seqNum)
         {
             // Apian has already checked the the place is claimed and the bike exists
             Vector2 pos = BeamPlace.PlacePos(msg.xIdx, msg.zIdx);
@@ -286,27 +286,33 @@ namespace BeamGameCode
             if (p != null && hittingBike != null)
             {
                 hittingBike.UpdatePosFromCommand(msg.TimeStamp, FrameApianTime, p.GetPos(), msg.exitHead);
-                logger.Info($"OnPlaceHitCmd{p?.GetPos().ToString()} Now: {FrameApianTime} Ts: {msg.TimeStamp} Bike: {hittingBike?.bikeId} Pos: {p?.GetPos().ToString()}");
+                logger.Info($"OnPlaceHitCmd( #{seqNum}, {p?.GetPos().ToString()}) Now: {FrameApianTime} Ts: {msg.TimeStamp} Bike: {hittingBike?.bikeId} Pos: {p?.GetPos().ToString()}");
                 ApplyScoreUpdate(msg.scoreUpdates);
                 PlaceHitEvt?.Invoke(this, new PlaceHitArgs(p, hittingBike));
             }
             else
             {
-                logger.Info($"OnPlaceHitCmd{p?.GetPos().ToString()} Now: {FrameApianTime} Ts: {msg.TimeStamp} Bike: {hittingBike?.bikeId} Pos: {p?.GetPos().ToString()}");
+                logger.Info($"OnPlaceHitCmd(#{seqNum}, {p?.GetPos().ToString()}) Now: {FrameApianTime} Ts: {msg.TimeStamp} Bike: {hittingBike?.bikeId} Pos: {p?.GetPos().ToString()}");
             }
         }
 
-        public void OnRemoveBikeCmd(RemoveBikeMsg msg)
+        public void OnRemoveBikeCmd(RemoveBikeMsg msg, long seqNum)
         {
-            logger.Info($"OnRemoveBikeCmd({msg.bikeId}) Now: {FrameApianTime} Ts: {msg.TimeStamp}");
+            logger.Info($"OnRemoveBikeCmd(#{seqNum}, {msg.bikeId}) Now: {FrameApianTime} Ts: {msg.TimeStamp}");
             IBike ib = CoreData.GetBaseBike(msg.bikeId);
-            _RemoveBike(ib, true);
+            if (ib != null)
+            {
+                _RemoveBike(ib, true);
+            } else {
+                logger.Warn($"OnRemoveBikeCmd() {msg.bikeId} does not exist.");
+            }
+
         }
 
-        public void OnPlaceRemovedCmd(PlaceRemovedMsg msg)
+        public void OnPlaceRemovedCmd(PlaceRemovedMsg msg, long seqNum)
         {
             BeamPlace p = CoreData.GetPlace(msg.xIdx, msg.zIdx);
-            logger.Verbose($"OnPlaceRemovedCmd({msg.xIdx},{msg.zIdx}) {(p==null?"MISSING":"")} Now: {FrameApianTime} Ts: {msg.TimeStamp}");
+            logger.Verbose($"OnPlaceRemovedCmd(#{seqNum}, {msg.xIdx},{msg.zIdx}) {(p==null?"MISSING":"")} Now: {FrameApianTime} Ts: {msg.TimeStamp}");
             CoreData.PostPlaceRemoval(p);
         }
 
