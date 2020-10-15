@@ -64,10 +64,7 @@ namespace BeamGameCode
         // TODO: This is getting sparse - is it needed?
         void PostBikeCommand(IBike bike, BikeCommand cmd);
         void PostBikeTurn(IBike bike, TurnDir dir);
-        void PostBikeCreateData(IBike ib, string destId);
+        void PostBikeCreateData(IBike ib);
 
     }
-
-
-
 }

@@ -328,11 +328,11 @@ namespace BeamGameCode
         // directly - if the particular FE code had a reference to the GameNet. It's a lot more likely to  have an IBackend ref.
         // I'm not completely convinced this is the best way to handle it.
 
-        public void PostBikeCreateData(IBike ib, string destId = null)
+        public void PostBikeCreateData(IBike ib)
         {
             logger.Info($"PostBikeCreateData(): {ib.bikeId}");
 
-            apian.SendBikeCreateReq(FrameApianTime, ib, destId);
+            apian.SendBikeCreateReq(FrameApianTime, ib);
         }
 
         public void PostBikeCommand(IBike bike, BikeCommand cmd)
