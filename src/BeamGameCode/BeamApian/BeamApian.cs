@@ -361,13 +361,13 @@ namespace BeamGameCode
             ApianBikeCommandRequest req = new ApianBikeCommandRequest(ApianGroup?.GroupId, msg);
             SendRequestOrObservation(ApianGroup.GroupId, req);
         }
-        public  void SendBikeCreateReq(long timeStamp, IBike ib, string destId = null)
+        public  void SendBikeCreateReq(long timeStamp, IBike ib)
         {
-            Logger.Debug($"SendBikeCreateReq() - dest: {(destId??"bcast")}");
+            Logger.Debug($"SendBikeCreateReq()");
             // Broadcast this to send it to everyone
             BikeCreateDataMsg msg = new BikeCreateDataMsg(timeStamp, ib);
-            ApianBikeCreateRequest req = new ApianBikeCreateRequest(ApianGroup?.GroupId, msg);
-            SendRequestOrObservation(destId ?? ApianGroup.GroupId, req);
+            ApianBikeCreateRequest req = new ApianBikeCreateRequest(ApianGroup.GroupId, msg);
+            SendRequestOrObservation(ApianGroup.GroupId, req);
         }
 
         public  void SendRemoveBikeObs(long timeStamp, string bikeId)
