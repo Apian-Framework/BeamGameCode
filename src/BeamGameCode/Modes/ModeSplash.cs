@@ -10,7 +10,6 @@ namespace BeamGameCode
     {
         static public readonly string GameName = "LocalSplashGame";
         static public readonly string ApianGroupName = "LocalSplashGroup";
-        static public readonly string ApianGroupId = "LocalSplashId";
         static public readonly int kCmdTargetCamera = 1;
 	    static public readonly int kSplashBikeCount = 12;
         protected const float kRespawnCheckInterval = 1.3f;
@@ -103,7 +102,6 @@ namespace BeamGameCode
         {
             appl.PeerJoinedGameEvt -= OnPeerJoinedGameEvt;
             game.PlayerJoinedEvt -= OnPlayerJoinedEvt;
-            game.GroupJoinedEvt -= OnGroupJoinedEvt;
             game.NewBikeEvt -= OnNewBikeEvt;
             game.frontend?.OnEndMode(appl.modeMgr.CurrentModeId(), null);
             game.End();
@@ -139,19 +137,12 @@ namespace BeamGameCode
                 // BeamApian apian = new BeamApianCreatorServer(core.gameNet, game); // Just for quick tests of CreatorServer
                 appl.AddAppCore(game);
                 // Dont need to check for groups in splash
-                apian.CreateNewGroup(ApianGroupId, ApianGroupName);
+                apian.CreateNewGroup(ApianGroupName);
                 BeamPlayer mb = new BeamPlayer(appl.LocalPeer.PeerId, appl.LocalPeer.Name);
-                game.GroupJoinedEvt += OnGroupJoinedEvt;
-                apian.JoinGroup(ApianGroupId, mb.ApianSerialized());
+                apian.JoinGroup(ApianGroupName, mb.ApianSerialized());
                 _CurrentState = ModeState.JoiningGroup;
                 // waiting for OnPlayerJoined(localplayer)
             }
-        }
-
-        public void OnGroupJoinedEvt(object sender, string groupId)
-        {
-            // Nothing results from this
-            logger.Info($"{this.ModeName()}: Group {groupId} joined");
         }
 
         public void OnPlayerJoinedEvt(object sender, PlayerJoinedArgs ga)

@@ -10,7 +10,6 @@ namespace BeamGameCode
     {
         static public readonly string GameName = "LocalPracticeGame";
         static public readonly string ApianGroupName = "LocalPracticeGroup";
-        static public readonly string ApianGroupId = "LocalPracticeId";
         public readonly int kMaxAiBikes = 11;
         public BeamAppCore game = null;
         protected BaseBike playerBike = null;
@@ -132,9 +131,9 @@ namespace BeamGameCode
                 BeamApian apian = new BeamApianSinglePeer(appl.gameNet, game);
                 appl.AddAppCore(game);
                 // Dont need to check for groups in splash
-                apian.CreateNewGroup(ApianGroupId, ApianGroupName);
+                apian.CreateNewGroup(ApianGroupName);
                 BeamPlayer mb = new BeamPlayer(appl.LocalPeer.PeerId, appl.LocalPeer.Name);
-                apian.JoinGroup(ApianGroupId, mb.ApianSerialized());
+                apian.JoinGroup(ApianGroupName, mb.ApianSerialized());
 
                 game.frontend?.OnStartMode(BeamModeFactory.kPractice, null);
                 // waiting for OnGroupJoined()

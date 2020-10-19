@@ -18,7 +18,7 @@ namespace BeamGameCode
     {
         protected string gameId;
         protected CreateMode gameCreateMode = CreateMode.CreateIfNeeded;
-        protected string groupId;
+        protected string groupName;
         protected CreateMode groupCreateMode = CreateMode.CreateIfNeeded;
         public BeamUserSettings settings;
 
@@ -155,22 +155,22 @@ namespace BeamGameCode
                 // TODO: Hoist all this!!!
                 // Stop listening for groups and either create or join (or fail)
                 appl.GroupAnnounceEvt -= OnGroupAnnounceEvt; // stop listening
-                bool targetGroupExisted = (groupId != null) && announcedGroups.ContainsKey(groupId);
+                bool targetGroupExisted = (groupName != null) && announcedGroups.ContainsKey(groupName);
 
                 switch (groupCreateMode)
                 {
                 case CreateMode.JoinOnly:
                     if (targetGroupExisted)
                     {
-                        game.apian.InitExistingGroup(announcedGroups[groupId]); // Like create, but for a remotely-created group
+                        game.apian.InitExistingGroup(announcedGroups[groupName]); // Like create, but for a remotely-created group
                         _SetState(kJoiningGroup);
                     }
                     else
-                        _SetState(kFailed, $"Apian Group \"{groupId}\" Not Found");
+                        _SetState(kFailed, $"Apian Group \"{groupName}\" Not Found");
                     break;
                 case CreateMode.CreateIfNeeded:
                     if (targetGroupExisted)
-                        game.apian.InitExistingGroup(announcedGroups[groupId]);
+                        game.apian.InitExistingGroup(announcedGroups[groupName]);
                     else
                         _CreateGroup();
                     _SetState(kJoiningGroup);
@@ -238,23 +238,23 @@ namespace BeamGameCode
 
             char[] trimChars = {'+','*'};
             gameId = parts[0].TrimEnd(trimChars);
-            groupId = parts[1].TrimEnd(trimChars);
+            groupName = parts[1].TrimEnd(trimChars);
 
-            logger.Verbose($"{(ModeName())}: _ParseGameAndGroup() GameID: {gameId} ({gameCreateMode}), GroupID: {groupId} ({groupCreateMode})");
+            logger.Verbose($"{(ModeName())}: _ParseGameAndGroup() GameID: {gameId} ({gameCreateMode}), groupName: {groupName} ({groupCreateMode})");
         }
 
         private void _CreateGroup()
         {
             logger.Verbose($"{(ModeName())}: _CreateGroup()");
-            groupId = groupId ?? "BEAMGRP" + System.Guid.NewGuid().ToString();
-            game.apian.CreateNewGroup(groupId, "GRPNAME_" + groupId);
+            groupName = groupName ?? "BEAMGRP" + System.Guid.NewGuid().ToString();
+            game.apian.CreateNewGroup(groupName);
         }
 
         private void _JoinGroup()
         {
             BeamPlayer mb = new BeamPlayer(appl.LocalPeer.PeerId, appl.LocalPeer.Name);
             //try {
-                game.apian.JoinGroup(groupId, mb.ApianSerialized());
+                game.apian.JoinGroup(groupName, mb.ApianSerialized());
             //} catch (Exception ex) {
             //    _SetState(kFailed, ex.Message);
             //}
@@ -297,8 +297,8 @@ namespace BeamGameCode
 
         public void OnGroupAnnounceEvt(object sender, ApianGroupInfo groupInfo)
         {
-            logger.Verbose($"{(ModeName())} - OnGroupAnnounceEvt(): {groupInfo.GroupId}");
-            announcedGroups[groupInfo.GroupId] = groupInfo;
+            logger.Verbose($"{(ModeName())} - OnGroupAnnounceEvt(): {groupInfo.GroupName}");
+            announcedGroups[groupInfo.GroupName] = groupInfo;
         }
 
 
