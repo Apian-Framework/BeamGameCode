@@ -227,6 +227,13 @@ namespace BeamGameCode
             try { return Bikes[bikeId] as BaseBike;} catch (KeyNotFoundException){ return null;}
         }
 
+        public IBike ClosestBikeToPos(long curTime, Vector2 pos)
+        {
+            return Bikes.Count <= 1 ? null : Bikes.Values
+                    .OrderBy(b => Vector2.Distance(b.DynamicState(curTime).position, pos))
+                    .First();
+        }
+
         public IBike ClosestBike(long curTime, IBike thisBike)
         {
             BikeDynState thisBikeState = thisBike.DynamicState(curTime);
@@ -333,6 +340,25 @@ namespace BeamGameCode
             int zIdx = (int)Mathf.Floor((gridPos.y - Ground.minZ) / Ground.gridSize );
             //Debug.Log(string.Format("gridPos: {0}, xIdx: {1}, zIdx: {2}", gridPos, xIdx, zIdx));
             return Ground.IndicesAreOnMap(xIdx,zIdx) ? GetPlace(xIdx,zIdx) : null; // note this returns null for "no place" and for "out of bounds"
+        }
+
+        public List<BeamPlace> GetNearbyPlaces(Vector2 pos, float maxDist)
+        {
+            // maxDist is a Manhattan distance,
+            int baseX;
+            int baseZ;
+            int grids = (int)Mathf.Round( (maxDist +.5f) / Ground.gridSize ); // how many grid lengths is maxDist
+
+            List<int> possiblePlaceHashes = new List<int>();
+            (baseX, baseZ) = Ground.NearestGridIndices(pos);
+            foreach(int x in Enumerable.Range(baseX-grids, 2*grids))
+                foreach(int z in Enumerable.Range(baseZ-grids, 2*grids))
+                    possiblePlaceHashes.Add(BeamPlace.MakePosHash(x,z));
+
+            List<BeamPlace> places = possiblePlaceHashes.Select( hash => activePlaces.GetValueOrDefault(hash, null))
+                                        .Where( p => p != null).ToList();
+
+            return places;
         }
 
         public BeamPlace ClaimPlace(IBike bike, int xIdx, int zIdx, long expireTimeMs)

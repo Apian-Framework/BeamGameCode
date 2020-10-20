@@ -36,17 +36,27 @@ namespace BeamGameCode
 			// offset from center point between basPos and next point given the heading
 			return  closestPos + GameConstants.UnitOffset2ForHeading(head) * (.5f + offsetFrac) * Ground.gridSize;
 		}
-		public static Vector2 PositionForNewBike(List<IBike> otherBikes, Heading head, Vector2 basePos, float radius)
+
+		public static Vector2 PositionForNewBike(BeamCoreState coreState, long curTime, Heading head, Vector2 basePos, float radius)
 		{
-			float minDist = BaseBike.length * 20;
+			List<IBike> otherBikes = coreState.Bikes.Values.ToList();
+			float minDist = Ground.gridSize * 2;
 			float closestD = -1;
 			Vector2 newPos = Vector2.zero;
 			int iter = 0;
+
 			while (closestD < minDist && iter < 100)
 			{
-				// Note that it's using the discrete "prevPosition" property
 				newPos = PickRandomPos( head, basePos,  radius);
-				closestD = otherBikes.Count == 0 ? minDist : otherBikes.Select( (bike) => Vector2.Distance(bike.basePosition, newPos)).Aggregate( (acc,next) => acc < next ? acc : next);
+
+				IBike closestBike = coreState.ClosestBikeToPos(curTime, newPos);
+				closestD = closestBike == null ? minDist : Vector2.Distance(closestBike.DynamicState(curTime).position, newPos);
+				if ( closestD >= minDist )
+				{
+					// No bike in the way  - how about claimed places?
+					if ( coreState.GetNearbyPlaces(newPos,minDist).Count > 0)
+						closestD = -1; // Yup, there's at least 1 - keep trying
+				}
 				iter++;
 			}
 			return newPos;
