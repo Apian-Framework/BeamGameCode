@@ -16,7 +16,7 @@ namespace BeamGameCode
 
     public class ModePlay : BeamGameMode
     {
-        protected string gameId;
+        protected string gameName;
         protected CreateMode gameCreateMode = CreateMode.CreateIfNeeded;
         protected string groupName;
         protected CreateMode groupCreateMode = CreateMode.CreateIfNeeded;
@@ -99,10 +99,10 @@ namespace BeamGameCode
                     _SetState(kFailed, ex.Message);
                     return;
                 }
-                if (gameId == null)
+                if (gameName == null)
                     _SetState(kCreatingGame, new BeamGameNet.GameCreationData());
                 else
-                    _SetState(kJoiningGame, gameId);
+                    _SetState(kJoiningGame, gameName);
                 break;
             case kCreatingGame:
                 logger.Verbose($"{(ModeName())}: SetState: kCreatingGame");
@@ -210,23 +210,23 @@ namespace BeamGameCode
 
         private void _ParseGameAndGroup()
         {
-            // Syntax is "gameName/groupName"
+            // Game spec syntax is "gameName/groupName"
             // If either name has an appended + character then the item should be created if it does not already exist.
             // If either name has an appended * character then the item must be created, and cannot already exist.
             // Otherwise, the item cannot be created - only joined.
             // If either name is missing then it is an error
 
-            string gameIdSetting;
+            string gameSpecSetting;
             string[] parts = {};
 
-            if (settings.tempSettings.TryGetValue("gameId", out gameIdSetting))
-                parts = gameIdSetting.Split('/');
+            if (settings.tempSettings.TryGetValue("gameSpec", out gameSpecSetting))
+                parts = gameSpecSetting.Split('/');
             else
-                throw new Exception($"GameId (name/group) setting missing.");
+                throw new Exception($"GameSpec (name/group) setting missing.");
 
 
             if (parts.Count() != 2)
-                throw new Exception($"Bad GameId: {gameIdSetting}");
+                throw new Exception($"Bad GameSpec: {gameSpecSetting}");
 
             gameCreateMode = parts[0].EndsWith("+") ? CreateMode.CreateIfNeeded
                                 : parts[0].EndsWith("*") ? CreateMode.MustCreate
@@ -237,10 +237,10 @@ namespace BeamGameCode
                                     : CreateMode.JoinOnly;
 
             char[] trimChars = {'+','*'};
-            gameId = parts[0].TrimEnd(trimChars);
+            gameName = parts[0].TrimEnd(trimChars);
             groupName = parts[1].TrimEnd(trimChars);
 
-            logger.Verbose($"{(ModeName())}: _ParseGameAndGroup() GameID: {gameId} ({gameCreateMode}), groupName: {groupName} ({groupCreateMode})");
+            logger.Verbose($"{(ModeName())}: _ParseGameAndGroup() GameName: {gameName} ({gameCreateMode}), groupName: {groupName} ({groupCreateMode})");
         }
 
         private void _CreateGroup()
@@ -262,11 +262,11 @@ namespace BeamGameCode
 
         // Event handlers
 
-        public void OnGameCreatedEvt(object sender, string newGameId)
+        public void OnGameCreatedEvt(object sender, string newGameName)
         {
-            logger.Info($"{(ModeName())} - OnGameCreatedEvt(): {newGameId}");
+            logger.Info($"{(ModeName())} - OnGameCreatedEvt(): {newGameName}");
             if (_curState == kCreatingGame)
-                _SetState(kJoiningGame, newGameId);
+                _SetState(kJoiningGame, newGameName);
             else
                 logger.Error($"{(ModeName())} - OnGameCreatedEvt() - Wrong state: {_curState}");
         }

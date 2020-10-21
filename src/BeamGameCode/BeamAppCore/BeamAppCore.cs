@@ -24,7 +24,10 @@ namespace BeamGameCode
         public UniLogger logger;
         public BeamPlayer LocalPlayer { get; private set; } = null;
         public string LocalPeerId => apian?.GameNet.LocalP2pId(); // TODO: make LocalP2pId a property?
-        public string CurrentGameId  { get; private set; }
+
+        public string ApianGameId => apian?.GameId;
+        public string ApianGroupName => apian?.GroupName;
+        public string ApianGroupId => apian?.GroupId; // <game>/<group>
         public long CurrentRunningGameTime => apian.CurrentRunningApianTime();
 
         public long NextCheckpointMs;
@@ -158,7 +161,7 @@ namespace BeamGameCode
             {
                 if (p.PeerId == LocalPeerId )
                     LocalPlayer = p;
-                PlayerJoinedEvt.Invoke(this, new PlayerJoinedArgs(CurrentGameId, p));
+                PlayerJoinedEvt.Invoke(this, new PlayerJoinedArgs(ApianGroupId, p));
             }
 
             foreach (IBike ib in CoreData.Bikes.Values)
@@ -449,7 +452,7 @@ namespace BeamGameCode
             CoreData.Players[p.PeerId] = p;
             if (p.PeerId == LocalPeerId )
                 LocalPlayer = p;
-            PlayerJoinedEvt.Invoke(this, new PlayerJoinedArgs(CurrentGameId, p));
+            PlayerJoinedEvt.Invoke(this, new PlayerJoinedArgs(ApianGroupId, p));
             return true;
         }
 
@@ -458,7 +461,7 @@ namespace BeamGameCode
             if  (!CoreData.Players.ContainsKey(p2pId))
                 return false;
 
-            PlayerLeftEvt?.Invoke(this, new PlayerLeftArgs(CurrentGameId, p2pId));
+            PlayerLeftEvt?.Invoke(this, new PlayerLeftArgs(ApianGroupId, p2pId));
 
             foreach (IBike ib in CoreData.LocalBikes(p2pId))
                 _RemoveBike(ib, true); // Blow em up just for yuks.

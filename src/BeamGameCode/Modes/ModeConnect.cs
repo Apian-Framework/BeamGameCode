@@ -68,10 +68,10 @@ namespace BeamGameCode
             appl.ConnectToNetwork(settings.p2pConnectionString);
 ///            game.AddLocalPeer(core.LocalPeer);
 
-            if (!settings.tempSettings.ContainsKey("gameId"))
+            if (!settings.tempSettings.ContainsKey("gameSpec"))
                 _SetState(kCreatingGame, new BeamGameNet.GameCreationData());
             else
-                _SetState(kJoiningGame, settings.tempSettings["gameId"]);
+                _SetState(kJoiningGame, settings.tempSettings["gameSpec"]);
 
             game.frontend?.OnStartMode(ModeId(), null );
         }

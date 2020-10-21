@@ -7,14 +7,14 @@ namespace BeamGameCode
     // Event args
     //
     public struct PlayerJoinedArgs {
-        public string gameChannel;
+        public string groupChannel;
         public BeamPlayer player;
-        public PlayerJoinedArgs(string g, BeamPlayer p) {gameChannel=g; player=p;}
+        public PlayerJoinedArgs(string g, BeamPlayer p) {groupChannel=g; player=p;}
     }
     public struct PlayerLeftArgs {
-        public string gameChannel;
+        public string groupChannel;
         public string p2pId;
-        public PlayerLeftArgs(string g, string p) {gameChannel=g; p2pId=p;}
+        public PlayerLeftArgs(string g, string p) {groupChannel=g; p2pId=p;}
     }
 
     public struct BikeRemovedData {
@@ -38,6 +38,8 @@ namespace BeamGameCode
         // Events
         event EventHandler<string> GroupJoinedEvt;
         event EventHandler<BeamCoreState> NewCoreStateEvt;
+        event EventHandler<PlayerJoinedArgs> PlayerJoinedEvt;
+        event EventHandler<PlayerLeftArgs> PlayerLeftEvt;
         event EventHandler PlayersClearedEvt;
         event EventHandler<IBike> NewBikeEvt;
         event EventHandler<BikeRemovedData> BikeRemovedEvt;
@@ -57,6 +59,9 @@ namespace BeamGameCode
 
         string LocalPeerId {get;}
         BeamCoreState CoreData {get;}
+
+        string ApianGameId {get;}
+        string ApianGroupName {get;}
 
         long CurrentRunningGameTime {get;}
 
