@@ -308,7 +308,7 @@ namespace BeamGameCode
             logger.Info($"{(ModeName())} - OnPlayerJoinedEvt() - {(isLocal?"Local":"Remote")} Member Joined: {ga.player.Name}, ID: {ga.player.PeerId}");
             if (ga.player.PeerId == appl.LocalPeer.PeerId)
             {
-                game.RespawnPlayerEvt += OnRespawnPlayerEvt;
+                game.RespawnPlayerEvt += OnRespawnPlayerEvt;  //TODO: why does this happen here?  &&&&
                 //_SetState(kWaitingForMembers);
                 _SetState(kPlaying);
             }
