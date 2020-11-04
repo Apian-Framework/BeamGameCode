@@ -73,9 +73,9 @@ namespace BeamGameCode
             {
                 game.PlayerJoinedEvt -= OnPlayerJoinedEvt;
                 game.NewBikeEvt -= OnNewBikeEvt;
-                game.frontend?.OnEndMode(appl.modeMgr.CurrentModeId(), null);
+                appl.frontend?.OnEndMode(appl.modeMgr.CurrentModeId(), null);
                 game.End();
-                appl.gameNet.LeaveGame();
+                appl.beamGameNet.LeaveGame();
             }
             appl.AddAppCore(null);
             return null;
@@ -282,10 +282,10 @@ namespace BeamGameCode
                 if (_curState == kJoiningGame)
                 {
                     // Create gameinstance and ApianInstance
-                    game = new BeamAppCore(appl.frontend);
+                    game = new BeamAppCore();
                     game.PlayerJoinedEvt += OnPlayerJoinedEvt;
                     game.NewBikeEvt += OnNewBikeEvt;
-                    BeamApian apian = new BeamApianCreatorServer(appl.gameNet, game); // TODO: make the groupMgr type run-time spec'ed
+                    BeamApian apian = new BeamApianCreatorServer(appl.beamGameNet, game); // TODO: make the groupMgr type run-time spec'ed
                     //BeamApian apian = new BeamApianSinglePeer(core.gameNet, game); // *** This should be commented out (or gone)
                     appl.AddAppCore(game);
                     _SetState(kCheckingForGroups, null);
@@ -321,7 +321,7 @@ namespace BeamGameCode
             logger.Info($"{(ModeName())} - OnNewBikeEvt() - {(isLocal?"Local":"Remote")} Bike created, ID: {newBike.bikeId}");
             if (isLocal)
             {
-                game.PostBikeCommand(newBike, BikeCommand.kGo);
+                appl.beamGameNet.SendBikeCommandReq(game.ApianGroupId, newBike, BikeCommand.kGo);
             }
         }
 
@@ -336,8 +336,8 @@ namespace BeamGameCode
 
         protected string SpawnAiBike()
         {
-            BaseBike bb =  game.CreateBaseBike( BikeFactory.AiCtrl, game.LocalPeerId, BikeDemoData.RandomName(), BikeDemoData.RandomTeam());
-            game.PostBikeCreateData(bb); // will result in OnBikeInfo()
+            BaseBike bb =  appl.CreateBaseBike( BikeFactory.AiCtrl, game.LocalPeerId, BikeDemoData.RandomName(), BikeDemoData.RandomTeam());
+            appl.beamGameNet.SendBikeCreateDataReq(game.ApianGroupId, bb); // will result in OnBikeInfo()
             logger.Debug($"{this.ModeName()}: SpawnAiBike({ bb.bikeId})");
             return bb.bikeId;  // the bike hasn't been added yet, so this id is not valid yet.
         }
@@ -346,8 +346,8 @@ namespace BeamGameCode
         {
             if (settings.localPlayerCtrlType != "none")
             {
-                BaseBike bb =  game.CreateBaseBike( settings.localPlayerCtrlType, game.LocalPeerId, game.LocalPlayer.Name, BikeDemoData.RandomTeam());
-                game.PostBikeCreateData(bb); // will result in OnBikeInfo()
+                BaseBike bb =  appl.CreateBaseBike( settings.localPlayerCtrlType, game.LocalPeerId, game.LocalPlayer.Name, BikeDemoData.RandomTeam());
+                appl.beamGameNet.SendBikeCreateDataReq(game.ApianGroupId, bb);
                 logger.Debug($"{this.ModeName()}: SpawnPlayerBike({ bb.bikeId})");
                 return bb.bikeId;  // the bike hasn't been added yet, so this id is not valid yet.
             }

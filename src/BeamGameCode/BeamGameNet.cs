@@ -10,6 +10,9 @@ namespace BeamGameCode
 {
     public interface IBeamGameNet : IApianGameNet
     {
+        void SendBikeCreateDataReq(string groupId, IBike ib);
+        void SendBikeCommandReq(string groupId, IBike bike, BikeCommand cmd);
+        void SendBikeTurnReq(string groupId, IBike bike, long gameTime, TurnDir dir, Vector2 nextPt);
 
     }
 
@@ -56,6 +59,30 @@ namespace BeamGameCode
             // One option would be for the deifnition of ApianMessage to have type and subType,
             // but I'd rather just decode it smarter
             return BeamApianMessageDeserializer.FromJSON(msgType, msgJSON);
+        }
+
+        // Requests from BeamApplciation
+
+        public void SendBikeCreateDataReq(string groupId, IBike ib)
+        {
+            logger.Info($"PostBikeCreateData(): {ib.bikeId}");
+            BeamApian apian = ApianInstances[groupId] as BeamApian;
+            apian.SendBikeCreateReq(apian.CurrentRunningApianTime(), ib);
+        }
+
+        public void SendBikeCommandReq(string groupId, IBike bike, BikeCommand cmd)
+        {
+            // TODO: BikeCommand is a bad name - these are NOT Apian Commands
+            BeamApian apian = ApianInstances[groupId] as BeamApian;
+            apian.SendBikeCommandReq(apian.CurrentRunningApianTime(), bike, cmd, (bike as BaseBike).UpcomingGridPoint(bike.basePosition));
+        }
+
+       public void SendBikeTurnReq(string groupId, IBike bike, long gameTime, TurnDir dir, Vector2 nextPt)
+        {
+            // nextPt is not strinctly necessary, but gets used to make sure
+            // message recipeitns agree where the  bike is
+            BeamApian apian = ApianInstances[groupId] as BeamApian;
+            apian.SendBikeTurnReq(gameTime, bike, dir, nextPt);
         }
 
     }

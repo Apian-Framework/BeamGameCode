@@ -18,8 +18,11 @@ namespace BeamGameCode
 
     public interface IBeamFrontend
     {
-        void SetAppCore(IBeamAppCore core); // TODO: This is not really what we want
+        IBeamApplication beamAppl {get;}
+        IBeamAppCore appCore {get;}
 
+        void SetBeamApplication(IBeamApplication application);
+        void SetAppCore(IBeamAppCore core); // The Beam frontend only currently supports a single AppCore
         BeamUserSettings GetUserSettings();
 
         void DisplayMessage(MessageSeverity level, string msgText);

@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+using Apian;
 
 namespace BeamGameCode
 {
@@ -17,8 +15,9 @@ namespace BeamGameCode
         public PeerLeftGameArgs(string g, string p) {gameChannel=g; p2pId=p;}
     }
 
-    public interface IBeamApplication
+    public interface IBeamApplication : IApianApplication
     {
+        IBeamGameNet beamGameNet {get;}
 
         // Events
         event EventHandler<string> GameCreatedEvt; // game channel

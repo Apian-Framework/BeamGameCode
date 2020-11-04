@@ -6,16 +6,17 @@ namespace BikeControl
 {
     public interface IBikeControl
     {
-        void Setup(IBike beBike, IBeamAppCore appCore);
+        void Setup(IBeamApplication appl, IBeamAppCore core, IBike beBike);
         void Loop(long curTime, int frameMs);
         bool RequestTurn(TurnDir dir, bool allowDeferred = false);
     }
 
     public abstract class BikeControlBase : IBikeControl
     {
+        protected IBeamAppCore appCore;
+        IBeamApplication appl;
         protected BaseBike bb;
         protected BikeDynState bbDynState;
-        protected IBeamAppCore appCore;
         protected TurnDir stashedTurn = TurnDir.kUnset; // if turn is requested too late then save it and apply it after the turn is done
 
         public UniLogger Logger;
@@ -25,10 +26,11 @@ namespace BikeControl
             Logger = UniLogger.GetLogger("BikeCtrl");
         }
 
-        public void Setup(IBike ibike, IBeamAppCore backend)
+        public void Setup(IBeamApplication beamApp, IBeamAppCore core, IBike ibike)
         {
+            appl = beamApp;
+            appCore = core;
             bb = ibike as BaseBike;
-            appCore = backend;
             SetupImpl();
         }
 
@@ -43,7 +45,7 @@ namespace BikeControl
                 {
                     // Turn is requested, and we are not close to a point
                     Logger.Verbose($"{this.GetType().Name} Bike {bb.name} Executing turn.");
-                    appCore.PostBikeTurn(bb, stashedTurn);
+                    appl.beamGameNet.SendBikeTurnReq(appCore.ApianGroupId, bb, curTime, stashedTurn, bb.UpcomingGridPoint(bbDynState.position));
                     stashedTurn = TurnDir.kUnset;
                 }
             }
@@ -72,7 +74,7 @@ namespace BikeControl
                     Logger.Verbose($"RequestTurn() ignoring do-nothing {dir}");
                 else
                 {
-                    appCore.PostBikeTurn(bb, dir); // this needs to move
+                    appl.beamGameNet.SendBikeTurnReq(appCore.ApianGroupId, bb, appCore.CurrentRunningGameTime, dir, bb.UpcomingGridPoint(bbDynState.position));
                     posted = true;
                 }
             }

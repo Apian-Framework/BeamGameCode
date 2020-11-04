@@ -1,5 +1,6 @@
 using System;
 using Newtonsoft.Json;
+using UnityEngine;
 using GameModeMgr;
 using UniLog;
 using GameNet;
@@ -15,51 +16,53 @@ namespace BeamGameCode
         public event EventHandler<ApianGroupInfo> GroupAnnounceEvt;
 
         public ModeManager modeMgr {get; private set;}
-        public  IBeamGameNet gameNet {get; private set;}
+        public  IBeamGameNet beamGameNet {get; private set;}
         public IBeamFrontend frontend {get; private set;}
         public BeamNetworkPeer LocalPeer { get; private set; } = null;
 
         public UniLogger Logger;
-        public BeamAppCore mainGameInst {get; private set;}
+        public BeamAppCore mainAppCore {get; private set;}
 
         public BeamApplication(BeamGameNet bgn, IBeamFrontend fe)
         {
-            gameNet = bgn;
-            gameNet.AddClient(this);
+            beamGameNet = bgn;
+            beamGameNet.AddClient(this);
             frontend = fe;
             Logger = UniLogger.GetLogger("BeamBackendInstance");
             modeMgr = new ModeManager(new BeamModeFactory(), this);
+
+            frontend.SetBeamApplication(this);
         }
 
         public void AddAppCore(IApianAppCore gi)
         {
             // Beam only supports 1 game instance
-            mainGameInst = gi as BeamAppCore;
+            mainAppCore = gi as BeamAppCore;
             frontend.SetAppCore(gi as IBeamAppCore); /// TODO: this is just a hack.
         }
 
         public void ConnectToNetwork(string netConnectionStr)
         {
             _UpdateLocalPeer(); // reads stuff from settings
-            gameNet.Connect(netConnectionStr);
+            beamGameNet.Connect(netConnectionStr);
         }
 
         public void CreateNetworkGame(BeamGameNet.GameCreationData createData)
         {
             _UpdateLocalPeer(); // reads stuff from settings
-            gameNet.CreateGame(createData);
+            beamGameNet.CreateGame(createData);
         }
 
         public void JoinNetworkGame(string gameName)
         {
             _UpdateLocalPeer(); // reads stuff from settings
-            gameNet.JoinGame(gameName);
+            beamGameNet.JoinGame(gameName);
         }
 
         public void ListenForGroups()
         {
             _UpdateLocalPeer(); // reads stuff from settings
-            gameNet.RequestGroups();
+            beamGameNet.RequestGroups();
         }
 
         public void OnSwitchModeReq(int newModeId, object modeParam)
@@ -80,7 +83,7 @@ namespace BeamGameCode
         private void _UpdateLocalPeer()
         {
             BeamUserSettings settings = frontend.GetUserSettings();
-            LocalPeer = new BeamNetworkPeer(gameNet.LocalP2pId(), settings.screenName);
+            LocalPeer = new BeamNetworkPeer(beamGameNet.LocalP2pId(), settings.screenName);
         }
 
         //
@@ -95,7 +98,7 @@ namespace BeamGameCode
 
         public bool Loop(float frameSecs)
         {
-            mainGameInst?.Loop(frameSecs);
+            mainAppCore?.Loop(frameSecs);
             return modeMgr.Loop(frameSecs);
         }
 
@@ -141,6 +144,15 @@ namespace BeamGameCode
         {
             Logger.Info($"OnGroupData({groupId})");
             GroupAnnounceEvt?.Invoke(this, new ApianGroupInfo(groupType, groupId, creatorId, groupName));
+        }
+
+        // Utility methods
+        public BaseBike CreateBaseBike(string ctrlType, string peerId, string name, Team t)
+        {
+            Heading heading = BikeFactory.PickRandomHeading();
+            Vector2 pos = BikeFactory.PositionForNewBike( mainAppCore.CoreData, mainAppCore.CurrentRunningGameTime, heading, Ground.zeroPos, Ground.gridSize * 10 );
+            string bikeId = Guid.NewGuid().ToString();
+            return  new BaseBike(mainAppCore.CoreData, bikeId, peerId, name, t, ctrlType, mainAppCore.CurrentRunningGameTime, pos, heading);
         }
 
     }

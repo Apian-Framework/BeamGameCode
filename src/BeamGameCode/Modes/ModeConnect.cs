@@ -50,7 +50,7 @@ namespace BeamGameCode
         {
             base.Start();
 
-            game = appl.mainGameInst;
+            game = appl.mainAppCore;
 
 ///            game.GameCreatedEvt += OnGameCreatedEvt;
 ///           game.PeerJoinedGameEvt += OnPeerJoinedGameEvt;
@@ -58,7 +58,7 @@ namespace BeamGameCode
             game.UnknownBikeEvt += OnUnknownBikeEvt;
             game.NewBikeEvt += OnNewBikeEvt;
 
-            settings = game.frontend.GetUserSettings();
+            settings = appl.frontend.GetUserSettings();
 
             game.ClearPlayers();
             game.ClearBikes();
@@ -73,7 +73,7 @@ namespace BeamGameCode
             else
                 _SetState(kJoiningGame, settings.tempSettings["gameSpec"]);
 
-            game.frontend?.OnStartMode(ModeId(), null );
+            appl.frontend?.OnStartMode(ModeId(), null );
         }
 
         public override void Loop(float frameSecs)
@@ -88,7 +88,7 @@ namespace BeamGameCode
 ///            game.PeerLeftGameEvt -= OnPeerLeftGameEvt;
             game.NewBikeEvt -= OnNewBikeEvt;
             game.UnknownBikeEvt -= OnUnknownBikeEvt;
-            game.frontend?.OnEndMode(ModeId());
+            appl.frontend?.OnEndMode(ModeId());
             return null;
         }
 
@@ -101,7 +101,7 @@ namespace BeamGameCode
             {
             case kCreatingGame:
                 logger.Info($"{(ModeName())}: SetState: kCreatingGame");
-                appl.gameNet.CreateGame(startParam);
+                appl.beamGameNet.CreateGame(startParam);
                 break;
             case kJoiningGame:
                 logger.Info($"{(ModeName())}: SetState: kJoiningGame");
@@ -206,9 +206,9 @@ namespace BeamGameCode
                 logger.Info($"No LOCAL PLAYER BIKE created.");
             } else {
                  _localBikesToCreate++;
-                string scrName = game.frontend.GetUserSettings().screenName;
-                BaseBike bb =  game.CreateBaseBike(bikeCtrlType, game.LocalPeerId, game.LocalPlayer.Name, BikeDemoData.RandomTeam());
-                game.PostBikeCreateData(bb); // will result in OnBikeInfo()
+                string scrName = appl.frontend.GetUserSettings().screenName;
+                BaseBike bb =  appl.CreateBaseBike(bikeCtrlType, game.LocalPeerId, game.LocalPlayer.Name, BikeDemoData.RandomTeam());
+                appl.beamGameNet.SendBikeCreateDataReq(game.ApianGroupId, bb); // will result in OnBikeInfo()
             }
         }
 
@@ -216,8 +216,8 @@ namespace BeamGameCode
         {
             _localBikesToCreate++;
 
-            BaseBike bb =  game.CreateBaseBike( BikeFactory.AiCtrl, game.LocalPeerId, BikeDemoData.RandomName(), BikeDemoData.RandomTeam());
-            game.PostBikeCreateData(bb); // will result in OnBikeInfo()
+            BaseBike bb =  appl.CreateBaseBike( BikeFactory.AiCtrl, game.LocalPeerId, BikeDemoData.RandomName(), BikeDemoData.RandomTeam());
+            appl.beamGameNet.SendBikeCreateDataReq(game.ApianGroupId, bb); // will result in OnBikeInfo()
             logger.Debug($"{this.ModeName()}: CreateADemoBike({ bb.bikeId})");
             return bb.bikeId;  // the bike hasn't been added yet, so this id is not valid yet.
         }

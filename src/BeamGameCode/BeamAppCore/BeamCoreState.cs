@@ -58,7 +58,7 @@ namespace BeamGameCode
         protected List<BeamPlace> _placesToRemove; // Same goes for places.
         protected Dictionary<int, BeamPlace> _reportedTimedOutPlaces; // places that have been reported as timed out, but not removed yet
 
-        public BeamCoreState(IBeamFrontend fep)
+        public BeamCoreState()
         {
             Logger = UniLogger.GetLogger("GameState");
             Players = new Dictionary<string, BeamPlayer>();
@@ -181,7 +181,7 @@ namespace BeamGameCode
 
         public static BeamCoreState FromApianSerialized( long seqNum,  long timeStamp,  string stateHash,  string serializedData)
         {
-            BeamCoreState newState = new BeamCoreState(null);
+            BeamCoreState newState = new BeamCoreState();
 
             JArray sData = JArray.Parse(serializedData);
             long newSeq = (long)sData[0];

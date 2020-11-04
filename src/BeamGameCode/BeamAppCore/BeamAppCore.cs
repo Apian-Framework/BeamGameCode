@@ -17,9 +17,7 @@ namespace BeamGameCode
         public event EventHandler<string> GroupJoinedEvt;
         public event EventHandler<PlayerJoinedArgs> PlayerJoinedEvt;
         public event EventHandler<PlayerLeftArgs> PlayerLeftEvt;
-
         public BeamCoreState CoreData {get; private set;}
-        public  IBeamFrontend frontend {get; private set;}
         public BeamApian apian {get; private set;}
         public UniLogger logger;
         public BeamPlayer LocalPlayer { get; private set; } = null;
@@ -53,11 +51,10 @@ namespace BeamGameCode
 
         protected Dictionary<string, Action<BeamMessage, long>> commandHandlers;
 
-        public BeamAppCore(IBeamFrontend fep)
+        public BeamAppCore()
         {
             logger = UniLogger.GetLogger("GameInstance");
-            frontend = fep;
-            CoreData = new BeamCoreState(frontend);
+            CoreData = new BeamCoreState();
             OnNewCoreState();
 
             commandHandlers = new  Dictionary<string, Action<BeamMessage, long>>()
@@ -327,35 +324,7 @@ namespace BeamGameCode
         public void RaiseRespawnPlayer() => RespawnPlayerEvt?.Invoke(this, EventArgs.Empty); // FE -> GameCode
         public Ground GetGround() => CoreData.Ground;
 
-        // A couple of these are just acting as intermediaries to commands in GameNet that could potentially be called by the frontend
-        // directly - if the particular FE code had a reference to the GameNet. It's a lot more likely to  have an IBackend ref.
-        // I'm not completely convinced this is the best way to handle it.
 
-        public void PostBikeCreateData(IBike ib)
-        {
-            logger.Info($"PostBikeCreateData(): {ib.bikeId}");
-
-            apian.SendBikeCreateReq(FrameApianTime, ib);
-        }
-
-        public void PostBikeCommand(IBike bike, BikeCommand cmd)
-        {
-            // TODO: BikeCommand is a bad name - these are NOT Apian Commands
-            apian.SendBikeCommandReq(FrameApianTime, bike, cmd, (bike as BaseBike).UpcomingGridPoint(bike.basePosition));
-        }
-
-       public void PostBikeTurn(IBike bike, TurnDir dir)
-        {
-            // This only comes from local AI and player - and "too close" is probably already caught by the bike controller
-            BikeDynState bs =  bike.DynamicState(CurrentRunningGameTime); // TODO: Really?
-            Vector2 nextPt = (bike as BaseBike).UpcomingGridPoint(bs.position);
-
-            float dx = Vector2.Distance(bs.position, nextPt);
-            if (dx < BaseBike.length * .5f)
-                logger.Warn($"PostBikeTurn(): Bike too close to turn: {dx} < {BaseBike.length * .5f}");
-            else
-                apian.SendBikeTurnReq(FrameApianTime, bike, dir, nextPt);
-        }
 
         protected Dictionary<string,int> ComputeScoreUpdate(IBike bike, ScoreEvent evt, BeamPlace place)
         {
@@ -477,14 +446,6 @@ namespace BeamGameCode
         }
 
         // Bike-related
-
-        public BaseBike CreateBaseBike(string ctrlType, string peerId, string name, Team t)
-        {
-            Heading heading = BikeFactory.PickRandomHeading();
-            Vector2 pos = BikeFactory.PositionForNewBike( this.CoreData, CurrentRunningGameTime, heading, Ground.zeroPos, Ground.gridSize * 10 );
-            string bikeId = Guid.NewGuid().ToString();
-            return  new BaseBike(CoreData, bikeId, peerId, name, t, ctrlType, CurrentRunningGameTime, pos, heading);
-        }
 
         public bool _AddBike(IBike ib)
         {

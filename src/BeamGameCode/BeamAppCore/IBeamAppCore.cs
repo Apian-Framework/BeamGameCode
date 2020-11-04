@@ -62,14 +62,10 @@ namespace BeamGameCode
 
         string ApianGameId {get;}
         string ApianGroupName {get;}
-
+        string ApianGroupId {get;}
         long CurrentRunningGameTime {get;}
 
-        // Requests from FE
-        // TODO: This is getting sparse - is it needed?
-        void PostBikeCommand(IBike bike, BikeCommand cmd);
-        void PostBikeTurn(IBike bike, TurnDir dir);
-        void PostBikeCreateData(IBike ib);
+
 
     }
 }
