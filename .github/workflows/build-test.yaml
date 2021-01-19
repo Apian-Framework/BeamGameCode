@@ -32,6 +32,12 @@ jobs:
       with:
         path: main
 
+    - name: Checkout framework dependency - P2pNet
+      uses: actions/checkout@v2
+      with:
+        repository: Apian-Framework/P2pNet
+        path: P2pNet
+
     - name: Checkout framework dependency - Apian.Net
       uses: actions/checkout@v2
       with:

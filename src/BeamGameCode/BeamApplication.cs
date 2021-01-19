@@ -48,19 +48,19 @@ namespace BeamGameCode
 
         public void CreateNetworkGame(BeamGameNet.GameCreationData createData)
         {
-            _UpdateLocalPeer(); // reads stuff from settings
+            _UpdateLocalPeer();
             beamGameNet.CreateGame(createData);
         }
 
         public void JoinNetworkGame(string gameName)
         {
-            _UpdateLocalPeer(); // reads stuff from settings
+            _UpdateLocalPeer();
             beamGameNet.JoinGame(gameName);
         }
 
         public void ListenForGroups()
         {
-            _UpdateLocalPeer(); // reads stuff from settings
+            _UpdateLocalPeer();
             beamGameNet.RequestGroups();
         }
 
