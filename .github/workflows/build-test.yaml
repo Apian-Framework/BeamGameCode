@@ -8,8 +8,8 @@ on:
   push:
     branches: [ master ]
     paths:
-    - 'src/Apian/**'
-    - 'tests/Apian.Tests/**'
+    - 'src/BeamGameCode/**'
+    - 'tests/BeamGameCode.Tests/**'
 
 # Would really like to do this:
 #    paths:
