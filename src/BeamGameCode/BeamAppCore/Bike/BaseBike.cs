@@ -247,9 +247,8 @@ namespace BeamGameCode
                 DoAtGridPoint(upcomingPoint, baseHeading, newHead, timeAtPoint);
 
                 // pre-emptively update the next grid position
-                // There will be an observation reported arriving withte same data
-                // but we're better off assuming it'll match and fixing it later than
-                // waiting for it
+                // There will almost certainly be an ApianCommand later arriving with the same data
+                // but we're better off assuming it'll match and fixing it if not than waiting for it
                 _updatePosition(newPos, newHead, timeAtPoint);
             }
         }

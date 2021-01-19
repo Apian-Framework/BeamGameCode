@@ -375,7 +375,7 @@ namespace BeamGameCode
 
         public void ReportPlaceHit( IBike bike, int xIdx, int zIdx, Heading entryHead, Heading exitHead)
         {
-            PlaceHitObsEvt?.Invoke(this, new PlaceReportArgs(bike, xIdx, zIdx, entryHead, exitHead )); // causes GameInst to post a PlaceClaimed observation
+            PlaceHitObsEvt?.Invoke(this, new PlaceReportArgs(bike, xIdx, zIdx, entryHead, exitHead )); // causes GameInst to post a PlaceHit observation
         }
 
     }
