@@ -7,7 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BeamGameCode", "src\BeamGam
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{CEC748EC-4210-4A53-AF8F-F75F441E66C2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BeamGameCode.Tests", "tests\BeamGameCode\BeamGameCode.Tests.csproj", "{860B2304-6DCD-43C6-A291-29EDFF663276}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BeamGameCode.Tests", "tests\BeamGameCode.Tests\BeamGameCode.Tests.csproj", "{930B5053-025A-4CEB-A82E-E5663ECB7511}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -46,8 +46,21 @@ Global
 		{860B2304-6DCD-43C6-A291-29EDFF663276}.Release|x64.Build.0 = Release|Any CPU
 		{860B2304-6DCD-43C6-A291-29EDFF663276}.Release|x86.ActiveCfg = Release|Any CPU
 		{860B2304-6DCD-43C6-A291-29EDFF663276}.Release|x86.Build.0 = Release|Any CPU
+		{930B5053-025A-4CEB-A82E-E5663ECB7511}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{930B5053-025A-4CEB-A82E-E5663ECB7511}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{930B5053-025A-4CEB-A82E-E5663ECB7511}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{930B5053-025A-4CEB-A82E-E5663ECB7511}.Debug|x64.Build.0 = Debug|Any CPU
+		{930B5053-025A-4CEB-A82E-E5663ECB7511}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{930B5053-025A-4CEB-A82E-E5663ECB7511}.Debug|x86.Build.0 = Debug|Any CPU
+		{930B5053-025A-4CEB-A82E-E5663ECB7511}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{930B5053-025A-4CEB-A82E-E5663ECB7511}.Release|Any CPU.Build.0 = Release|Any CPU
+		{930B5053-025A-4CEB-A82E-E5663ECB7511}.Release|x64.ActiveCfg = Release|Any CPU
+		{930B5053-025A-4CEB-A82E-E5663ECB7511}.Release|x64.Build.0 = Release|Any CPU
+		{930B5053-025A-4CEB-A82E-E5663ECB7511}.Release|x86.ActiveCfg = Release|Any CPU
+		{930B5053-025A-4CEB-A82E-E5663ECB7511}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{860B2304-6DCD-43C6-A291-29EDFF663276} = {CEC748EC-4210-4A53-AF8F-F75F441E66C2}
+		{930B5053-025A-4CEB-A82E-E5663ECB7511} = {CEC748EC-4210-4A53-AF8F-F75F441E66C2}
 	EndGlobalSection
 EndGlobal
