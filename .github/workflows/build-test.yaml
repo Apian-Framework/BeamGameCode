@@ -32,6 +32,12 @@ jobs:
       with:
         path: main
 
+    - name: Checkout framework dependency - UniLog
+      uses: actions/checkout@v2
+      with:
+        repository: Apian-Framework/UniLog
+        path: UniLog
+
     - name: Checkout framework dependency - P2pNet
       uses: actions/checkout@v2
       with:

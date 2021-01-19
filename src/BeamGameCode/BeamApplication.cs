@@ -78,7 +78,6 @@ namespace BeamGameCode
            modeMgr.PopMode(resultParam);
         }
 
-
         private void _UpdateLocalPeer()
         {
             BeamUserSettings settings = frontend.GetUserSettings();
