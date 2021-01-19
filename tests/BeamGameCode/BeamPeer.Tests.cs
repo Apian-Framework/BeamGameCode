@@ -16,7 +16,7 @@ namespace P2pNetBaseTests
         [Test]
         public void BeamNetworkPeer_Ctor()
         {
-            //  public BeamNetworkPeer(string peerId, string name)
+            // public BeamNetworkPeer(string peerId, string name)
             const string p2pId = "p2pId";
             const string peerName =  "peerName";
             BeamNetworkPeer peer = new BeamNetworkPeer(p2pId, peerName);
