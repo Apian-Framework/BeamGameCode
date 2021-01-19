@@ -32,13 +32,13 @@ jobs:
       with:
         path: main
 
-    - name: Checkout framework dependency: Apian.Net
+    - name: Checkout framework dependency - Apian.Net
       uses: actions/checkout@v2
       with:
         repository: Apian-Framework/Apian.Net
         path: Apian.Net
 
-    - name: Checkout framework dependency: NotUnityEngine
+    - name: Checkout framework dependency - NotUnityEngine
       uses: actions/checkout@v2
       with:
         repository: Apian-Framework/NotUnityEngine
