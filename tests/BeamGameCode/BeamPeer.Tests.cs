@@ -30,9 +30,11 @@ namespace P2pNetBaseTests
         {
             const string p2pId = "p2pId";
             const string peerName =  "peerName";
+            string serialized = $"[\"{p2pId}\",\"{peerName}\"]";
+
             BeamNetworkPeer peer = new BeamNetworkPeer(p2pId, peerName);
             string ser = peer.ApianSerialized();
-            Assert.That(ser, Is.EqualTo("[\"p2pId\",\"peerName\"]"));
+            Assert.That(ser, Is.EqualTo(serialized));
         }
 
         [Test]
