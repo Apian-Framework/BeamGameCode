@@ -14,7 +14,6 @@ namespace BeamGameCode
         public event EventHandler<PeerJoinedGameArgs> PeerJoinedGameEvt;
         public event EventHandler<PeerLeftGameArgs> PeerLeftGameEvt;
         public event EventHandler<ApianGroupInfo> GroupAnnounceEvt;
-
         public ModeManager modeMgr {get; private set;}
         public  IBeamGameNet beamGameNet {get; private set;}
         public IBeamFrontend frontend {get; private set;}
