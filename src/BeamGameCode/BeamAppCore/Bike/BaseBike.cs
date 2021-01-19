@@ -246,7 +246,7 @@ namespace BeamGameCode
                 newHead = GameConstants.NewHeadForTurn(baseHeading, basePendingTurn);
                 DoAtGridPoint(upcomingPoint, baseHeading, newHead, timeAtPoint);
 
-                // pre-entively update the next grid position
+                // pre-emptively update the next grid position
                 // There will be an observation reported arriving withte same data
                 // but we're better off assuming it'll match and fixing it later than
                 // waiting for it
