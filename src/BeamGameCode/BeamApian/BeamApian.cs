@@ -47,7 +47,7 @@ namespace BeamGameCode
         protected BeamCoreState gameData; // TODO: should be a read-only interface. Apian writing to it is not allowed
                                         // TODO: ALSO - this is currently only ever referenced when set. ie - it's not used. Maybe make it go away?
 
-        protected bool LocalPeerIsActive {get => (ApianGroup != null) && (ApianGroup.LocalMember?.CurStatus == ApianGroupMember.Status.Active); }
+        protected bool LocalPeerIsActive {get => (GroupMgr != null) && (GroupMgr.LocalMember?.CurStatus == ApianGroupMember.Status.Active); }
 
         public long SystemTime { get => DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;}  // system clock
 
@@ -78,9 +78,9 @@ namespace BeamGameCode
         public override bool Update()
         {
             // Returns TRUE is local peer is "active"
-            ApianGroup?.Update();
+            GroupMgr?.Update();
             ApianClock?.Update();
-            return ApianGroup?.LocalMember?.CurStatus == ApianGroupMember.Status.Active;
+            return GroupMgr?.LocalMember?.CurStatus == ApianGroupMember.Status.Active;
         }
 
         protected void AddApianPeer(string p2pId, string peerHelloData)
@@ -110,7 +110,7 @@ namespace BeamGameCode
             // Only care about local peer's group membership status
             if (member.PeerId == GameNet.LocalP2pId())
             {
-                client.OnGroupJoined(ApianGroup.GroupId);
+                client.OnGroupJoined(GroupMgr.GroupId);
             }
         }
         public override void OnGroupMemberStatusChange(ApianGroupMember member, ApianGroupMember.Status prevStatus)
@@ -154,7 +154,7 @@ namespace BeamGameCode
 
         private void _AdvanceStateTo(long newApianTime)
         {
-            if (ApianGroup?.LocalMember?.CurStatus == ApianGroupMember.Status.Active)
+            if (GroupMgr?.LocalMember?.CurStatus == ApianGroupMember.Status.Active)
                 return; // If peer is active and using the real clock and advancing its own state, dont do anything.
 
             long curFrameTime = client.FrameApianTime; // previous frame Time
@@ -184,7 +184,7 @@ namespace BeamGameCode
 
         public override void ApplyStashedApianCommand(ApianCommand cmd)
         {
-            if (ApianGroup?.LocalMember?.CurStatus != ApianGroupMember.Status.Active
+            if (GroupMgr?.LocalMember?.CurStatus != ApianGroupMember.Status.Active
                 && cmd.CliMsgType == ApianMessage.CheckpointMsg )
                 return; // TODO: &&&& YIKES! See OnApianCommand for relevant comment
 
@@ -209,23 +209,23 @@ namespace BeamGameCode
         public void OnApianGroupMessage(string fromId, string toId, ApianMessage msg, long lagMs)
         {
             Logger.Debug($"OnApianGroupMessage(): {((msg as ApianGroupMessage).GroupMsgType)}");
-            ApianGroup.OnApianMessage(msg, fromId, toId);
+            GroupMgr.OnApianMessage(msg, fromId, toId);
         }
 
         protected void OnApianRequest(string fromId, string toId, ApianMessage msg, long delayMs)
         {
-            ApianGroup.OnApianRequest(msg as ApianRequest, fromId, toId);
+            GroupMgr.OnApianRequest(msg as ApianRequest, fromId, toId);
         }
 
         protected void OnApianObservation(string fromId, string toId, ApianMessage msg, long delayMs)
         {
-            ApianGroup.OnApianObservation(msg as ApianObservation, fromId, toId);
+            GroupMgr.OnApianObservation(msg as ApianObservation, fromId, toId);
         }
 
        protected void OnApianCommand(string fromId, string toId, ApianMessage msg, long delayMs)
         {
             ApianCommand cmd = msg as ApianCommand;
-            ApianCommandStatus cmdStat = ApianGroup.EvaluateCommand(cmd, fromId, toId);
+            ApianCommandStatus cmdStat = GroupMgr.EvaluateCommand(cmd, fromId, toId);
 
             switch (cmdStat)
             {
@@ -280,10 +280,10 @@ namespace BeamGameCode
             {
                 string hash = GetMd5Hash(md5Hash, serializedState);
                 Logger.Verbose($"SendStateCheckpoint(): SeqNum: {seqNum}, Hash: {hash}");
-                ApianGroup.OnLocalStateCheckpoint(seqNum, timeStamp, hash, serializedState);
+                GroupMgr.OnLocalStateCheckpoint(seqNum, timeStamp, hash, serializedState);
 
-                GroupCheckpointReportMsg rpt = new GroupCheckpointReportMsg(ApianGroup.GroupId, seqNum, timeStamp, hash);
-                BeamGameNet.SendApianMessage(ApianGroup.GroupId, rpt);
+                GroupCheckpointReportMsg rpt = new GroupCheckpointReportMsg(GroupMgr.GroupId, seqNum, timeStamp, hash);
+                BeamGameNet.SendApianMessage(GroupMgr.GroupId, rpt);
             }
         }
 
@@ -298,7 +298,7 @@ namespace BeamGameCode
             // Also - it should get overridden in any derived Apianclass which is able to
             // be even more selctive (in a server-based group, for isntance, if you're not the
             // server then you should just return)
-            if (ApianGroup.LocalMember?.CurStatus != ApianGroupMember.Status.Active)
+            if (GroupMgr.LocalMember?.CurStatus != ApianGroupMember.Status.Active)
             {
                 Logger.Info($"SendRequestOrObservation() - outgoing message not sent: We are not ACTIVE.");
                 return;
@@ -310,16 +310,16 @@ namespace BeamGameCode
         {
             Logger.Debug($"SendPlaceHitObs()");
             NewPlayerMsg msg = new NewPlayerMsg(timeStamp, newPlayer);
-            ApianNewPlayerObservation obs = new ApianNewPlayerObservation(ApianGroup?.GroupId, msg);
-            SendRequestOrObservation(ApianGroup.GroupId, obs);
+            ApianNewPlayerObservation obs = new ApianNewPlayerObservation(GroupMgr?.GroupId, msg);
+            SendRequestOrObservation(GroupMgr.GroupId, obs);
         }
 
         public void SendPlayerLeftObs( long timeStamp, string peerId)
         {
             Logger.Debug($"SendPlayerLeftObs()");
             PlayerLeftMsg msg = new PlayerLeftMsg(timeStamp, peerId);
-            ApianPlayerLeftObservation obs = new ApianPlayerLeftObservation(ApianGroup?.GroupId, msg);
-            SendRequestOrObservation(ApianGroup.GroupId, obs);
+            ApianPlayerLeftObservation obs = new ApianPlayerLeftObservation(GroupMgr?.GroupId, msg);
+            SendRequestOrObservation(GroupMgr.GroupId, obs);
         }
 
         public  void SendPlaceClaimObs(long timeStamp, IBike bike, int xIdx, int zIdx,
@@ -327,55 +327,55 @@ namespace BeamGameCode
         {
             Logger.Debug($"SendPlaceClaimObs()");
             PlaceClaimMsg msg = new PlaceClaimMsg(timeStamp, bike.bikeId, bike.peerId, xIdx, zIdx, entry, exit, scoreUpdates);
-            ApianPlaceClaimObservation obs = new ApianPlaceClaimObservation(ApianGroup?.GroupId, msg);
-            SendRequestOrObservation(ApianGroup.GroupId, obs);
+            ApianPlaceClaimObservation obs = new ApianPlaceClaimObservation(GroupMgr?.GroupId, msg);
+            SendRequestOrObservation(GroupMgr.GroupId, obs);
         }
 
         public void SendPlaceHitObs(long timeStamp, IBike bike, int xIdx, int zIdx, Heading entry, Heading exit, Dictionary<string,int> scoreUpdates)
         {
             Logger.Debug($"SendPlaceHitObs()");
             PlaceHitMsg msg = new PlaceHitMsg(timeStamp, bike.bikeId, bike.peerId, xIdx, zIdx, entry, exit, scoreUpdates);
-            ApianPlaceHitObservation obs = new ApianPlaceHitObservation(ApianGroup?.GroupId, msg);
-            SendRequestOrObservation(ApianGroup.GroupId, obs);
+            ApianPlaceHitObservation obs = new ApianPlaceHitObservation(GroupMgr?.GroupId, msg);
+            SendRequestOrObservation(GroupMgr.GroupId, obs);
         }
 
         public void SendPlaceRemovedObs(long timeStamp, int xIdx, int zIdx)
         {
             Logger.Debug($"SendPlaceRemovedObs()");
             PlaceRemovedMsg msg = new PlaceRemovedMsg(timeStamp, xIdx, zIdx);
-            ApianPlaceRemovedObservation obs = new ApianPlaceRemovedObservation(ApianGroup?.GroupId, msg);
-            SendRequestOrObservation(ApianGroup.GroupId, obs);
+            ApianPlaceRemovedObservation obs = new ApianPlaceRemovedObservation(GroupMgr?.GroupId, msg);
+            SendRequestOrObservation(GroupMgr.GroupId, obs);
         }
 
         public  void SendBikeTurnReq(long timeStamp, IBike bike, TurnDir dir, Vector2 nextPt)
         {
             Logger.Debug($"SendBikeTurnReq) Bike: {bike.bikeId}");
             BikeTurnMsg msg = new BikeTurnMsg(timeStamp, bike, dir, nextPt);
-            ApianBikeTurnRequest req = new ApianBikeTurnRequest(ApianGroup?.GroupId, msg);
-            SendRequestOrObservation(ApianGroup.GroupId, req);
+            ApianBikeTurnRequest req = new ApianBikeTurnRequest(GroupMgr?.GroupId, msg);
+            SendRequestOrObservation(GroupMgr.GroupId, req);
         }
         public  void SendBikeCommandReq(long timeStamp, IBike bike, BikeCommand cmd, Vector2 nextPt)
         {
             Logger.Debug($"BeamGameNet.SendBikeCommand() Bike: {bike.bikeId}");
             BikeCommandMsg msg = new BikeCommandMsg(timeStamp, bike.bikeId, bike.peerId, cmd, nextPt);
-            ApianBikeCommandRequest req = new ApianBikeCommandRequest(ApianGroup?.GroupId, msg);
-            SendRequestOrObservation(ApianGroup.GroupId, req);
+            ApianBikeCommandRequest req = new ApianBikeCommandRequest(GroupMgr?.GroupId, msg);
+            SendRequestOrObservation(GroupMgr.GroupId, req);
         }
         public  void SendBikeCreateReq(long timeStamp, IBike ib)
         {
             Logger.Debug($"SendBikeCreateReq()");
             // Broadcast this to send it to everyone
             BikeCreateDataMsg msg = new BikeCreateDataMsg(timeStamp, ib);
-            ApianBikeCreateRequest req = new ApianBikeCreateRequest(ApianGroup.GroupId, msg);
-            SendRequestOrObservation(ApianGroup.GroupId, req);
+            ApianBikeCreateRequest req = new ApianBikeCreateRequest(GroupMgr.GroupId, msg);
+            SendRequestOrObservation(GroupMgr.GroupId, req);
         }
 
         public  void SendRemoveBikeObs(long timeStamp, string bikeId)
         {
             Logger.Debug($"SendRemoveBikeObs()");
             RemoveBikeMsg msg = new RemoveBikeMsg(timeStamp, bikeId);
-            ApianRemoveBikeObservation obs = new ApianRemoveBikeObservation(ApianGroup?.GroupId, msg);
-            SendRequestOrObservation(ApianGroup.GroupId, obs);
+            ApianRemoveBikeObservation obs = new ApianRemoveBikeObservation(GroupMgr?.GroupId, msg);
+            SendRequestOrObservation(GroupMgr.GroupId, obs);
         }
 
 
