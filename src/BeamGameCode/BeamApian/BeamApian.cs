@@ -18,13 +18,6 @@ namespace BeamGameCode
 
     public abstract class BeamApian : ApianBase
     {
-        protected enum SyncOrLiveCmd {
-            kSync,
-            kLive
-        }
-
-        //protected Dictionary<string, Action<ApianCommand,string, string>> CommandHandlers;
-        // Args are Command, fromId, groupChan, SyncOrLive ( set ApianClockVal before applying?)
 
         public Dictionary<string, BeamApianPeer> apianPeers;
         public IBeamGameNet BeamGameNet {get; private set;}
