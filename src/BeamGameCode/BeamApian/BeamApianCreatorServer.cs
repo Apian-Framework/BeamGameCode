@@ -14,15 +14,14 @@ namespace BeamGameCode
             GroupMgr = new CreatorServerGroupManager(this);
         }
 
-        protected override void SendRequestOrObservation(string destCh, ApianMessage msg)
+        protected override void SendObservation(string destCh, ApianMessage msg)
         {
-            if ((msg.MsgType == ApianMessage.CliObservation)
-                && (GroupMgr?.GroupCreatorId != GameNet.LocalP2pId()))
+            if ( (GroupMgr?.GroupCreatorId != GameNet.LocalP2pId()))
             {
                 Logger.Debug($"SendRequestOrObservation() We are not server, so don't send observations.");
                 return;
             }
-            base.SendRequestOrObservation(destCh, msg); // let this filter it too
+            base.SendObservation(destCh, msg); // let this filter it too
         }
 
     }
