@@ -332,7 +332,7 @@ namespace BeamGameCode
                 {
                     // Yes. Since it's empty send a claim report
                     // Doesn't matter if the bike is local or not - THIS peer thinks there's a claim
-                    gameData.ReportPlaceClaimed(this, xIdx, zIdx, entryHead, exitHead);
+                    gameData.ReportPlaceClaimed(apianTime, this, xIdx, zIdx, entryHead, exitHead);
                 } else {
                     // Nope. Blow it up.
                     // TODO: should going off the map be a consensus event?
@@ -343,12 +343,12 @@ namespace BeamGameCode
 
                     // This is stupid and temporary (rather than just getting rid of the test)
                     // TODO: FIX THIS!!!  &&&&&&&
-                    gameData.ReportPlaceClaimed(this, xIdx, zIdx, entryHead, exitHead);
+                    gameData.ReportPlaceClaimed(apianTime, this, xIdx, zIdx, entryHead, exitHead);
                     //gameInst.apian.SendPlaceClaimObs(apianTime, this, xIdx, zIdx, entryHead, exitHead);
                 }
             } else {
                 // Hit a marker. Report it.
-                gameData.ReportPlaceHit(this, p.xIdx, p.zIdx, entryHead, exitHead);
+                gameData.ReportPlaceHit(apianTime, this, p.xIdx, p.zIdx, entryHead, exitHead);
             }
         }
 

@@ -12,7 +12,7 @@ namespace BeamGameCode
         public int xIdx; // x index into array.
         public int zIdx;
         public IBike bike;
-        public long expirationTimeMs;
+        public long expirationTimeMs; // ApianTime
 
         public class SerialArgs
         {
