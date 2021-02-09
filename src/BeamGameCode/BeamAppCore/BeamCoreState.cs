@@ -10,15 +10,17 @@ using UniLog;
 
 namespace BeamGameCode
 {
-    public struct PlaceReportArgs // reports of claims and hits take these
+    public struct PlaceReportArgs // report events of claims and hits take these
     {
+        public long apianTime;
         public IBike bike;
         public  int xIdx;
         public int zIdx;
         public  Heading entryHead;
         public  Heading exitHead;
-        public PlaceReportArgs(IBike _bike, int _xIdx, int _zIdx, Heading _entryH, Heading _exitH)
+        public PlaceReportArgs(long _apianTime, IBike _bike, int _xIdx, int _zIdx, Heading _entryH, Heading _exitH)
         {
+            apianTime = _apianTime;
             bike = _bike;
             xIdx = _xIdx;
             zIdx = _zIdx;
@@ -34,7 +36,7 @@ namespace BeamGameCode
         public event EventHandler<BeamPlace> SetupPlaceMarkerEvt;
         public event EventHandler<BeamPlace> PlaceTimeoutEvt;
         public event EventHandler PlacesClearedEvt;
-        public event EventHandler<PlaceReportArgs> PlaceClaimObsEvt;
+        public event EventHandler<PlaceReportArgs> PlaceClaimObsEvt; // exact timestamp is the long
         public event EventHandler<PlaceReportArgs> PlaceHitObsEvt;
 
         public UniLogger Logger;
@@ -126,7 +128,7 @@ namespace BeamGameCode
                 if ( !_reportedTimedOutPlaces.ContainsKey(p.PosHash))
                 {
                     _reportedTimedOutPlaces[p.PosHash] = p;
-                    PlaceTimeoutEvt?.Invoke(this,p); // causes GameInst to post a PlaceRemovedMsg request
+                    PlaceTimeoutEvt?.Invoke(this,p); // causes GameInst to post a PlaceRemovedMsg observation (*actual time is in the place definition*)
                 }
             }
         }
@@ -368,14 +370,14 @@ namespace BeamGameCode
         }
 
         // Called by bikes to report observed stuff
-        public void ReportPlaceClaimed( IBike bike, int xIdx, int zIdx, Heading entryHead, Heading exitHead)
+        public void ReportPlaceClaimed( long apianTime, IBike bike, int xIdx, int zIdx, Heading entryHead, Heading exitHead)
         {
-            PlaceClaimObsEvt?.Invoke(this, new PlaceReportArgs(bike, xIdx, zIdx, entryHead, exitHead )); // causes GameInst to post a PlaceClaimed observation
+            PlaceClaimObsEvt?.Invoke(this, new PlaceReportArgs(apianTime,bike, xIdx, zIdx, entryHead, exitHead) ); // causes GameInst to post a PlaceClaimed observation
         }
 
-        public void ReportPlaceHit( IBike bike, int xIdx, int zIdx, Heading entryHead, Heading exitHead)
+        public void ReportPlaceHit( long apianTime, IBike bike, int xIdx, int zIdx, Heading entryHead, Heading exitHead)
         {
-            PlaceHitObsEvt?.Invoke(this, new PlaceReportArgs(bike, xIdx, zIdx, entryHead, exitHead )); // causes GameInst to post a PlaceHit observation
+            PlaceHitObsEvt?.Invoke(this, new PlaceReportArgs(apianTime, bike, xIdx, zIdx, entryHead, exitHead) ); // causes GameInst to post a PlaceHit observation
         }
 
     }

@@ -48,7 +48,6 @@ namespace BeamGameCode
 
         public event EventHandler ReadyToPlayEvt;
         public event EventHandler RespawnPlayerEvt;
-
         protected Dictionary<string, Action<BeamMessage, long>> commandHandlers;
 
         public BeamAppCore()
@@ -80,6 +79,17 @@ namespace BeamGameCode
             CoreData.PlaceHitObsEvt += OnPlaceHitObsEvt;
         }
 
+        public bool CommandIsValid(ApianCoreMessage cmdMsg)
+        {
+            throw new NotImplementedException();
+        }
+
+        // what effect does the previous msg have on the testMsg?
+        public (ApianConflictResult result, string reason) ValidateCoreMessages(ApianCoreMessage prevMsg, ApianCoreMessage testMsg)
+        {
+            return BeamMessageValidity.ValidateObservations( prevMsg as BeamMessage, testMsg as BeamMessage);
+        }
+
         //
         // Lifespan
         //
@@ -101,6 +111,7 @@ namespace BeamGameCode
             // Ignore passed in frameSecs.
             //
 
+
             bool isActive = apian.Update();  // returns "True" if Active
 
             if (isActive) // Don't call loop if not active
@@ -109,6 +120,10 @@ namespace BeamGameCode
                 UpdateFrameTime(apian.CurrentRunningApianTime());
                 CoreData.Loop(FrameApianTime, FrameApianTime - prevFrameApianTime);
             }
+
+            apian.EndObservationSet(); // TODO: should this be 1 command?
+            apian.StartObservationSet();
+
 
             return true;
         }
@@ -220,7 +235,7 @@ namespace BeamGameCode
             bb?.ApplyTurn(msg.dir, msg.entryHead, new Vector2(msg.nextPtX, msg.nextPtZ),  msg.TimeStamp, msg.bikeState);
         }
 
-        protected void ApplyScoreUpdate(Dictionary<string,int> update)
+        protected void ApplyScoreUpdate(long causeApianTime, Dictionary<string,int> update)
         {
             foreach( string id in update.Keys)
             {
@@ -229,7 +244,7 @@ namespace BeamGameCode
                 if (bike.score <= 0)
                 {
                     logger.Info($"ApplyScoreUpdate(). Bike: {bike.bikeId} has no score anymore!");
-                    apian.SendRemoveBikeObs(FrameApianTime, bike.bikeId);
+                    apian.SendRemoveBikeObs(causeApianTime+1, bike.bikeId); // Bike removal is one 'tick' after whatever caused it.
                 }
             }
         }
@@ -252,7 +267,7 @@ namespace BeamGameCode
                 BeamPlace p = CoreData.ClaimPlace(b, msg.xIdx, msg.zIdx, msg.TimeStamp+BeamPlace.kLifeTimeMs);
                 if (p != null)
                 {
-                    ApplyScoreUpdate(msg.scoreUpdates);
+                    ApplyScoreUpdate(msg.TimeStamp, msg.scoreUpdates);
                     logger.Verbose($"OnPlaceClaimCmd(#{seqNum}) Bike: {b.bikeId} claimed {BeamPlace.PlacePos( msg.xIdx, msg.zIdx).ToString()} at {msg.TimeStamp}");
                     //logger.Verbose($"                  BikePos: {b.position.ToString()}, FrameApianTime: {FrameApianTime} ");
                     //logger.Verbose($"   at Timestamp:  BikePos: {b.PosAtTime(msg.TimeStamp, FrameApianTime).ToString()}, Time: {msg.TimeStamp} ");
@@ -271,7 +286,7 @@ namespace BeamGameCode
                 if (b != null) // might already be gone
                 {
                     logger.Info($"OnPlaceClaimCmd(#{seqNum}) - OFF MAP! Boom! Now: {FrameApianTime} Ts: {msg.TimeStamp} Bike: {b?.bikeId}");
-                    ApplyScoreUpdate( new Dictionary<string,int>(){ {b.bikeId, -b.score} });
+                    ApplyScoreUpdate(msg.TimeStamp, new Dictionary<string,int>(){ {b.bikeId, -b.score} });
                 }
 
             }
@@ -287,7 +302,7 @@ namespace BeamGameCode
             {
                 hittingBike.UpdatePosFromCommand(msg.TimeStamp, FrameApianTime, p.GetPos(), msg.exitHead);
                 logger.Info($"OnPlaceHitCmd( #{seqNum}, {p?.GetPos().ToString()}) Now: {FrameApianTime} Ts: {msg.TimeStamp} Bike: {hittingBike?.bikeId} Pos: {p?.GetPos().ToString()}");
-                ApplyScoreUpdate(msg.scoreUpdates);
+                ApplyScoreUpdate(msg.TimeStamp, msg.scoreUpdates);
                 PlaceHitEvt?.Invoke(this, new PlaceHitArgs(p, hittingBike));
             }
             else
@@ -501,7 +516,7 @@ namespace BeamGameCode
         public void OnPlaceTimeoutEvt(object sender, BeamPlace p)
         {
             logger.Verbose($"OnPlaceTimeoutEvt(): {p.GetPos().ToString()}");
-            apian.SendPlaceRemovedObs(FrameApianTime, p.xIdx, p.zIdx);
+            apian.SendPlaceRemovedObs(p.expirationTimeMs, p.xIdx, p.zIdx);
         }
 
         public void ClearPlaces()

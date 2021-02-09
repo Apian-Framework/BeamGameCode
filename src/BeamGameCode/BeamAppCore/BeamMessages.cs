@@ -79,6 +79,8 @@ namespace BeamGameCode
         public BeamPlayer newPlayer;
         public NewPlayerMsg(long ts, BeamPlayer _newPlayer) : base(kNewPlayer, ts) => newPlayer = _newPlayer;
         public NewPlayerMsg() : base() {}
+
+        // No conflict detection
     }
 
     // BeamApian sees a GroupMember change to active and creates an "observation" and send it to the
@@ -91,6 +93,7 @@ namespace BeamGameCode
         public ApianNewPlayerObservation(string gid, NewPlayerMsg _newPlayerMsg) : base(gid, _newPlayerMsg) {newPlayerMsg=_newPlayerMsg;}
         public ApianNewPlayerObservation() : base() {}
         public override ApianCommand ToCommand(long seqNum) => new ApianNewPlayerCommand(seqNum, DestGroupId, newPlayerMsg);
+
     }
     public class ApianNewPlayerCommand : ApianCommand
     {
@@ -105,6 +108,8 @@ namespace BeamGameCode
         public string peerId;
         public PlayerLeftMsg(long ts, string _peerId) : base(kPlayerLeft, ts) => peerId = _peerId;
         public PlayerLeftMsg() : base() {}
+
+        // No conflict detection
     }
 
     public class ApianPlayerLeftObservation : ApianObservation
@@ -182,6 +187,8 @@ namespace BeamGameCode
         public string bikeId;
         public RemoveBikeMsg() : base() {}
         public RemoveBikeMsg(long ts, string _bikeId) : base(kRemoveBikeMsg, ts) { bikeId = _bikeId; }
+
+        // No conflict detection
     }
 
     public class ApianRemoveBikeObservation : ApianObservation
@@ -297,7 +304,16 @@ namespace BeamGameCode
             entryHead = entryH;
             exitHead = exitH;
             scoreUpdates = dScores;
+
+            // isValidAfterFuncs = new Dictionary<string, Func<ApianCoreMessage,(ApianCoreMessage.ValidState, string)>>()
+            // {
+            //     { kPlaceHitMsg, ValidAfterPlaceHit},
+            //     { kRemoveBikeMsg, ValidAfterRemoveBike},
+            //     { kPlaceRemovedMsg, ValidAfterPlaceRemoved}
+            // };
         }
+
+
     }
 
     public class ApianPlaceClaimObservation : ApianObservation
@@ -366,6 +382,8 @@ namespace BeamGameCode
             xIdx=_xIdx;
             zIdx=_zIdx;
         }
+
+       // No observation conflict detection
     }
 
     public class ApianPlaceRemovedObservation : ApianObservation
