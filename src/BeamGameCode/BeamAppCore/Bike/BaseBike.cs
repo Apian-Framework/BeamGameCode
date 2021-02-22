@@ -223,7 +223,7 @@ namespace BeamGameCode
         private void _checkPosition(long apianTime)
         {
             if (baseTime == 0) // TODO: get rid of this one the changeover is complete
-                logger.Error($"_checkPosition() Bike: {bikeId} TimeAtPosition UNITITIALIZED!");
+                logger.Error($"_checkPosition() Bike: {bikeId} TimeAtPosition UNINITIALIZED!");
 
             float secs = (apianTime - baseTime) * .001f;
 
