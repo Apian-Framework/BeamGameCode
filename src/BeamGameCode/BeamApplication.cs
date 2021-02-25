@@ -4,6 +4,7 @@ using UnityEngine;
 using GameModeMgr;
 using UniLog;
 using GameNet;
+using P2pNet; // TODO: gamenet API should be all that's needed &&&&&&&&
 using Apian;
 
 namespace BeamGameCode
@@ -55,7 +56,15 @@ namespace BeamGameCode
         public void JoinNetworkGame(string gameName)
         {
             _UpdateLocalPeer();
-            beamGameNet.JoinGame(gameName);
+
+
+            // TODO: clean this crap up!! &&&&&
+            long pingMs = 2500;
+            long dropMs = 5000;
+            long timingMs = 15000;
+            P2pNetChannelInfo chan = new P2pNetChannelInfo(gameName, gameName, dropMs, pingMs, timingMs);
+            beamGameNet.JoinGame(chan);
+
         }
 
         public void ListenForGroups()
