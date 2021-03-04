@@ -8,21 +8,21 @@ namespace BeamGameCode
 {
     public class ModeSplash : BeamGameMode
     {
-        static public readonly string NetworkName = "LocalSplashGame";
+        static public readonly string NetworkName = "LocalSplashNet";
         static public readonly string ApianGroupName = "LocalSplashGroup";
         static public readonly int kCmdTargetCamera = 1;
 	    static public readonly int kSplashBikeCount = 12;
         protected const float kRespawnCheckInterval = 1.3f;
         protected const float kCamTargetInterval = 10.0f;
         protected float _secsToNextRespawnCheck = kRespawnCheckInterval;
-        public BeamAppCore game = null;
+        public BeamAppCore appCore = null;
         protected bool bikesCreated;
         protected bool localPlayerJoined;
 
         protected float _camTargetSecsLeft = 0; // assign as soon as there's a bike
 
         private enum ModeState {
-            JoiningGame = 1,
+            JoiningNet = 1,
             JoiningGroup, // really ends with OnNewPlayer(local player)
             Playing
         }
@@ -39,19 +39,19 @@ namespace BeamGameCode
 		protected void _DoStartup(string prevModeName, object param = null)
         {
             _secsToNextRespawnCheck = kRespawnCheckInterval;
-            game = null;
+            appCore = null;
             bikesCreated = false;
             localPlayerJoined = false;
             _camTargetSecsLeft = 0;
 
-            appl.PeerJoinedGameEvt += OnPeerJoinedGameEvt;
+            appl.PeerJoinedEvt += OnPeerJoinedNetEvt;
             appl.AddAppCore(null); // TODO: THis is beam only. Need better way. ClearGameInstances()? Init()?
 
             // Setup/connect fake network
             appl.ConnectToNetwork("p2ploopback");
             appl.JoinBeamNet(NetworkName);
-            _CurrentState = ModeState.JoiningGame;
-            // Now wait for OnPeerJoinedGame()
+            _CurrentState = ModeState.JoiningNet;
+            // Now wait for OnPeerJoinedNet()
         }
 
 
@@ -77,15 +77,15 @@ namespace BeamGameCode
                 if (_secsToNextRespawnCheck <= 0)
                 {
                     // TODO: respawn with prev names/teams?
-                    if (game.CoreData.Bikes.Count() < kSplashBikeCount)
+                    if (appCore.CoreData.Bikes.Count() < kSplashBikeCount)
                         CreateADemoBike();
                     _secsToNextRespawnCheck = kRespawnCheckInterval;
                 }
 
-                if ( game.CoreData.Bikes.Count() > 0)
+                if ( appCore.CoreData.Bikes.Count() > 0)
                 {
-                    int idx = (int)UnityEngine.Random.Range(0, game.CoreData.Bikes.Count() - .0001f);
-                    string bikeId = game.CoreData.Bikes.Values.ElementAt(idx).bikeId;
+                    int idx = (int)UnityEngine.Random.Range(0, appCore.CoreData.Bikes.Count() - .0001f);
+                    string bikeId = appCore.CoreData.Bikes.Values.ElementAt(idx).bikeId;
                     _camTargetSecsLeft -= frameSecs;
                     if (_camTargetSecsLeft <= 0)
                     {
@@ -100,20 +100,20 @@ namespace BeamGameCode
 
         protected object _DoCleanup()
         {
-            appl.PeerJoinedGameEvt -= OnPeerJoinedGameEvt;
-            game.PlayerJoinedEvt -= OnPlayerJoinedEvt;
-            game.NewBikeEvt -= OnNewBikeEvt;
+            appl.PeerJoinedEvt -= OnPeerJoinedNetEvt;
+            appCore.PlayerJoinedEvt -= OnPlayerJoinedEvt;
+            appCore.NewBikeEvt -= OnNewBikeEvt;
             appl.frontend?.OnEndMode(appl.modeMgr.CurrentModeId(), null);
-            game.End();
-            appl.beamGameNet.LeaveGame();
+            appCore.End();
+            appl.beamGameNet.LeaveNetwork();
             appl.AddAppCore(null);
             return null;
         }
 
         protected string CreateADemoBike()
         {
-            BaseBike bb =  appl.CreateBaseBike( BikeFactory.AiCtrl, game.LocalPeerId, BikeDemoData.RandomName(), BikeDemoData.RandomTeam());
-            appl.beamGameNet.SendBikeCreateDataReq(game.ApianGroupId, bb); // will result in OnBikeInfo()
+            BaseBike bb =  appl.CreateBaseBike( BikeFactory.AiCtrl, appCore.LocalPeerId, BikeDemoData.RandomName(), BikeDemoData.RandomTeam());
+            appl.beamGameNet.SendBikeCreateDataReq(appCore.ApianGroupId, bb); // will result in OnBikeInfo()
             logger.Debug($"{this.ModeName()}: SpawnAiBike({ bb.bikeId})");
             return bb.bikeId;  // the bike hasn't been added yet, so this id is not valid yet.
         }
@@ -123,18 +123,18 @@ namespace BeamGameCode
 
         }
 
-        public void OnPeerJoinedGameEvt(object sender, PeerJoinedGameArgs ga)
+        public void OnPeerJoinedNetEvt(object sender, PeerJoinedArgs ga)
         {
             bool isLocal = ga.peer.PeerId == appl.LocalPeer.PeerId;
-            if (isLocal && _CurrentState == ModeState.JoiningGame)
+            if (isLocal && _CurrentState == ModeState.JoiningNet)
             {
-                logger.Info("Splash game joined");
+                logger.Info("Splash network joined");
                 // Create gameInstance and associated Apian
-                game = new BeamAppCore();
-                game.PlayerJoinedEvt += OnPlayerJoinedEvt;
-                game.NewBikeEvt += OnNewBikeEvt;
-                BeamApian apian = new BeamApianSinglePeer(appl.beamGameNet, game); // This is the REAL one
-                appl.AddAppCore(game);
+                appCore = new BeamAppCore();
+                appCore.PlayerJoinedEvt += OnPlayerJoinedEvt;
+                appCore.NewBikeEvt += OnNewBikeEvt;
+                BeamApian apian = new BeamApianSinglePeer(appl.beamGameNet, appCore); // This is the REAL one
+                appl.AddAppCore(appCore);
                 // Dont need to check for groups in splash
                 apian.CreateNewGroup(ApianGroupName);
                 BeamPlayer mb = new BeamPlayer(appl.LocalPeer.PeerId, appl.LocalPeer.Name);
@@ -158,7 +158,7 @@ namespace BeamGameCode
             logger.Info($"{(ModeName())} - OnNewBikeEvt() - {(isLocal?"Local":"Remote")} Bike created, ID: {newBike.bikeId} Sending GO! command");
             if (isLocal)
             {
-                appl.beamGameNet.SendBikeCommandReq(game.ApianGroupId, newBike, BikeCommand.kGo);
+                appl.beamGameNet.SendBikeCommandReq(appCore.ApianGroupId, newBike, BikeCommand.kGo);
             }
         }
 

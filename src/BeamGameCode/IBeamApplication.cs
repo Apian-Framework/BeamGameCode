@@ -4,15 +4,15 @@ using Apian;
 namespace BeamGameCode
 {
 
-    public struct PeerJoinedGameArgs {
-        public string gameChannel;
+    public struct PeerJoinedArgs {
+        public string channelId;
         public BeamNetworkPeer peer;
-        public PeerJoinedGameArgs(string g, BeamNetworkPeer p) {gameChannel=g; peer=p;}
+        public PeerJoinedArgs(string g, BeamNetworkPeer p) {channelId=g; peer=p;}
     }
-    public struct PeerLeftGameArgs {
-        public string gameChannel;
+    public struct PeerLeftArgs {
+        public string channelId;
         public string p2pId;
-        public PeerLeftGameArgs(string g, string p) {gameChannel=g; p2pId=p;}
+        public PeerLeftArgs(string g, string p) {channelId=g; p2pId=p;}
     }
 
     public interface IBeamApplication : IApianApplication
@@ -20,9 +20,9 @@ namespace BeamGameCode
         IBeamGameNet beamGameNet {get;}
 
         // Events
-        event EventHandler<string> GameCreatedEvt; // game channel
-        event EventHandler<PeerJoinedGameArgs> PeerJoinedGameEvt;
-        event EventHandler<PeerLeftGameArgs> PeerLeftGameEvt;
+        event EventHandler<string> NetworkCreatedEvt; // net channelId
+        event EventHandler<PeerJoinedArgs> PeerJoinedEvt;
+        event EventHandler<PeerLeftArgs> PeerLeftEvt;
     }
 
 }

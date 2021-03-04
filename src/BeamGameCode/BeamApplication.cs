@@ -11,9 +11,9 @@ namespace BeamGameCode
 {
     public class BeamApplication : IModalGame, IApianApplication, IBeamApplication
     {
-        public event EventHandler<string> GameCreatedEvt; // game channel
-        public event EventHandler<PeerJoinedGameArgs> PeerJoinedGameEvt;
-        public event EventHandler<PeerLeftGameArgs> PeerLeftGameEvt;
+        public event EventHandler<string> NetworkCreatedEvt; // net channelId
+        public event EventHandler<PeerJoinedArgs> PeerJoinedEvt;
+        public event EventHandler<PeerLeftArgs> PeerLeftEvt;
         public event EventHandler<ApianGroupInfo> GroupAnnounceEvt;
         public ModeManager modeMgr {get; private set;}
         public  IBeamGameNet beamGameNet {get; private set;}
@@ -47,10 +47,10 @@ namespace BeamGameCode
             beamGameNet.Connect(netConnectionStr);
         }
 
-        public void CreateNetworkGame(BeamGameNet.GameCreationData createData)
+        public void CreateBeamNet(BeamGameNet.BeamNetCreationData createData)
         {
             _UpdateLocalPeer();
-            beamGameNet.CreateGame(createData);
+            beamGameNet.CreateBeamNet(createData);
         }
 
         public void JoinBeamNet(string networkName)
@@ -58,12 +58,12 @@ namespace BeamGameCode
             _UpdateLocalPeer();
 
 
-            // TODO: clean this crap up!! &&&&&
-            int pingMs = 2500;
-            int dropMs = 5000;
-            int timingMs = 15000;
-            P2pNetChannelInfo chan = new P2pNetChannelInfo(networkName, networkName, dropMs, pingMs, timingMs);
-            beamGameNet.JoinBeamNet(chan);
+            // // TODO: clean this crap up!! &&&&&
+            // int pingMs = 2500;
+            // int dropMs = 5000;
+            // int timingMs = 15000;
+            // P2pNetChannelInfo chan = new P2pNetChannelInfo(networkName, networkName, dropMs, pingMs, timingMs);
+            beamGameNet.JoinBeamNet(networkName);
 
         }
 
@@ -110,30 +110,28 @@ namespace BeamGameCode
         }
 
         // IGameNetClient
-        public void OnGameCreated(string gameP2pChannel)
+        public void OnNetworkCreated(string netP2pChannel)
         {
-            Logger.Info($"OnGameCreated({gameP2pChannel}");
-            GameCreatedEvt?.Invoke(this, gameP2pChannel);
+            Logger.Info($"OnGameCreated({netP2pChannel}");
+            NetworkCreatedEvt?.Invoke(this, netP2pChannel);
         }
 
-        public void OnPeerJoinedGame(string p2pId, string networkName, string helloData)
+        public void OnPeerJoinedNetwork(string p2pId, string networkId, string helloData)
         {
             BeamNetworkPeer peer = JsonConvert.DeserializeObject<BeamNetworkPeer>(helloData);
             Logger.Info($"OnPeerJoinedGame() {((p2pId == LocalPeer.PeerId)?"Local":"Remote")} name: {peer.Name}");
-            PeerJoinedGameEvt.Invoke(this, new PeerJoinedGameArgs(networkName, peer));
+            PeerJoinedEvt.Invoke(this, new PeerJoinedArgs(networkId, peer));
         }
 
-        public void OnPeerLeftGame(string p2pId, string gameId)
+        public void OnPeerLeftNetwork(string p2pId, string netId)
         {
             Logger.Info($"OnPeerLeftGame({p2pId})");
-            PeerLeftGameEvt?.Invoke(this, new PeerLeftGameArgs(gameId, p2pId)); // Event instance might be gone
+            PeerLeftEvt?.Invoke(this, new PeerLeftArgs(netId, p2pId)); // Event instance might be gone
         }
 
-        // TODO: On-the-fly LocalPeerData() from GmeNet should go away (in GameNet)
-        // and be replaced with JoinGame(gameId, localPeerDataStr);
         public string LocalPeerData()
         {
-            // Game-level (not group-level) data about us
+            // FIXME: I think this goes away? Gets passed in to join<foo>()
             if (LocalPeer == null)
                 Logger.Warn("LocalPeerData() - no local peer");
             return  JsonConvert.SerializeObject( LocalPeer);

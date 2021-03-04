@@ -17,7 +17,7 @@ namespace BeamGameCode
     public class ModePlay : BeamGameMode
     {
         protected string networkName;
-        protected CreateMode gameCreateMode = CreateMode.CreateIfNeeded;
+        protected CreateMode netCreateMode = CreateMode.CreateIfNeeded;
         protected string groupName;
         protected CreateMode groupCreateMode = CreateMode.CreateIfNeeded;
         public BeamUserSettings settings;
@@ -29,14 +29,14 @@ namespace BeamGameCode
         protected float _curStateSecs;
         protected delegate void LoopFunc(float f);
         protected LoopFunc _loopFunc;
-        public BeamAppCore game = null;
+        public BeamAppCore appCore = null;
         protected BaseBike playerBike = null;
 
         // mode substates
 
         protected const int kConnecting = 0;
-        protected const int kCreatingGame = 1;
-        protected const int kJoiningGame = 2;
+        protected const int kCreatingNet = 1;
+        protected const int kJoiningNet = 2;
         protected const int kCheckingForGroups = 3;
         protected const int kJoiningGroup = 4;
         protected const int kWaitingForMembers = 5;
@@ -53,8 +53,8 @@ namespace BeamGameCode
 
             settings = appl.frontend.GetUserSettings();
 
-            appl.GameCreatedEvt += OnGameCreatedEvt;
-            appl.PeerJoinedGameEvt += OnPeerJoinedGameEvt;
+            appl.NetworkCreatedEvt += OnNetCreatedEvt;
+            appl.PeerJoinedEvt += OnPeerJoinedNetEvt;
             appl.AddAppCore(null);
             _SetState(kConnecting);
             appl.frontend?.OnStartMode(ModeId(), null );
@@ -67,15 +67,15 @@ namespace BeamGameCode
         }
 
 		public override object End() {
-            appl.GameCreatedEvt -= OnGameCreatedEvt;
-            appl.PeerJoinedGameEvt -= OnPeerJoinedGameEvt;
-            if (game != null)
+            appl.NetworkCreatedEvt -= OnNetCreatedEvt;
+            appl.PeerJoinedEvt -= OnPeerJoinedNetEvt;
+            if (appCore != null)
             {
-                game.PlayerJoinedEvt -= OnPlayerJoinedEvt;
-                game.NewBikeEvt -= OnNewBikeEvt;
+                appCore.PlayerJoinedEvt -= OnPlayerJoinedEvt;
+                appCore.NewBikeEvt -= OnNewBikeEvt;
                 appl.frontend?.OnEndMode(appl.modeMgr.CurrentModeId(), null);
-                game.End();
-                appl.beamGameNet.LeaveGame();
+                appCore.End();
+                appl.beamGameNet.LeaveNetwork();
             }
             appl.AddAppCore(null);
             return null;
@@ -93,26 +93,26 @@ namespace BeamGameCode
             case kConnecting:
                 logger.Verbose($"{(ModeName())}: SetState: kConnecting");
                 try {
-                    _ParseGameAndGroup();
+                    _ParseNetAndGroup();
                     appl.ConnectToNetwork(settings.p2pConnectionString);
                 } catch (Exception ex) {
                     _SetState(kFailed, ex.Message);
                     return;
                 }
                 if (networkName == null)
-                    _SetState(kCreatingGame, new BeamGameNet.GameCreationData());
+                    _SetState(kCreatingNet, new BeamGameNet.BeamNetCreationData());
                 else
-                    _SetState(kJoiningGame, networkName);
+                    _SetState(kJoiningNet, networkName);
                 break;
-            case kCreatingGame:
-                logger.Verbose($"{(ModeName())}: SetState: kCreatingGame");
-                appl.CreateNetworkGame((BeamGameNet.GameCreationData)startParam);
-                // Wait for OnGameCreatedEvt()
+            case kCreatingNet:
+                logger.Verbose($"{(ModeName())}: SetState: kCreatingNet");
+                appl.CreateBeamNet((BeamGameNet.BeamNetCreationData)startParam);
+                // Wait for OnNetCreatedEvt()
                 break;
-            case kJoiningGame:
-                logger.Verbose($"{(ModeName())}: SetState: kJoiningGame");
+            case kJoiningNet:
+                logger.Verbose($"{(ModeName())}: SetState: kJoiningNet");
                 appl.JoinBeamNet((string)startParam);
-                // Wait for OnGameJoinedEvt()
+                // Wait for OnNetJoinedEvt()
                 break;
             case kCheckingForGroups:
                 logger.Verbose($"{(ModeName())}: SetState: kCheckingForGroups");
@@ -162,7 +162,7 @@ namespace BeamGameCode
                 case CreateMode.JoinOnly:
                     if (targetGroupExisted)
                     {
-                        game.apian.InitExistingGroup(announcedGroups[groupName]); // Like create, but for a remotely-created group
+                        appCore.apian.InitExistingGroup(announcedGroups[groupName]); // Like create, but for a remotely-created group
                         _SetState(kJoiningGroup);
                     }
                     else
@@ -170,7 +170,7 @@ namespace BeamGameCode
                     break;
                 case CreateMode.CreateIfNeeded:
                     if (targetGroupExisted)
-                        game.apian.InitExistingGroup(announcedGroups[groupName]);
+                        appCore.apian.InitExistingGroup(announcedGroups[groupName]);
                     else
                         _CreateGroup();
                     _SetState(kJoiningGroup);
@@ -194,7 +194,7 @@ namespace BeamGameCode
                 _secsToNextRespawnCheck -= frameSecs;
                 if (_secsToNextRespawnCheck <= 0)
                 {
-                    if (game.CoreData.LocalBikes(game.LocalPeerId).Where(ib => ib.ctrlType==BikeFactory.AiCtrl).Count() < settings.aiBikeCount)
+                    if (appCore.CoreData.LocalBikes(appCore.LocalPeerId).Where(ib => ib.ctrlType==BikeFactory.AiCtrl).Count() < settings.aiBikeCount)
                         SpawnAiBike();
                     _secsToNextRespawnCheck = kRespawnCheckInterval;
                 }
@@ -208,7 +208,7 @@ namespace BeamGameCode
 
         // utils
 
-        private void _ParseGameAndGroup()
+        private void _ParseNetAndGroup()
         {
             // Game spec syntax is "networkName/groupName"
             // If either name has an appended + character then the item should be created if it does not already exist.
@@ -222,13 +222,13 @@ namespace BeamGameCode
             if (settings.tempSettings.TryGetValue("gameSpec", out gameSpecSetting))
                 parts = gameSpecSetting.Split('/');
             else
-                throw new Exception($"GameSpec (name/group) setting missing.");
+                throw new Exception($"GameSpec (net/group) setting missing.");
 
 
             if (parts.Count() != 2)
                 throw new Exception($"Bad GameSpec: {gameSpecSetting}");
 
-            gameCreateMode = parts[0].EndsWith("+") ? CreateMode.CreateIfNeeded
+            netCreateMode = parts[0].EndsWith("+") ? CreateMode.CreateIfNeeded
                                 : parts[0].EndsWith("*") ? CreateMode.MustCreate
                                     : CreateMode.JoinOnly;
 
@@ -240,21 +240,21 @@ namespace BeamGameCode
             networkName = parts[0].TrimEnd(trimChars);
             groupName = parts[1].TrimEnd(trimChars);
 
-            logger.Verbose($"{(ModeName())}: _ParseGameAndGroup() networkName: {networkName} ({gameCreateMode}), groupName: {groupName} ({groupCreateMode})");
+            logger.Verbose($"{(ModeName())}: _ParseNetAndGroup() networkName: {networkName} ({netCreateMode}), groupName: {groupName} ({groupCreateMode})");
         }
 
         private void _CreateGroup()
         {
             logger.Verbose($"{(ModeName())}: _CreateGroup()");
             groupName = groupName ?? "BEAMGRP" + System.Guid.NewGuid().ToString();
-            game.apian.CreateNewGroup(groupName);
+            appCore.apian.CreateNewGroup(groupName);
         }
 
         private void _JoinGroup()
         {
             BeamPlayer mb = new BeamPlayer(appl.LocalPeer.PeerId, appl.LocalPeer.Name);
             //try {
-                game.apian.JoinGroup(groupName, mb.ApianSerialized());
+                appCore.apian.JoinGroup(groupName, mb.ApianSerialized());
             //} catch (Exception ex) {
             //    _SetState(kFailed, ex.Message);
             //}
@@ -262,36 +262,35 @@ namespace BeamGameCode
 
         // Event handlers
 
-        public void OnGameCreatedEvt(object sender, string newnetworkName)
+        public void OnNetCreatedEvt(object sender, string newnetworkName)
         {
-            logger.Info($"{(ModeName())} - OnGameCreatedEvt(): {newnetworkName}");
-            if (_curState == kCreatingGame)
-                _SetState(kJoiningGame, newnetworkName);
+            logger.Info($"{(ModeName())} - OnNetCreatedEvt(): {newnetworkName}");
+            if (_curState == kCreatingNet)
+                _SetState(kJoiningNet, newnetworkName);
             else
-                logger.Error($"{(ModeName())} - OnGameCreatedEvt() - Wrong state: {_curState}");
+                logger.Error($"{(ModeName())} - OnNetCreatedEvt() - Wrong state: {_curState}");
         }
 
 
-        public void OnPeerJoinedGameEvt(object sender, PeerJoinedGameArgs ga)
+        public void OnPeerJoinedNetEvt(object sender, PeerJoinedArgs ga)
         {
             BeamNetworkPeer p = ga.peer;
             bool isLocal = p.PeerId == appl.LocalPeer.PeerId;
-            logger.Info($"{(ModeName())} - OnPeerJoinedGameEvt() - {(isLocal?"Local":"Remote")} Peer Joined: {p.Name}, ID: {p.PeerId}");
+            logger.Info($"{(ModeName())} - OnPeerJoinedNetEvt() - {(isLocal?"Local":"Remote")} Peer Joined: {p.Name}, ID: {p.PeerId}");
             if (isLocal)
             {
-                if (_curState == kJoiningGame)
+                if (_curState == kJoiningNet)
                 {
                     // Create gameinstance and ApianInstance
-                    game = new BeamAppCore();
-                    game.PlayerJoinedEvt += OnPlayerJoinedEvt;
-                    game.NewBikeEvt += OnNewBikeEvt;
-                    BeamApian apian = new BeamApianCreatorServer(appl.beamGameNet, game); // TODO: make the groupMgr type run-time spec'ed
-                    //BeamApian apian = new BeamApianSinglePeer(core.gameNet, game); // *** This should be commented out (or gone)
-                    appl.AddAppCore(game);
+                    appCore = new BeamAppCore();
+                    appCore.PlayerJoinedEvt += OnPlayerJoinedEvt;
+                    appCore.NewBikeEvt += OnNewBikeEvt;
+                    BeamApian apian = new BeamApianCreatorServer(appl.beamGameNet, appCore); // TODO: make the groupMgr type run-time spec'ed
+                    appl.AddAppCore(appCore);
                     _SetState(kCheckingForGroups, null);
                 }
                 else
-                    logger.Error($"{(ModeName())} - OnGameJoinedEvt() - Wrong state: {_curState}");
+                    logger.Error($"{(ModeName())} - OnNetJoinedEvt() - Wrong state: {_curState}");
             }
         }
 
@@ -308,7 +307,7 @@ namespace BeamGameCode
             logger.Info($"{(ModeName())} - OnPlayerJoinedEvt() - {(isLocal?"Local":"Remote")} Member Joined: {ga.player.Name}, ID: {ga.player.PeerId}");
             if (ga.player.PeerId == appl.LocalPeer.PeerId)
             {
-                game.RespawnPlayerEvt += OnRespawnPlayerEvt;  //TODO: why does this happen here?  &&&&
+                appCore.RespawnPlayerEvt += OnRespawnPlayerEvt;  //TODO: why does this happen here?  &&&&
                 //_SetState(kWaitingForMembers);
                 _SetState(kPlaying);
             }
@@ -321,7 +320,7 @@ namespace BeamGameCode
             logger.Info($"{(ModeName())} - OnNewBikeEvt() - {(isLocal?"Local":"Remote")} Bike created, ID: {newBike.bikeId}");
             if (isLocal)
             {
-                appl.beamGameNet.SendBikeCommandReq(game.ApianGroupId, newBike, BikeCommand.kGo);
+                appl.beamGameNet.SendBikeCommandReq(appCore.ApianGroupId, newBike, BikeCommand.kGo);
             }
         }
 
@@ -336,8 +335,8 @@ namespace BeamGameCode
 
         protected string SpawnAiBike()
         {
-            BaseBike bb =  appl.CreateBaseBike( BikeFactory.AiCtrl, game.LocalPeerId, BikeDemoData.RandomName(), BikeDemoData.RandomTeam());
-            appl.beamGameNet.SendBikeCreateDataReq(game.ApianGroupId, bb); // will result in OnBikeInfo()
+            BaseBike bb =  appl.CreateBaseBike( BikeFactory.AiCtrl, appCore.LocalPeerId, BikeDemoData.RandomName(), BikeDemoData.RandomTeam());
+            appl.beamGameNet.SendBikeCreateDataReq(appCore.ApianGroupId, bb); // will result in OnBikeInfo()
             logger.Debug($"{this.ModeName()}: SpawnAiBike({ bb.bikeId})");
             return bb.bikeId;  // the bike hasn't been added yet, so this id is not valid yet.
         }
@@ -346,8 +345,8 @@ namespace BeamGameCode
         {
             if (settings.localPlayerCtrlType != "none")
             {
-                BaseBike bb =  appl.CreateBaseBike( settings.localPlayerCtrlType, game.LocalPeerId, game.LocalPlayer.Name, BikeDemoData.RandomTeam());
-                appl.beamGameNet.SendBikeCreateDataReq(game.ApianGroupId, bb);
+                BaseBike bb =  appl.CreateBaseBike( settings.localPlayerCtrlType, appCore.LocalPeerId, appCore.LocalPlayer.Name, BikeDemoData.RandomTeam());
+                appl.beamGameNet.SendBikeCreateDataReq(appCore.ApianGroupId, bb);
                 logger.Debug($"{this.ModeName()}: SpawnPlayerBike({ bb.bikeId})");
                 return bb.bikeId;  // the bike hasn't been added yet, so this id is not valid yet.
             }

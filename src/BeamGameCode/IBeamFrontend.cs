@@ -33,8 +33,8 @@ namespace BeamGameCode
         void DispatchModeCmd(int modeId, int cmdId, object param = null);
 
         // Players
-        void OnPeerJoinedGameEvt(object sender, PeerJoinedGameArgs pa);
-        void OnPeerLeftGameEvt(object sender, PeerLeftGameArgs pa);
+        void OnPeerJoinedGameEvt(object sender, PeerJoinedArgs pa);
+        void OnPeerLeftGameEvt(object sender, PeerLeftArgs pa);
         void OnPlayersClearedEvt(object sender, EventArgs e);
         // Bikes
         void OnNewBikeEvt(object sender, IBike ib);

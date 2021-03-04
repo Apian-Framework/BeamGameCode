@@ -60,7 +60,7 @@ namespace BeamGameCode
         string LocalPeerId {get;}
         BeamCoreState CoreData {get;}
 
-        string ApianGameId {get;}
+        string ApianNetId {get;}
         string ApianGroupName {get;}
         string ApianGroupId {get;}
         long CurrentRunningGameTime {get;}

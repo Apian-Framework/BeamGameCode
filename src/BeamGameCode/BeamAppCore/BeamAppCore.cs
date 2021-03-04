@@ -23,9 +23,9 @@ namespace BeamGameCode
         public BeamPlayer LocalPlayer { get; private set; } = null;
         public string LocalPeerId => apian?.GameNet.LocalP2pId(); // TODO: make LocalP2pId a property?
 
-        public string ApianGameId => apian?.GameId;
+        public string ApianNetId => apian?.NetworkId;
         public string ApianGroupName => apian?.GroupName;
-        public string ApianGroupId => apian?.GroupId; // <game>/<group>
+        public string ApianGroupId => apian?.GroupId; // <net>/<group>
         public long CurrentRunningGameTime => apian.CurrentRunningApianTime();
 
         public long NextCheckpointMs;

@@ -11,30 +11,30 @@ namespace BeamGameCode
         static public readonly string networkName = "LocalPracticeGame";
         static public readonly string ApianGroupName = "LocalPracticeGroup";
         public readonly int kMaxAiBikes = 11;
-        public BeamAppCore game = null;
+        public BeamAppCore appCore = null;
         protected BaseBike playerBike = null;
         protected const float kRespawnCheckInterval = 1.3f;
         protected float _secsToNextRespawnCheck = kRespawnCheckInterval;
-        protected bool gameJoined;
+        protected bool netJoined;
         protected bool bikesCreated;
 
 		public override void Start(object param = null)
         {
             base.Start();
 
-            appl.PeerJoinedGameEvt += OnPeerJoinedGameEvt;
+            appl.PeerJoinedEvt += OnPeerJoinedNetEvt;
             appl.AddAppCore(null); // TODO: THis is beam only. Need better way. ClearGameInstances()? Init()?
 
             // Setup/connect fake network
             appl.ConnectToNetwork("p2ploopback");
             appl.JoinBeamNet(networkName);
 
-            // Now wait for OnPeerJoinedGame()
+            // Now wait for OnPeerJoinedNet()
         }
 
 		public override void Loop(float frameSecs)
         {
-            if (gameJoined && !bikesCreated)
+            if (netJoined && !bikesCreated)
             {
                 // Create player bike
                 string playerBikeId = SpawnPlayerBike();
@@ -53,7 +53,7 @@ namespace BeamGameCode
                 if (_secsToNextRespawnCheck <= 0)
                 {
                     // TODO: respawn with prev names/teams?
-                    if (game.CoreData.Bikes.Count < kMaxAiBikes)
+                    if (appCore.CoreData.Bikes.Count < kMaxAiBikes)
                         SpawnAIBike();
                     _secsToNextRespawnCheck = kRespawnCheckInterval;
                 }
@@ -61,12 +61,12 @@ namespace BeamGameCode
         }
 
 		public override object End() {
-            appl.PeerJoinedGameEvt -= OnPeerJoinedGameEvt;
-            game.PlayerJoinedEvt -= OnMemberJoinedGroupEvt;
-            game.NewBikeEvt -= OnNewBikeEvt;
+            appl.PeerJoinedEvt -= OnPeerJoinedNetEvt;
+            appCore.PlayerJoinedEvt -= OnMemberJoinedGroupEvt;
+            appCore.NewBikeEvt -= OnNewBikeEvt;
             appl.frontend?.OnEndMode(appl.modeMgr.CurrentModeId(), null);
-            game.End();
-            appl.beamGameNet.LeaveGame();
+            appCore.End();
+            appl.beamGameNet.LeaveNetwork();
             appl.AddAppCore(null);
             return null;
         }
@@ -77,8 +77,8 @@ namespace BeamGameCode
             // Create one the first time
             string scrName = appl.frontend.GetUserSettings().screenName;
 
-            BaseBike bb =  appl.CreateBaseBike( BikeFactory.LocalPlayerCtrl, game.LocalPeerId, scrName, BikeDemoData.RandomTeam());
-            appl.beamGameNet.SendBikeCreateDataReq(game.ApianGroupId, bb); // will result in OnBikeInfo()
+            BaseBike bb =  appl.CreateBaseBike( BikeFactory.LocalPlayerCtrl, appCore.LocalPeerId, scrName, BikeDemoData.RandomTeam());
+            appl.beamGameNet.SendBikeCreateDataReq(appCore.ApianGroupId, bb); // will result in OnBikeInfo()
             logger.Debug($"{this.ModeName()}: SpawnAiBike({ bb.bikeId})");
             return bb.bikeId;  // the bike hasn't been added yet, so this id is not valid yet.
         }
@@ -91,8 +91,8 @@ namespace BeamGameCode
             if (team == null)
                 team = BikeDemoData.RandomTeam();
 
-            BaseBike bb =  appl.CreateBaseBike( BikeFactory.AiCtrl, game.LocalPeerId, name, team);
-            appl.beamGameNet.SendBikeCreateDataReq(game.ApianGroupId, bb);
+            BaseBike bb =  appl.CreateBaseBike( BikeFactory.AiCtrl, appCore.LocalPeerId, name, team);
+            appl.beamGameNet.SendBikeCreateDataReq(appCore.ApianGroupId, bb);
             logger.Debug($"{this.ModeName()}: SpawnAiBike({ bb.bikeId})");
             return bb.bikeId;  // the bike hasn't been added yet, so this id is not valid yet.
         }
@@ -113,23 +113,23 @@ namespace BeamGameCode
             logger.Info($"{(ModeName())} - OnNewBikeEvt() - {(isLocal?"Local":"Remote")} Bike created, ID: {newBike.bikeId} Sending GO! command");
             if (isLocal)
             {
-                appl.beamGameNet.SendBikeCommandReq(game.ApianGroupId, newBike, BikeCommand.kGo);
+                appl.beamGameNet.SendBikeCommandReq(appCore.ApianGroupId, newBike, BikeCommand.kGo);
             }
         }
 
-        public void OnPeerJoinedGameEvt(object sender, PeerJoinedGameArgs ga)
+        public void OnPeerJoinedNetEvt(object sender, PeerJoinedArgs ga)
         {
             bool isLocal = ga.peer.PeerId == appl.LocalPeer.PeerId;
-            if (isLocal && game == null)
+            if (isLocal && appCore == null)
             {
-                logger.Info("practice game joined");
+                logger.Info("practice network joined");
                 // Create gameInstance and associated Apian
-                game = new BeamAppCore();
-                game.PlayerJoinedEvt += OnMemberJoinedGroupEvt;
-                game.NewBikeEvt += OnNewBikeEvt;
+                appCore = new BeamAppCore();
+                appCore.PlayerJoinedEvt += OnMemberJoinedGroupEvt;
+                appCore.NewBikeEvt += OnNewBikeEvt;
 
-                BeamApian apian = new BeamApianSinglePeer(appl.beamGameNet, game);
-                appl.AddAppCore(game);
+                BeamApian apian = new BeamApianSinglePeer(appl.beamGameNet, appCore);
+                appl.AddAppCore(appCore);
                 // Dont need to check for groups in splash
                 apian.CreateNewGroup(ApianGroupName);
                 BeamPlayer mb = new BeamPlayer(appl.LocalPeer.PeerId, appl.LocalPeer.Name);
@@ -142,8 +142,8 @@ namespace BeamGameCode
 
         public void OnMemberJoinedGroupEvt(object sender, PlayerJoinedArgs ga)
         {
-            game.RespawnPlayerEvt += OnRespawnPlayerEvt;
-            gameJoined = true;
+            appCore.RespawnPlayerEvt += OnRespawnPlayerEvt;
+            netJoined = true;
         }
     }
 }
