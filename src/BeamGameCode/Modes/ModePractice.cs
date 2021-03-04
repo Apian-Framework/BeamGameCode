@@ -8,7 +8,7 @@ namespace BeamGameCode
 {
     public class ModePractice : BeamGameMode
     {
-        static public readonly string GameName = "LocalPracticeGame";
+        static public readonly string networkName = "LocalPracticeGame";
         static public readonly string ApianGroupName = "LocalPracticeGroup";
         public readonly int kMaxAiBikes = 11;
         public BeamAppCore game = null;
@@ -27,7 +27,7 @@ namespace BeamGameCode
 
             // Setup/connect fake network
             appl.ConnectToNetwork("p2ploopback");
-            appl.JoinNetworkGame(GameName);
+            appl.JoinBeamNet(networkName);
 
             // Now wait for OnPeerJoinedGame()
         }

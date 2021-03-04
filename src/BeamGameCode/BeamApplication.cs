@@ -53,17 +53,17 @@ namespace BeamGameCode
             beamGameNet.CreateGame(createData);
         }
 
-        public void JoinNetworkGame(string gameName)
+        public void JoinBeamNet(string networkName)
         {
             _UpdateLocalPeer();
 
 
             // TODO: clean this crap up!! &&&&&
-            long pingMs = 2500;
-            long dropMs = 5000;
-            long timingMs = 15000;
-            P2pNetChannelInfo chan = new P2pNetChannelInfo(gameName, gameName, dropMs, pingMs, timingMs);
-            beamGameNet.JoinGame(chan);
+            int pingMs = 2500;
+            int dropMs = 5000;
+            int timingMs = 15000;
+            P2pNetChannelInfo chan = new P2pNetChannelInfo(networkName, networkName, dropMs, pingMs, timingMs);
+            beamGameNet.JoinBeamNet(chan);
 
         }
 
@@ -116,11 +116,11 @@ namespace BeamGameCode
             GameCreatedEvt?.Invoke(this, gameP2pChannel);
         }
 
-        public void OnPeerJoinedGame(string p2pId, string gameName, string helloData)
+        public void OnPeerJoinedGame(string p2pId, string networkName, string helloData)
         {
             BeamNetworkPeer peer = JsonConvert.DeserializeObject<BeamNetworkPeer>(helloData);
             Logger.Info($"OnPeerJoinedGame() {((p2pId == LocalPeer.PeerId)?"Local":"Remote")} name: {peer.Name}");
-            PeerJoinedGameEvt.Invoke(this, new PeerJoinedGameArgs(gameName, peer));
+            PeerJoinedGameEvt.Invoke(this, new PeerJoinedGameArgs(networkName, peer));
         }
 
         public void OnPeerLeftGame(string p2pId, string gameId)

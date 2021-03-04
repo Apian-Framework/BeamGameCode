@@ -16,7 +16,7 @@ namespace BeamGameCode
 
     public class ModePlay : BeamGameMode
     {
-        protected string gameName;
+        protected string networkName;
         protected CreateMode gameCreateMode = CreateMode.CreateIfNeeded;
         protected string groupName;
         protected CreateMode groupCreateMode = CreateMode.CreateIfNeeded;
@@ -99,10 +99,10 @@ namespace BeamGameCode
                     _SetState(kFailed, ex.Message);
                     return;
                 }
-                if (gameName == null)
+                if (networkName == null)
                     _SetState(kCreatingGame, new BeamGameNet.GameCreationData());
                 else
-                    _SetState(kJoiningGame, gameName);
+                    _SetState(kJoiningGame, networkName);
                 break;
             case kCreatingGame:
                 logger.Verbose($"{(ModeName())}: SetState: kCreatingGame");
@@ -111,7 +111,7 @@ namespace BeamGameCode
                 break;
             case kJoiningGame:
                 logger.Verbose($"{(ModeName())}: SetState: kJoiningGame");
-                appl.JoinNetworkGame((string)startParam);
+                appl.JoinBeamNet((string)startParam);
                 // Wait for OnGameJoinedEvt()
                 break;
             case kCheckingForGroups:
@@ -210,7 +210,7 @@ namespace BeamGameCode
 
         private void _ParseGameAndGroup()
         {
-            // Game spec syntax is "gameName/groupName"
+            // Game spec syntax is "networkName/groupName"
             // If either name has an appended + character then the item should be created if it does not already exist.
             // If either name has an appended * character then the item must be created, and cannot already exist.
             // Otherwise, the item cannot be created - only joined.
@@ -237,10 +237,10 @@ namespace BeamGameCode
                                     : CreateMode.JoinOnly;
 
             char[] trimChars = {'+','*'};
-            gameName = parts[0].TrimEnd(trimChars);
+            networkName = parts[0].TrimEnd(trimChars);
             groupName = parts[1].TrimEnd(trimChars);
 
-            logger.Verbose($"{(ModeName())}: _ParseGameAndGroup() GameName: {gameName} ({gameCreateMode}), groupName: {groupName} ({groupCreateMode})");
+            logger.Verbose($"{(ModeName())}: _ParseGameAndGroup() networkName: {networkName} ({gameCreateMode}), groupName: {groupName} ({groupCreateMode})");
         }
 
         private void _CreateGroup()
@@ -262,11 +262,11 @@ namespace BeamGameCode
 
         // Event handlers
 
-        public void OnGameCreatedEvt(object sender, string newGameName)
+        public void OnGameCreatedEvt(object sender, string newnetworkName)
         {
-            logger.Info($"{(ModeName())} - OnGameCreatedEvt(): {newGameName}");
+            logger.Info($"{(ModeName())} - OnGameCreatedEvt(): {newnetworkName}");
             if (_curState == kCreatingGame)
-                _SetState(kJoiningGame, newGameName);
+                _SetState(kJoiningGame, newnetworkName);
             else
                 logger.Error($"{(ModeName())} - OnGameCreatedEvt() - Wrong state: {_curState}");
         }

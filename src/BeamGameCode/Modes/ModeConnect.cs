@@ -105,7 +105,7 @@ namespace BeamGameCode
                 break;
             case kJoiningGame:
                 logger.Info($"{(ModeName())}: SetState: kJoiningGame");
-                appl.JoinNetworkGame((string)startParam);
+                appl.JoinBeamNet((string)startParam);
                 break;
             case kWaitingForUnknownBikes:
                 logger.Info($"{(ModeName())}: SetState: kWaitingForRemoteBikes");

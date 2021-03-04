@@ -8,7 +8,7 @@ namespace BeamGameCode
 {
     public class ModeSplash : BeamGameMode
     {
-        static public readonly string GameName = "LocalSplashGame";
+        static public readonly string NetworkName = "LocalSplashGame";
         static public readonly string ApianGroupName = "LocalSplashGroup";
         static public readonly int kCmdTargetCamera = 1;
 	    static public readonly int kSplashBikeCount = 12;
@@ -49,7 +49,7 @@ namespace BeamGameCode
 
             // Setup/connect fake network
             appl.ConnectToNetwork("p2ploopback");
-            appl.JoinNetworkGame(GameName);
+            appl.JoinBeamNet(NetworkName);
             _CurrentState = ModeState.JoiningGame;
             // Now wait for OnPeerJoinedGame()
         }
