@@ -10,6 +10,11 @@ namespace BeamGameCode
 {
     public interface IBeamGameNet : IApianGameNet
     {
+        void CreateBeamNet(BeamGameNet.BeamNetCreationData createData);
+        void JoinBeamNet(string netName);
+        void CreateAndJoinGame(string gameName, BeamApian apian, string localData);
+        void JoinExistingGame(ApianGroupInfo gameInfo, BeamApian apian, string localData );
+
         void SendBikeCreateDataReq(string groupId, IBike ib);
         void SendBikeCommandReq(string groupId, IBike bike, BikeCommand cmd);
         void SendBikeTurnReq(string groupId, IBike bike, long gameTime, TurnDir dir, Vector2 nextPt);
@@ -18,10 +23,40 @@ namespace BeamGameCode
 
     public class BeamGameNet : ApianGameNetBase, IBeamGameNet
     {
+        public class BeamNetCreationData {}
 
         public BeamGameNet() : base()
         {
            // _MsgHandlers[BeamMessage.kBikeDataQuery] = (f,t,s,m) => this._HandleBikeDataQuery(f,t,s,m);
+        }
+
+        // Game P2pNetwork stuff
+        public void CreateBeamNet(BeamNetCreationData createData)
+        {
+            base.CreateNetwork(createData);
+        }
+
+        public void JoinBeamNet(string netName )
+        {
+            // // TODO: clean this crap up!! &&&&&
+            int pingMs = 2500;
+            int dropMs = 5000;
+            int timingMs = 15000;
+            P2pNetChannelInfo chan = new P2pNetChannelInfo(netName, netName, dropMs, pingMs, timingMs);
+            string beamNetworkHelloData = $"PeerId: {LocalP2pId()}"; // TODO: do something useful with this
+            base.JoinNetwork(chan, beamNetworkHelloData);
+        }
+
+
+        public void JoinExistingGame(ApianGroupInfo gameInfo, BeamApian apian, string localData )
+        {
+            base.JoinExistingGroup(gameInfo, apian, localData);
+        }
+
+
+        public void CreateAndJoinGame(string gameName, BeamApian apian, string localData)
+        {
+
         }
 
         protected override IP2pNet P2pNetFactory(string p2pConnectionString)

@@ -18,11 +18,11 @@ namespace BeamGameCode
     {
         protected string networkName;
         protected CreateMode netCreateMode = CreateMode.CreateIfNeeded;
-        protected string groupName;
-        protected CreateMode groupCreateMode = CreateMode.CreateIfNeeded;
+        protected string gameName;
+        protected CreateMode gameCreateMode = CreateMode.CreateIfNeeded;
         public BeamUserSettings settings;
 
-        protected Dictionary<string, ApianGroupInfo> announcedGroups;
+        protected Dictionary<string, ApianGroupInfo> announcedGames;
 
         protected float _secsToNextRespawnCheck = kRespawnCheckInterval;
         protected int _curState;
@@ -37,19 +37,20 @@ namespace BeamGameCode
         protected const int kConnecting = 0;
         protected const int kCreatingNet = 1;
         protected const int kJoiningNet = 2;
-        protected const int kCheckingForGroups = 3;
-        protected const int kJoiningGroup = 4;
-        protected const int kWaitingForMembers = 5;
-        protected const int kPlaying = 6;
-        protected const int kFailed = 7;
+        protected const int kCheckingForGames = 3;
+        protected const int kJoiningExistingGame = 4;
+        protected const int kCreatingAndJoiningGame = 5;
+        protected const int kWaitingForMembers = 6;
+        protected const int kPlaying = 7;
+        protected const int kFailed = 8;
 
         protected const float kRespawnCheckInterval = 1.3f;
-        protected const float kListenForGroupsSecs = 2.0f; // TODO: belongs here?
+        protected const float kListenForGamesSecs = 2.0f; // TODO: belongs here?
 
 		public override void Start(object param = null)
         {
             base.Start();
-            announcedGroups = new Dictionary<string, ApianGroupInfo>();
+            announcedGames = new Dictionary<string, ApianGroupInfo>();
 
             settings = appl.frontend.GetUserSettings();
 
@@ -93,7 +94,7 @@ namespace BeamGameCode
             case kConnecting:
                 logger.Verbose($"{(ModeName())}: SetState: kConnecting");
                 try {
-                    _ParseNetAndGroup();
+                    _ParseNetAndGame();
                     appl.ConnectToNetwork(settings.p2pConnectionString);
                 } catch (Exception ex) {
                     _SetState(kFailed, ex.Message);
@@ -114,16 +115,20 @@ namespace BeamGameCode
                 appl.JoinBeamNet((string)startParam);
                 // Wait for OnNetJoinedEvt()
                 break;
-            case kCheckingForGroups:
-                logger.Verbose($"{(ModeName())}: SetState: kCheckingForGroups");
-                announcedGroups.Clear();
-                appl.GroupAnnounceEvt += OnGroupAnnounceEvt;
-                appl.ListenForGroups();
-                _loopFunc = _GroupListenLoop;
+            case kCheckingForGames:
+                logger.Verbose($"{(ModeName())}: SetState: kCheckingForGames");
+                announcedGames.Clear();
+                appl.GameAnnounceEvt += OnGameAnnounceEvt;
+                appl.ListenForGames();
+                _loopFunc = _GamesListenLoop;
                 break;
-            case kJoiningGroup:
-                logger.Verbose($"{(ModeName())}: SetState: kJoiningGroup");
-                _JoinGroup();
+            case kJoiningExistingGame:
+                logger.Verbose($"{(ModeName())}: SetState: kJoiningExistingGame");
+                _JoinExistingGame(startParam as ApianGroupInfo);
+                break;
+            case kCreatingAndJoiningGame:
+                logger.Verbose($"{(ModeName())}: SetState: kCreatingAndJoiningGame");
+                _CreateAndJoinGame(startParam as ApianGroupInfo);
                 break;
             case kWaitingForMembers:
                 logger.Verbose($"{(ModeName())}: SetState: kWaitingForMembers");
@@ -148,39 +153,43 @@ namespace BeamGameCode
 
         protected void _DoNothingLoop(float frameSecs) {}
 
-        protected void _GroupListenLoop(float frameSecs)
+        protected void _GamesListenLoop(float frameSecs)
         {
-            if (_curStateSecs > kListenForGroupsSecs)
+            if (_curStateSecs > kListenForGamesSecs)
             {
-                // TODO: Hoist all this!!!
-                // Stop listening for groups and either create or join (or fail)
-                appl.GroupAnnounceEvt -= OnGroupAnnounceEvt; // stop listening
-                bool targetGroupExisted = (groupName != null) && announcedGroups.ContainsKey(groupName);
+                // TODO: Move group-knowing stuff to BeamApplication?
+                // Stop listening for games and either create or join (or fail)
+                appl.GameAnnounceEvt -= OnGameAnnounceEvt; // stop listening
+                bool targetGameExisted = (gameName != null) && announcedGames.ContainsKey(gameName);
 
-                switch (groupCreateMode)
+                if ((targetGameExisted) && (announcedGames[gameName].GroupType != CreatorServerGroupManager.groupType))
+                {
+                    _SetState(kFailed, $"Game \"{gameName}\" Exists but is wrong type: {announcedGames[gameName].GroupType}");
+                    return;
+                }
+
+                switch (gameCreateMode)
                 {
                 case CreateMode.JoinOnly:
-                    if (targetGroupExisted)
+                    if (targetGameExisted)
                     {
-                        appCore.apian.InitExistingGroup(announcedGroups[groupName]); // Like create, but for a remotely-created group
-                        _SetState(kJoiningGroup);
+
+                        _SetState(kJoiningExistingGame, announcedGames[gameName]);
                     }
                     else
-                        _SetState(kFailed, $"Apian Group \"{groupName}\" Not Found");
+                        _SetState(kFailed, $"Apian Game \"{gameName}\" Not Found");
                     break;
                 case CreateMode.CreateIfNeeded:
-                    if (targetGroupExisted)
-                        appCore.apian.InitExistingGroup(announcedGroups[groupName]);
+                    if (targetGameExisted)
+                        _SetState(kJoiningExistingGame, announcedGames[gameName]); // FIXME: probably just pass gameName?
                     else
-                        _CreateGroup();
-                    _SetState(kJoiningGroup);
+                        _SetState(kCreatingAndJoiningGame, announcedGames[gameName]);
                     break;
                 case CreateMode.MustCreate:
-                    if (targetGroupExisted)
-                        _SetState(kFailed, "Cannot create.  Apian Group already exists");
+                    if (targetGameExisted)
+                        _SetState(kFailed, $"Cannot create.  Beam Game \"{gameName}\" already exists");
                     else {
-                        _CreateGroup();
-                        _SetState(kJoiningGroup);
+                        _SetState(kCreatingAndJoiningGame, announcedGames[gameName]);
                     }
                     break;
                 }
@@ -208,7 +217,7 @@ namespace BeamGameCode
 
         // utils
 
-        private void _ParseNetAndGroup()
+        private void _ParseNetAndGame()
         {
             // Game spec syntax is "networkName/groupName"
             // If either name has an appended + character then the item should be created if it does not already exist.
@@ -232,32 +241,26 @@ namespace BeamGameCode
                                 : parts[0].EndsWith("*") ? CreateMode.MustCreate
                                     : CreateMode.JoinOnly;
 
-            groupCreateMode = parts[1].EndsWith("+") ? CreateMode.CreateIfNeeded
+            gameCreateMode = parts[1].EndsWith("+") ? CreateMode.CreateIfNeeded
                                 : parts[1].EndsWith("*") ? CreateMode.MustCreate
                                     : CreateMode.JoinOnly;
 
             char[] trimChars = {'+','*'};
             networkName = parts[0].TrimEnd(trimChars);
-            groupName = parts[1].TrimEnd(trimChars);
+            gameName = parts[1].TrimEnd(trimChars);
 
-            logger.Verbose($"{(ModeName())}: _ParseNetAndGroup() networkName: {networkName} ({netCreateMode}), groupName: {groupName} ({groupCreateMode})");
+            logger.Verbose($"{(ModeName())}: _ParseNetAndGroup() networkName: {networkName} ({netCreateMode}), gameName: {gameName} ({gameCreateMode})");
         }
 
-        private void _CreateGroup()
+        private void _CreateAndJoinGame(ApianGroupInfo gameInfo)
         {
-            logger.Verbose($"{(ModeName())}: _CreateGroup()");
-            groupName = groupName ?? "BEAMGRP" + System.Guid.NewGuid().ToString();
-            appCore.apian.CreateNewGroup(groupName);
+            // TODO: should these just be passing gameName as a string?
+            appl.CreateAndJoinGame(gameInfo.GroupName, appCore);
         }
 
-        private void _JoinGroup()
+        private void _JoinExistingGame(ApianGroupInfo gameInfo)
         {
-            BeamPlayer mb = new BeamPlayer(appl.LocalPeer.PeerId, appl.LocalPeer.Name);
-            //try {
-                appCore.apian.JoinGroup(groupName, mb.ApianSerialized());
-            //} catch (Exception ex) {
-            //    _SetState(kFailed, ex.Message);
-            //}
+            appl.JoinExistingGame(gameInfo, appCore);
         }
 
         // Event handlers
@@ -281,23 +284,25 @@ namespace BeamGameCode
             {
                 if (_curState == kJoiningNet)
                 {
+                    // FIXME: is it OK for code at this level to know this much about Apian? (might be...)
+                    // A LEAST this activity (creating the ApianCorePair) needs to be in its own function.
                     // Create gameinstance and ApianInstance
                     appCore = new BeamAppCore();
                     appCore.PlayerJoinedEvt += OnPlayerJoinedEvt;
                     appCore.NewBikeEvt += OnNewBikeEvt;
                     BeamApian apian = new BeamApianCreatorServer(appl.beamGameNet, appCore); // TODO: make the groupMgr type run-time spec'ed
                     appl.AddAppCore(appCore);
-                    _SetState(kCheckingForGroups, null);
+                    _SetState(kCheckingForGames, null);
                 }
                 else
                     logger.Error($"{(ModeName())} - OnNetJoinedEvt() - Wrong state: {_curState}");
             }
         }
 
-        public void OnGroupAnnounceEvt(object sender, ApianGroupInfo groupInfo)
+        public void OnGameAnnounceEvt(object sender, ApianGroupInfo groupInfo)
         {
             logger.Verbose($"{(ModeName())} - OnGroupAnnounceEvt(): {groupInfo.GroupName}");
-            announcedGroups[groupInfo.GroupName] = groupInfo;
+            announcedGames[groupInfo.GroupName] = groupInfo;
         }
 
 

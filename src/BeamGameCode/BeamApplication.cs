@@ -14,7 +14,7 @@ namespace BeamGameCode
         public event EventHandler<string> NetworkCreatedEvt; // net channelId
         public event EventHandler<PeerJoinedArgs> PeerJoinedEvt;
         public event EventHandler<PeerLeftArgs> PeerLeftEvt;
-        public event EventHandler<ApianGroupInfo> GroupAnnounceEvt;
+        public event EventHandler<ApianGroupInfo> GameAnnounceEvt;
         public ModeManager modeMgr {get; private set;}
         public  IBeamGameNet beamGameNet {get; private set;}
         public IBeamFrontend frontend {get; private set;}
@@ -49,7 +49,8 @@ namespace BeamGameCode
 
         public void CreateBeamNet(BeamGameNet.BeamNetCreationData createData)
         {
-            _UpdateLocalPeer();
+            _UpdateLocalPeer();  // FIXME: I'm *pretty* sure this _UpdateLocalPeer stuff was required
+                                // by the old localData() callcack mechanism and isn;t needed anymore
             beamGameNet.CreateBeamNet(createData);
         }
 
@@ -57,20 +58,26 @@ namespace BeamGameCode
         {
             _UpdateLocalPeer();
 
-
-            // // TODO: clean this crap up!! &&&&&
-            // int pingMs = 2500;
-            // int dropMs = 5000;
-            // int timingMs = 15000;
-            // P2pNetChannelInfo chan = new P2pNetChannelInfo(networkName, networkName, dropMs, pingMs, timingMs);
             beamGameNet.JoinBeamNet(networkName);
-
         }
 
-        public void ListenForGroups()
+        public void ListenForGames()
         {
             _UpdateLocalPeer();
             beamGameNet.RequestGroups();
+        }
+
+        protected BeamPlayer MakeBeamPlayer() => new BeamPlayer(LocalPeer.PeerId, LocalPeer.Name);
+        // FIXME: I think maybe it should go in BeamGameNet?
+
+
+        public void CreateAndJoinGame(string gameName, BeamAppCore appCore)
+        {
+            beamGameNet.CreateAndJoinGame(gameName, appCore.apian, MakeBeamPlayer().ApianSerialized() );
+        }
+       public void JoinExistingGame(ApianGroupInfo gameInfo, BeamAppCore appCore)
+        {
+            beamGameNet.JoinExistingGame(gameInfo, appCore.apian, MakeBeamPlayer().ApianSerialized() );
         }
 
         public void OnSwitchModeReq(int newModeId, object modeParam)
@@ -138,17 +145,17 @@ namespace BeamGameCode
         }
 
         public void SetGameNetInstance(IGameNet iGameNetInstance) {} // Stubbed.
-        // TODO: Does GameNet.SetGameNetInstance() even make sense anymore?
+        // FIXME: Does GameNet.SetGameNetInstance() even make sense anymore?
 
-        public void OnPeerSync(string p2pId, long clockOffsetMs, long netLagMs) {} // stubbed
-        // TODO: Maybe stub this is an ApianGameManagerBase class that this derives from?
+        public void OnPeerSync(string channel, string p2pId, long clockOffsetMs, long netLagMs) {} // stubbed
+        // TODO: Be nice to be able to default-stub this somewhere.
 
         // IApianGameManage
 
-        public void OnGroupAnnounce(string groupId, string groupType, string creatorId, string groupName)
+        public void OnGroupAnnounce(ApianGroupInfo groupInfo)
         {
-            Logger.Info($"OnGroupData({groupId})");
-            GroupAnnounceEvt?.Invoke(this, new ApianGroupInfo(groupType, groupId, creatorId, groupName));
+            Logger.Info($"OnGroupAnnounce({groupInfo.GroupName})");
+            GameAnnounceEvt?.Invoke(this, groupInfo);
         }
 
         // Utility methods
