@@ -58,7 +58,7 @@ namespace BeamGameCode
         {
             _UpdateLocalPeer();
 
-            beamGameNet.JoinBeamNet(networkName);
+            beamGameNet.JoinBeamNet(networkName, LocalPeer);
         }
 
         public void ListenForGames()

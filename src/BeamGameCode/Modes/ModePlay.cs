@@ -128,7 +128,7 @@ namespace BeamGameCode
                 break;
             case kCreatingAndJoiningGame:
                 logger.Verbose($"{(ModeName())}: SetState: kCreatingAndJoiningGame");
-                _CreateAndJoinGame(startParam as ApianGroupInfo);
+                _CreateAndJoinGame(startParam as string);
                 break;
             case kWaitingForMembers:
                 logger.Verbose($"{(ModeName())}: SetState: kWaitingForMembers");
@@ -183,13 +183,13 @@ namespace BeamGameCode
                     if (targetGameExisted)
                         _SetState(kJoiningExistingGame, announcedGames[gameName]); // FIXME: probably just pass gameName?
                     else
-                        _SetState(kCreatingAndJoiningGame, announcedGames[gameName]);
+                        _SetState(kCreatingAndJoiningGame, gameName);
                     break;
                 case CreateMode.MustCreate:
                     if (targetGameExisted)
                         _SetState(kFailed, $"Cannot create.  Beam Game \"{gameName}\" already exists");
                     else {
-                        _SetState(kCreatingAndJoiningGame, announcedGames[gameName]);
+                        _SetState(kCreatingAndJoiningGame, gameName);
                     }
                     break;
                 }
@@ -252,10 +252,10 @@ namespace BeamGameCode
             logger.Verbose($"{(ModeName())}: _ParseNetAndGroup() networkName: {networkName} ({netCreateMode}), gameName: {gameName} ({gameCreateMode})");
         }
 
-        private void _CreateAndJoinGame(ApianGroupInfo gameInfo)
+        private void _CreateAndJoinGame(string gameName)
         {
             // TODO: should these just be passing gameName as a string?
-            appl.CreateAndJoinGame(gameInfo.GroupName, appCore);
+            appl.CreateAndJoinGame(gameName, appCore);
         }
 
         private void _JoinExistingGame(ApianGroupInfo gameInfo)

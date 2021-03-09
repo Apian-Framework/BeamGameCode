@@ -18,7 +18,8 @@ namespace BeamGameCode
         {
             if ( (GroupMgr?.GroupCreatorId != GameNet.LocalP2pId()))
             {
-                Logger.Debug($"SendRequestOrObservation() We are not server, so don't send observations.");
+                // This next line is too verbose for even Debug-level
+                //Logger.Debug($"SendRequestOrObservation() We are not server, so don't send observations.");
                 return;
             }
             base.SendObservation(msg); // let this filter it too

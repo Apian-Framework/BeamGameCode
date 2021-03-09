@@ -131,10 +131,7 @@ namespace BeamGameCode
                 BeamApian apian = new BeamApianSinglePeer(appl.beamGameNet, appCore);
                 appl.AddAppCore(appCore);
                 // Dont need to check for groups in splash
-                apian.CreateNewGroup(ApianGroupName);
-                BeamPlayer mb = new BeamPlayer(appl.LocalPeer.PeerId, appl.LocalPeer.Name);
-                apian.JoinGroup(ApianGroupName, mb.ApianSerialized());
-
+                appl.CreateAndJoinGame(ApianGroupName, appCore);
                 appl.frontend?.OnStartMode(BeamModeFactory.kPractice, null);
                 // waiting for OnGroupJoined()
             }
