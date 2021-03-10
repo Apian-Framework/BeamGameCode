@@ -84,13 +84,13 @@ namespace BeamGameCode
         public Dictionary<string, string> logLevels;
         public Dictionary<string, string> tempSettings; // dict of cli-set, non-peristent values
 
-        public Dictionary<string, string> driverSettings; // dict of persistent, but driver-specific, settings
+        public Dictionary<string, string> platformSettings; // dict of persistent, but platform-specific, settings
 
         public BeamUserSettings()
         {
             logLevels = new Dictionary<string, string>();
             tempSettings = new Dictionary<string, string>();
-            driverSettings = new Dictionary<string, string>();
+            platformSettings = new Dictionary<string, string>();
         }
 
         public BeamUserSettings(BeamUserSettings source)
@@ -108,7 +108,7 @@ namespace BeamGameCode
             defaultLogLevel = source.defaultLogLevel;
             logLevels = source.logLevels ?? new Dictionary<string, string>();
             tempSettings = source.tempSettings ?? new Dictionary<string, string>();
-            driverSettings = source.driverSettings ?? new Dictionary<string, string>();
+            platformSettings = source.platformSettings ?? new Dictionary<string, string>();
         }
 
         public static BeamUserSettings CreateDefault()
@@ -133,7 +133,7 @@ namespace BeamGameCode
                     {"BeamMode", UniLogger.LevelNames[UniLogger.Level.Warn]},
                 },
                 tempSettings = new Dictionary<string, string>(),
-                driverSettings = new Dictionary<string, string>()
+                platformSettings = new Dictionary<string, string>()
             };
         }
     }
