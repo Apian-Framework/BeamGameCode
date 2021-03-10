@@ -211,7 +211,11 @@ namespace BeamGameCode
         {
             logger.Verbose($"OnCreateBikeCmd(#{seqNum}): {msg.bikeId}.");
             IBike ib = msg.ToBike(CoreData);
+            if (ib.peerId != LocalPeerId)
+                (ib as BaseBike).SetAsRemote(); // safe to do - there IS a BaseBike behind the ib
+
             logger.Verbose($"** OnCreateBike() created {ib.bikeId} at ({ib.basePosition.x}, {ib.basePosition.y})");
+
             if (_AddBike(ib))
             {
                 // *** Bikes are created stationary now - so there's no need to correct for creation time delay
