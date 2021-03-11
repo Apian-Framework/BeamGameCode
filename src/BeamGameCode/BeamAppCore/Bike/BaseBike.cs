@@ -65,8 +65,6 @@ namespace BeamGameCode
             logger = UniLogger.GetLogger("BaseBike");
         }
 
-        public void SetAsRemote() => ctrlType = BikeFactory.RemoteCtrl;
-
         public class SerialArgs
         {
             public Dictionary<string,int> peerIdxDict;

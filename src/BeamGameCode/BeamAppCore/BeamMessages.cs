@@ -159,7 +159,6 @@ namespace BeamGameCode
 
         public BaseBike ToBike(BeamCoreState gd)
         {
-            // Remote bikes always get control type set to after creation: BikeFactory.RemoteCrtl
             return new BaseBike(gd, bikeId, peerId , name, team, ctrlType, timeAtPos, new Vector2(xPos, yPos), heading);
         }
     }
