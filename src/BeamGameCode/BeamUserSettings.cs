@@ -10,7 +10,7 @@ namespace BeamGameCode
 {
     public static class UserSettingsMgr
     {
-        public const string currentVersion = "101";
+        public const string currentVersion = "102";
         public const string subFolder = ".beam";
         public const string defaultBaseName= "beamsettings";
         public static string fileBaseName;
@@ -73,6 +73,7 @@ namespace BeamGameCode
         public int startMode;
         public string screenName;
         public string p2pConnectionString;
+        public string apianNetworkName;
         public string ethNodeUrl;
         public string ethAcct;
         public string localPlayerCtrlType;
@@ -100,6 +101,7 @@ namespace BeamGameCode
             startMode = source.startMode;
             screenName = source.screenName;
             p2pConnectionString = source.p2pConnectionString;
+            apianNetworkName = source.apianNetworkName;
             ethNodeUrl = source.ethNodeUrl;
             ethAcct = source.ethAcct;
             localPlayerCtrlType = source.localPlayerCtrlType;
@@ -118,6 +120,7 @@ namespace BeamGameCode
                 startMode = BeamModeFactory.kPlay,
                 screenName = "Fred Sanford",
                 p2pConnectionString = "p2predis::newsweasel.com,password=O98nfRVWYYHg7rXpygBCBZWl+znRATaRXTC469SafZU",
+                apianNetworkName = "BeamNet1",
                 //p2pConnectionString = "p2predis::192.168.1.195,password=sparky-redis79",
                 ethNodeUrl = "https://rinkeby.infura.io/v3/7653fb1ed226443c98ce85d402299735",
                 ethAcct = "0x2b42eBD222B5a1134e85D78613078740eE3Cc93D",
