@@ -10,7 +10,7 @@ namespace BeamGameCode
 {
     public interface IBeamGameNet : IApianGameNet
     {
-        void CreateBeamNet(BeamGameNet.BeamNetCreationData createData);
+        //void CreateBeamNet(BeamGameNet.BeamNetCreationData createData);
         void JoinBeamNet(string netName, BeamNetworkPeer localPeer);
         void CreateAndJoinGame(string gameName, BeamApian apian, string localData);
         void JoinExistingGame(ApianGroupInfo gameInfo, BeamApian apian, string localData );
@@ -42,10 +42,10 @@ namespace BeamGameCode
         }
 
         // Game P2pNetwork stuff
-        public void CreateBeamNet(BeamNetCreationData createData)
-        {
-            base.CreateNetwork(createData);
-        }
+        // public void CreateBeamNet(BeamNetCreationData createData)
+        // {
+        //     base.CreateNetwork(createData);
+        // }
 
         public void JoinBeamNet(string netName, BeamNetworkPeer localPeer )
         {

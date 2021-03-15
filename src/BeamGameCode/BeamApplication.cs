@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 using UnityEngine;
 using GameModeMgr;
@@ -11,10 +12,11 @@ namespace BeamGameCode
 {
     public class BeamApplication : IModalGame, IApianApplication, IBeamApplication
     {
-        public event EventHandler<string> NetworkCreatedEvt; // net channelId
+        //public event EventHandler<string> NetworkCreatedEvt; // net channelId
         public event EventHandler<PeerJoinedArgs> PeerJoinedEvt;
         public event EventHandler<PeerLeftArgs> PeerLeftEvt;
         public event EventHandler<ApianGroupInfo> GameAnnounceEvt;
+        public event EventHandler<GameSelectedArgs> GameSelectedEvent;
         public ModeManager modeMgr {get; private set;}
         public  IBeamGameNet beamGameNet {get; private set;}
         public IBeamFrontend frontend {get; private set;}
@@ -47,12 +49,12 @@ namespace BeamGameCode
             beamGameNet.Connect(netConnectionStr);
         }
 
-        public void CreateBeamNet(BeamGameNet.BeamNetCreationData createData)
-        {
-            _UpdateLocalPeer();  // FIXME: I'm *pretty* sure this _UpdateLocalPeer stuff was required
-                                // by the old localData() callcack mechanism and isn;t needed anymore
-            beamGameNet.CreateBeamNet(createData);
-        }
+        // public void CreateBeamNet(BeamGameNet.BeamNetCreationData createData)
+        // {
+        //     _UpdateLocalPeer();  // FIXME: I'm *pretty* sure this _UpdateLocalPeer stuff was required
+        //                         // by the old localData() callcack mechanism and isn;t needed anymore
+        //     beamGameNet.CreateBeamNet(createData);
+        // }
 
         public void JoinBeamNet(string networkName)
         {
@@ -65,6 +67,11 @@ namespace BeamGameCode
         {
             _UpdateLocalPeer();
             beamGameNet.RequestGroups();
+        }
+
+        public void  SelectGame(IList<string> existingGameNames)
+        {
+            frontend.SelectGame(existingGameNames); // Starts UI, or just immediately calls OnGameSelected()
         }
 
         protected BeamPlayer MakeBeamPlayer() => new BeamPlayer(LocalPeer.PeerId, LocalPeer.Name);
@@ -117,11 +124,11 @@ namespace BeamGameCode
         }
 
         // IGameNetClient
-        public void OnNetworkCreated(string netP2pChannel)
-        {
-            Logger.Info($"OnGameCreated({netP2pChannel}");
-            NetworkCreatedEvt?.Invoke(this, netP2pChannel);
-        }
+        // public void OnNetworkCreated(string netP2pChannel)
+        // {
+        //     Logger.Info($"OnGameCreated({netP2pChannel}");
+        //     NetworkCreatedEvt?.Invoke(this, netP2pChannel);
+        // }
 
         public void OnPeerJoinedNetwork(string p2pId, string networkId, string helloData)
         {
@@ -156,6 +163,12 @@ namespace BeamGameCode
         {
             Logger.Info($"OnGroupAnnounce({groupInfo.GroupName})");
             GameAnnounceEvt?.Invoke(this, groupInfo);
+        }
+
+        public void OnGameSelected(string gameName, GameSelectedArgs.ReturnCode result)
+        {
+            Logger.Info($"OnGameSelected({gameName})");
+            GameSelectedEvent?.Invoke(this, new GameSelectedArgs(gameName, result));
         }
 
         // Utility methods

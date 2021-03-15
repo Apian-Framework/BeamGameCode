@@ -15,7 +15,6 @@ namespace BeamGameCode
         public BeamApianPeer(string _p2pId, string _appHelloData) : base(_p2pId, _appHelloData) { }
     }
 
-
     public abstract class BeamApian : ApianBase
     {
 

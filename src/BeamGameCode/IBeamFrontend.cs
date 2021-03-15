@@ -1,7 +1,6 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
+using Apian;
 
 namespace BeamGameCode
 {
@@ -26,6 +25,11 @@ namespace BeamGameCode
         BeamUserSettings GetUserSettings();
 
         void DisplayMessage(MessageSeverity level, string msgText);
+
+        void SelectGame(IList<string> existingGameNames);
+
+
+        // Event/message handlers
 
         // Game Modes
         void OnStartMode(int modeId, object param = null);
