@@ -54,11 +54,12 @@ namespace BeamGameCode
         protected const int kConnecting = 0;
         protected const int kJoiningNet = 2;
         protected const int kCheckingForGames = 3;
-        protected const int kJoiningExistingGame = 4;
-        protected const int kCreatingAndJoiningGame = 5;
-        protected const int kWaitingForMembers = 6;
-        protected const int kPlaying = 7;
-        protected const int kFailed = 8;
+        protected const int kSelectingGame = 4;
+        protected const int kJoiningExistingGame = 5;
+        protected const int kCreatingAndJoiningGame = 6;
+        protected const int kWaitingForMembers = 7;
+        protected const int kPlaying = 8;
+        protected const int kFailed = 9;
 
         protected const float kRespawnCheckInterval = 1.3f;
         protected const float kListenForGamesSecs = 2.0f; // TODO: belongs here?
@@ -126,6 +127,9 @@ namespace BeamGameCode
                 appl.ListenForGames();
                 _loopFunc = _GamesListenLoop;
                 break;
+            case kSelectingGame:
+                logger.Verbose($"{(ModeName())}: SetState: kSelectingGame");  // waiting for UI to return
+                break;
             case kJoiningExistingGame:
                 logger.Verbose($"{(ModeName())}: SetState: kJoiningExistingGame");
                 _JoinExistingGame(startParam as ApianGroupInfo);
@@ -166,6 +170,7 @@ namespace BeamGameCode
                 appl.GameAnnounceEvt -= OnGameAnnounceEvt; // stop listening
                 appl.GameSelectedEvent += OnGameSelectedEvt;
                 appl.SelectGame(announcedGames.Keys.Distinct().ToList());
+                _SetState(kSelectingGame);
             }
         }
 
@@ -278,6 +283,8 @@ namespace BeamGameCode
             GameSelectedArgs.ReturnCode result = args.result;
 
             appl.GameSelectedEvent -= OnGameSelectedEvt; // stop listening
+
+            logger.Info($"{(ModeName())} - OnGameSelected(): {gameName}, result: {result}");
 
             bool targetGameExisted = (gameName != null) && announcedGames.ContainsKey(gameName);
             if ((targetGameExisted) && (announcedGames[gameName].GroupType != CreatorServerGroupManager.groupType))
