@@ -30,7 +30,7 @@ namespace BeamGameCode
             beamGameNet = bgn;
             beamGameNet.AddClient(this);
             frontend = fe;
-            Logger = UniLogger.GetLogger("BeamBackendInstance");
+            Logger = UniLogger.GetLogger("BeamApplication");
             modeMgr = new ModeManager(new BeamModeFactory(), this);
 
             frontend.SetBeamApplication(this);
