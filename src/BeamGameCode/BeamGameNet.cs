@@ -15,7 +15,7 @@ namespace BeamGameCode
         void LeaveBeamNet();
 
         BeamGameInfo CreateBeamGameInfo( string gameName, string apianGroupType);
-        void CreateAndJoinGame(string gameName, BeamApian apian, string localData);
+        void CreateAndJoinGame(BeamGameInfo gameInfo, BeamApian apian, string localData);
         void JoinExistingGame(BeamGameInfo gameInfo, BeamApian apian, string localData );
         void LeaveGame(string gameId);
 
@@ -60,18 +60,6 @@ namespace BeamGameCode
 
         public void LeaveBeamNet() => LeaveNetwork();
 
-        public void JoinExistingGame(BeamGameInfo gameInfo, BeamApian apian, string localData )
-        {
-            string netName = p2p.GetMainChannel()?.Name;
-            if (netName == null)
-            {
-                logger.Error($"JoinExistingGame() - Must join network first"); // TODO: probably ought to assert? Can this be recoverable?
-                return;
-            }
-
-            base.JoinExistingGroup(gameInfo.GroupInfo, apian, localData);
-        }
-
         public BeamGameInfo CreateBeamGameInfo(string gameName, string apianGroupType)
         {
            string netName = p2p.GetMainChannel()?.Name;
@@ -90,7 +78,7 @@ namespace BeamGameCode
             return new BeamGameInfo(groupInfo);
         }
 
-        public void CreateAndJoinGame(string gameName, BeamApian apian, string localGroupData)
+        public void JoinExistingGame(BeamGameInfo gameInfo, BeamApian apian, string localData )
         {
             string netName = p2p.GetMainChannel()?.Name;
             if (netName == null)
@@ -98,9 +86,20 @@ namespace BeamGameCode
                 logger.Error($"JoinExistingGame() - Must join network first"); // TODO: probably ought to assert? Can this be recoverable?
                 return;
             }
-            BeamGameInfo gameInfo = CreateBeamGameInfo(gameName, apian.GroupType);
 
-            base.CreateAndJoinGroup(gameInfo.GroupInfo, apian, localGroupData);
+            base.JoinExistingGroup(gameInfo.GroupInfo, apian, localData);
+        }
+
+        public void CreateAndJoinGame(BeamGameInfo gameInfo, BeamApian apian, string localData)
+        {
+            string netName = p2p.GetMainChannel()?.Name;
+            if (netName == null)
+            {
+                logger.Error($"CreateAndJoinGame() - Must join network first"); // TODO: probably ought to assert? Can this be recoverable?
+                return;
+            }
+
+            base.CreateAndJoinGroup(gameInfo.GroupInfo, apian, localData);
 
         }
 

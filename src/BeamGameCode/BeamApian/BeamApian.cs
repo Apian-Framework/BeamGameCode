@@ -15,6 +15,28 @@ namespace BeamGameCode
         public BeamApianPeer(string _p2pId, string _appHelloData) : base(_p2pId, _appHelloData) { }
     }
 
+    public class BeamApianFactory
+    {
+        public static BeamApian Create(string apianGroupType, IBeamGameNet beamGameNet, BeamAppCore appCore)
+        {
+            BeamApian result;
+            switch (apianGroupType)
+            {
+            case SinglePeerGroupManager.groupType:
+                result = new BeamApianSinglePeer(beamGameNet, appCore);
+                break;
+            case CreatorServerGroupManager.groupType:
+                result =  new BeamApianCreatorServer(beamGameNet, appCore);
+                break;
+            default:
+                UniLogger.GetLogger("Apian").Warn($"BeamApianFactory.Create() Unknown GroupTYpe: {apianGroupType}");
+                result = null;
+                break;
+            }
+            return result;
+        }
+    }
+
     public abstract class BeamApian : ApianBase
     {
 

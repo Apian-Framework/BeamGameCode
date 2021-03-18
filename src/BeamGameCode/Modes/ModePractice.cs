@@ -3,6 +3,7 @@ using System;
 using System.Linq;
 using GameModeMgr;
 using UnityEngine;
+using Apian;
 
 namespace BeamGameCode
 {
@@ -11,8 +12,7 @@ namespace BeamGameCode
         static public readonly string networkName = "LocalPracticeGame";
         static public readonly string ApianGroupName = "LocalPracticeGroup";
         public readonly int kMaxAiBikes = 11;
-        public BeamAppCore appCore = null;
-        protected BaseBike playerBike = null;
+         protected BaseBike playerBike = null;
         protected const float kRespawnCheckInterval = 1.3f;
         protected float _secsToNextRespawnCheck = kRespawnCheckInterval;
         protected bool netJoined;
@@ -98,7 +98,7 @@ namespace BeamGameCode
         }
 
 
-        public void OnRespawnPlayerEvt(object sender, EventArgs args)
+        public  void OnRespawnPlayerEvt(object sender, EventArgs args)
         {
             logger.Info("Respawning Player");
             SpawnPlayerBike();
@@ -123,15 +123,14 @@ namespace BeamGameCode
             if (isLocal && appCore == null)
             {
                 logger.Info("practice network joined");
+                BeamGameInfo gameInfo = appl.beamGameNet.CreateBeamGameInfo(ApianGroupName, SinglePeerGroupManager.groupType);
                 // Create gameInstance and associated Apian
-                appCore = new BeamAppCore();
+                _CreateCorePair(gameInfo);
                 appCore.PlayerJoinedEvt += OnMemberJoinedGroupEvt;
                 appCore.NewBikeEvt += OnNewBikeEvt;
 
-                BeamApian apian = new BeamApianSinglePeer(appl.beamGameNet, appCore);
-                appl.AddAppCore(appCore);
                 // Dont need to check for groups in splash
-                appl.CreateAndJoinGame(ApianGroupName, appCore);
+                appl.CreateAndJoinGame(gameInfo, appCore);
                 appl.frontend?.OnStartMode(BeamModeFactory.kPractice, null);
                 // waiting for OnGroupJoined()
             }

@@ -3,6 +3,7 @@ using System;
 using System.Linq;
 using GameModeMgr;
 using UnityEngine;
+using Apian;
 
 namespace BeamGameCode
 {
@@ -15,7 +16,6 @@ namespace BeamGameCode
         protected const float kRespawnCheckInterval = 1.3f;
         protected const float kCamTargetInterval = 10.0f;
         protected float _secsToNextRespawnCheck = kRespawnCheckInterval;
-        public BeamAppCore appCore = null;
         protected bool bikesCreated;
         protected bool localPlayerJoined;
 
@@ -130,13 +130,14 @@ namespace BeamGameCode
             {
                 logger.Info("Splash network joined");
                 // Create gameInstance and associated Apian
-                appCore = new BeamAppCore();
+                BeamGameInfo gameInfo = appl.beamGameNet.CreateBeamGameInfo(ApianGroupName, SinglePeerGroupManager.groupType);
+                // Create gameInstance and associated Apian
+                _CreateCorePair(gameInfo);
+
                 appCore.PlayerJoinedEvt += OnPlayerJoinedEvt;
                 appCore.NewBikeEvt += OnNewBikeEvt;
-                BeamApian apian = new BeamApianSinglePeer(appl.beamGameNet, appCore); // This is the REAL one
-                appl.AddAppCore(appCore);
-                // Dont need to check for groups in splash
-                appl.CreateAndJoinGame(ApianGroupName, appCore);
+
+                appl.CreateAndJoinGame(gameInfo, appCore);
                 _CurrentState = ModeState.JoiningGroup;
                 // waiting for OnPlayerJoined(localplayer)
             }

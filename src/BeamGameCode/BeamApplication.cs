@@ -78,9 +78,9 @@ namespace BeamGameCode
         // FIXME: I think maybe it should go in BeamGameNet?
 
 
-        public void CreateAndJoinGame(string gameName, BeamAppCore appCore)
+        public void CreateAndJoinGame(BeamGameInfo gameInfo, BeamAppCore appCore)
         {
-            beamGameNet.CreateAndJoinGame(gameName, appCore.apian, MakeBeamPlayer().ApianSerialized() );
+            beamGameNet.CreateAndJoinGame(gameInfo, appCore.apian, MakeBeamPlayer().ApianSerialized() );
         }
        public void JoinExistingGame(BeamGameInfo gameInfo, BeamAppCore appCore)
         {
