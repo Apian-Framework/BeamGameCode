@@ -15,7 +15,7 @@ namespace BeamGameCode
         //public event EventHandler<string> NetworkCreatedEvt; // net channelId
         public event EventHandler<PeerJoinedArgs> PeerJoinedEvt;
         public event EventHandler<PeerLeftArgs> PeerLeftEvt;
-        public event EventHandler<ApianGroupInfo> GameAnnounceEvt;
+        public event EventHandler<BeamGameInfo> GameAnnounceEvt;
         public event EventHandler<GameSelectedArgs> GameSelectedEvent;
         public ModeManager modeMgr {get; private set;}
         public  IBeamGameNet beamGameNet {get; private set;}
@@ -69,9 +69,9 @@ namespace BeamGameCode
             beamGameNet.RequestGroups();
         }
 
-        public void  SelectGame(IList<string> existingGameNames)
+        public void  SelectGame(IDictionary<string, BeamGameInfo> existingGames)
         {
-            frontend.SelectGame(existingGameNames); // Starts UI, or just immediately calls OnGameSelected()
+            frontend.SelectGame(existingGames); // Starts UI, or just immediately calls OnGameSelected()
         }
 
         protected BeamPlayer MakeBeamPlayer() => new BeamPlayer(LocalPeer.PeerId, LocalPeer.Name);
@@ -82,7 +82,7 @@ namespace BeamGameCode
         {
             beamGameNet.CreateAndJoinGame(gameName, appCore.apian, MakeBeamPlayer().ApianSerialized() );
         }
-       public void JoinExistingGame(ApianGroupInfo gameInfo, BeamAppCore appCore)
+       public void JoinExistingGame(BeamGameInfo gameInfo, BeamAppCore appCore)
         {
             beamGameNet.JoinExistingGame(gameInfo, appCore.apian, MakeBeamPlayer().ApianSerialized() );
         }
@@ -167,13 +167,14 @@ namespace BeamGameCode
         public void OnGroupAnnounce(ApianGroupInfo groupInfo)
         {
             Logger.Info($"OnGroupAnnounce({groupInfo.GroupName})");
-            GameAnnounceEvt?.Invoke(this, groupInfo);
+            BeamGameInfo bgi = new BeamGameInfo(groupInfo);
+            GameAnnounceEvt?.Invoke(this, bgi);
         }
 
-        public void OnGameSelected(string gameName, GameSelectedArgs.ReturnCode result)
+        public void OnGameSelected(BeamGameInfo gameInfo, GameSelectedArgs.ReturnCode result)
         {
-            Logger.Info($"OnGameSelected({gameName})");
-            GameSelectedEvent?.Invoke(this, new GameSelectedArgs(gameName, result));
+            Logger.Info($"OnGameSelected({gameInfo.GameName})");
+            GameSelectedEvent?.Invoke(this, new GameSelectedArgs(gameInfo, result));
         }
 
         // Utility methods

@@ -35,11 +35,11 @@ namespace BeamGameCode
 
         protected string networkName;
         //protected CreateMode netCreateMode = CreateMode.CreateIfNeeded;
-        protected string gameName;
+        //protected string gameName;
         protected CreateMode gameCreateMode = CreateMode.CreateIfNeeded;
         public BeamUserSettings settings;
 
-        protected Dictionary<string, ApianGroupInfo> announcedGames;
+        protected Dictionary<string, BeamGameInfo> announcedGames;
 
         protected float _secsToNextRespawnCheck = kRespawnCheckInterval;
         protected int _curState;
@@ -67,7 +67,7 @@ namespace BeamGameCode
 		public override void Start(object param = null)
         {
             base.Start();
-            announcedGames = new Dictionary<string, ApianGroupInfo>();
+            announcedGames = new Dictionary<string, BeamGameInfo>();
 
             settings = appl.frontend.GetUserSettings();
 
@@ -132,7 +132,7 @@ namespace BeamGameCode
                 break;
             case kJoiningExistingGame:
                 logger.Verbose($"{(ModeName())}: SetState: kJoiningExistingGame");
-                _JoinExistingGame(startParam as ApianGroupInfo);
+                _JoinExistingGame(startParam as BeamGameInfo);
                 break;
             case kCreatingAndJoiningGame:
                 logger.Verbose($"{(ModeName())}: SetState: kCreatingAndJoiningGame");
@@ -169,8 +169,8 @@ namespace BeamGameCode
                 // Stop listening for games
                 appl.GameAnnounceEvt -= OnGameAnnounceEvt; // stop listening
                 appl.GameSelectedEvent += OnGameSelectedEvt;
-                appl.SelectGame(announcedGames.Keys.Distinct().ToList());
-                _SetState(kSelectingGame);
+                appl.SelectGame(announcedGames);
+                _SetState(kSelectingGame); // ends with OnGameSelected()
             }
         }
 
@@ -195,39 +195,6 @@ namespace BeamGameCode
 
         // utils
 
-        private void _ParseNetAndGame()
-        {
-            // Game spec syntax is "networkName/groupName"
-            // If either name has an appended + character then the item should be created if it does not already exist.
-            // If either name has an appended * character then the item must be created, and cannot already exist.
-            // Otherwise, the item cannot be created - only joined.
-            // If either name is missing then it is an error
-
-            string gameSpecSetting;
-            string[] parts = {};
-
-            if (settings.tempSettings.TryGetValue("gameSpec", out gameSpecSetting))
-                parts = gameSpecSetting.Split('/');
-            else
-                throw new Exception($"GameSpec (net/group) setting missing.");
-
-
-            if (parts.Count() != 2)
-                throw new Exception($"Bad GameSpec: {gameSpecSetting}");
-
-
-
-            gameCreateMode = parts[1].EndsWith("+") ? CreateMode.CreateIfNeeded
-                                : parts[1].EndsWith("*") ? CreateMode.MustCreate
-                                    : CreateMode.JoinOnly;
-
-            char[] trimChars = {'+','*'};
-            networkName = parts[0].TrimEnd(trimChars);
-            gameName = parts[1].TrimEnd(trimChars);
-
-            logger.Verbose($"{(ModeName())}: _ParseNetAndGroup() networkName: {networkName}, gameName: {gameName} ({gameCreateMode})");
-        }
-
         private void _JoinNetwork()
         {
             appl.JoinBeamNet(settings.apianNetworkName);
@@ -240,7 +207,7 @@ namespace BeamGameCode
             appl.CreateAndJoinGame(gameName, appCore);
         }
 
-        private void _JoinExistingGame(ApianGroupInfo gameInfo)
+        private void _JoinExistingGame(BeamGameInfo gameInfo)
         {
             appl.JoinExistingGame(gameInfo, appCore);
         }
@@ -271,25 +238,43 @@ namespace BeamGameCode
             }
         }
 
-        public void OnGameAnnounceEvt(object sender, ApianGroupInfo groupInfo)
+        // public void OnPeerJoinedNetEvt(object sender, PeerJoinedArgs ga)
+        // {
+        //     BeamNetworkPeer p = ga.peer;
+        //     bool isLocal = p.PeerId == appl.LocalPeer.PeerId;
+        //     logger.Info($"{(ModeName())} - OnPeerJoinedNetEvt() - {(isLocal?"Local":"Remote")} Peer Joined: {p.Name}, ID: {p.PeerId}");
+        //     if (isLocal)
+        //     {
+        //         if (_curState == kJoiningNet)
+        //         {
+        //             // This used to create the AppCore and apian instance. Now we wait until after a game is selected
+        //             // so what we create can depend on what was selected
+        //             _SetState(kCheckingForGames, null);
+        //         }
+        //         else
+        //             logger.Error($"{(ModeName())} - OnNetJoinedEvt() - Wrong state: {_curState}");
+        //     }
+        // }
+
+        public void OnGameAnnounceEvt(object sender, BeamGameInfo gameInfo)
         {
-            logger.Verbose($"{(ModeName())} - OnGroupAnnounceEvt(): {groupInfo.GroupName}");
-            announcedGames[groupInfo.GroupName] = groupInfo;
+            logger.Verbose($"{(ModeName())} - OnGameAnnounceEvt(): {gameInfo.GameName}");
+            announcedGames[gameInfo.GameName] = gameInfo;
         }
 
         public void OnGameSelectedEvt(object sender, GameSelectedArgs args)
         {
-            string gameName = args.gameName;
+            BeamGameInfo gameInfo = args.gameInfo;
             GameSelectedArgs.ReturnCode result = args.result;
+            string gameName = gameInfo?.GameName;
 
             appl.GameSelectedEvent -= OnGameSelectedEvt; // stop listening
-
             logger.Info($"{(ModeName())} - OnGameSelected(): {gameName}, result: {result}");
 
             bool targetGameExisted = (gameName != null) && announcedGames.ContainsKey(gameName);
-            if ((targetGameExisted) && (announcedGames[gameName].GroupType != CreatorServerGroupManager.groupType))
+            if ((targetGameExisted) && (announcedGames[gameName].GroupInfo.GroupType != CreatorServerGroupManager.groupType))
             {
-                _SetState(kFailed, $"Game \"{gameName}\" Exists but is wrong type: {announcedGames[gameName].GroupType}");
+                _SetState(kFailed, $"Game \"{gameName}\" Exists but is wrong type: {announcedGames[gameName].GroupInfo.GroupType}");
                 return;
             }
 

@@ -26,7 +26,7 @@ namespace BeamGameCode
 
         void DisplayMessage(MessageSeverity level, string msgText);
 
-        void SelectGame(IList<string> existingGameNames);
+        void SelectGame(IDictionary<string, BeamGameInfo> existingGames);
 
 
         // Event/message handlers

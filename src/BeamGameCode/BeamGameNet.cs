@@ -13,8 +13,10 @@ namespace BeamGameCode
         //void CreateBeamNet(BeamGameNet.BeamNetCreationData createData);
         void JoinBeamNet(string netName, BeamNetworkPeer localPeer);
         void LeaveBeamNet();
+
+        BeamGameInfo CreateBeamGameInfo( string gameName, string apianGroupType);
         void CreateAndJoinGame(string gameName, BeamApian apian, string localData);
-        void JoinExistingGame(ApianGroupInfo gameInfo, BeamApian apian, string localData );
+        void JoinExistingGame(BeamGameInfo gameInfo, BeamApian apian, string localData );
         void LeaveGame(string gameId);
 
         void SendBikeCreateDataReq(string groupId, IBike ib);
@@ -35,8 +37,6 @@ namespace BeamGameCode
             new P2pNetChannelInfo(null, null, 10000, 5000, 0, 0 ), // Main network channel (no clock sync)
             new P2pNetChannelInfo(null, null, 5000, 2500, 150000, 0 )  // gameplay channels
         };
-
-
 
         public BeamGameNet() : base()
         {
@@ -60,7 +60,7 @@ namespace BeamGameCode
 
         public void LeaveBeamNet() => LeaveNetwork();
 
-        public void JoinExistingGame(ApianGroupInfo gameInfo, BeamApian apian, string localData )
+        public void JoinExistingGame(BeamGameInfo gameInfo, BeamApian apian, string localData )
         {
             string netName = p2p.GetMainChannel()?.Name;
             if (netName == null)
@@ -68,17 +68,26 @@ namespace BeamGameCode
                 logger.Error($"JoinExistingGame() - Must join network first"); // TODO: probably ought to assert? Can this be recoverable?
                 return;
             }
-            P2pNetChannelInfo testChanInfo = new P2pNetChannelInfo(beamChannelData[kBeamGameChannelInfo]);
-            testChanInfo.name = gameInfo.GroupChannelInfo.name;
-            testChanInfo.id = $"{netName}/{testChanInfo.name}";
 
-            if (!testChanInfo.IsEquivalentTo(gameInfo.GroupChannelInfo))
+            base.JoinExistingGroup(gameInfo.GroupInfo, apian, localData);
+        }
+
+        public BeamGameInfo CreateBeamGameInfo(string gameName, string apianGroupType)
+        {
+           string netName = p2p.GetMainChannel()?.Name;
+            if (netName == null)
             {
-                logger.Error($"JoinExistingGame() - Local and remote group channel mismatch"); // TODO: assert? see above
-                return;
+                logger.Error($"CreateBeamGameInfo() - Must join network first"); // TODO: probably ought to assert? Can this be recoverable?
+                return null;
             }
 
-            base.JoinExistingGroup(gameInfo, apian, localData);
+            P2pNetChannelInfo groupChanInfo = new P2pNetChannelInfo(beamChannelData[kBeamGameChannelInfo]);
+            groupChanInfo.name = gameName;
+            groupChanInfo.id = $"{netName}/{gameName}";
+
+            ApianGroupInfo groupInfo = new ApianGroupInfo(apianGroupType, groupChanInfo, LocalP2pId(), gameName);
+
+            return new BeamGameInfo(groupInfo);
         }
 
         public void CreateAndJoinGame(string gameName, BeamApian apian, string localGroupData)
@@ -89,12 +98,9 @@ namespace BeamGameCode
                 logger.Error($"JoinExistingGame() - Must join network first"); // TODO: probably ought to assert? Can this be recoverable?
                 return;
             }
-            P2pNetChannelInfo groupChanInfo = new P2pNetChannelInfo(beamChannelData[kBeamGameChannelInfo]);
-            groupChanInfo.name = gameName;
-            groupChanInfo.id = $"{netName}/{gameName}";
+            BeamGameInfo gameInfo = CreateBeamGameInfo(gameName, apian.GroupType);
 
-            ApianGroupInfo groupInfo = new ApianGroupInfo(apian.GroupType, groupChanInfo, LocalP2pId(), gameName);
-            base.CreateAndJoinGroup(groupInfo, apian, localGroupData);
+            base.CreateAndJoinGroup(gameInfo.GroupInfo, apian, localGroupData);
 
         }
 

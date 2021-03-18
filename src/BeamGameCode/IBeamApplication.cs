@@ -17,20 +17,28 @@ namespace BeamGameCode
     public struct GameSelectedArgs {
         public enum ReturnCode {kCreate, kJoin, kCancel};
         public ReturnCode result;
-        public string gameName;
+        public BeamGameInfo gameInfo;
 
-        public GameSelectedArgs( string gn, ReturnCode r) { gameName = gn; result = r; }
+        public GameSelectedArgs( BeamGameInfo gi, ReturnCode r) { gameInfo = gi; result = r; }
+    }
+
+    public class BeamGameInfo
+    {
+        public ApianGroupInfo GroupInfo;
+
+        public string GameName { get => GroupInfo.GroupName; }
+        public BeamGameInfo(ApianGroupInfo agi) { GroupInfo = agi; }
     }
 
     public interface IBeamApplication : IApianApplication
     {
         IBeamGameNet beamGameNet {get;}
-        void OnGameSelected(string gameName, GameSelectedArgs.ReturnCode result);
+        void OnGameSelected(BeamGameInfo gameInfo, GameSelectedArgs.ReturnCode result);
 
         // Events
         event EventHandler<PeerJoinedArgs> PeerJoinedEvt;
         event EventHandler<PeerLeftArgs> PeerLeftEvt;
-        event EventHandler<ApianGroupInfo> GameAnnounceEvt;
+        event EventHandler<BeamGameInfo> GameAnnounceEvt;
         event EventHandler<GameSelectedArgs> GameSelectedEvent;
 
     }
