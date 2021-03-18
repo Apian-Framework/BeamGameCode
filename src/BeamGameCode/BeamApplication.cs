@@ -87,6 +87,11 @@ namespace BeamGameCode
             beamGameNet.JoinExistingGame(gameInfo, appCore.apian, MakeBeamPlayer().ApianSerialized() );
         }
 
+        public void LeaveGame(string gameId)
+        {
+            beamGameNet.LeaveGame(gameId);
+        }
+
         public void OnSwitchModeReq(int newModeId, object modeParam)
         {
            modeMgr.SwitchToMode(newModeId, modeParam);

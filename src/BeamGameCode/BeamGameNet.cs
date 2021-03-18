@@ -12,8 +12,10 @@ namespace BeamGameCode
     {
         //void CreateBeamNet(BeamGameNet.BeamNetCreationData createData);
         void JoinBeamNet(string netName, BeamNetworkPeer localPeer);
+        void LeaveBeamNet();
         void CreateAndJoinGame(string gameName, BeamApian apian, string localData);
         void JoinExistingGame(ApianGroupInfo gameInfo, BeamApian apian, string localData );
+        void LeaveGame(string gameId);
 
         void SendBikeCreateDataReq(string groupId, IBike ib);
         void SendBikeCommandReq(string groupId, IBike bike, BikeCommand cmd);
@@ -56,6 +58,7 @@ namespace BeamGameCode
             base.JoinNetwork(chan, beamNetworkHelloData);
         }
 
+        public void LeaveBeamNet() => LeaveNetwork();
 
         public void JoinExistingGame(ApianGroupInfo gameInfo, BeamApian apian, string localData )
         {
@@ -94,6 +97,8 @@ namespace BeamGameCode
             base.CreateAndJoinGroup(groupInfo, apian, localGroupData);
 
         }
+
+        public void LeaveGame(string gameId) => LeaveGroup(gameId); // ApianGameNet.LeaveGroup()
 
         protected override IP2pNet P2pNetFactory(string p2pConnectionString)
         {
