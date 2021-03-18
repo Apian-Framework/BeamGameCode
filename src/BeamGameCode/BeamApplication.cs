@@ -138,7 +138,7 @@ namespace BeamGameCode
         public void OnPeerJoinedNetwork(string p2pId, string networkId, string helloData)
         {
             BeamNetworkPeer peer = JsonConvert.DeserializeObject<BeamNetworkPeer>(helloData);
-            Logger.Info($"OnPeerJoinedGame() {((p2pId == LocalPeer.PeerId)?"Local":"Remote")} name: {peer.Name}");
+            Logger.Info($"OnPeerJoinedNetwork() {((p2pId == LocalPeer.PeerId)?"Local":"Remote")} name: {peer.Name}");
             PeerJoinedEvt.Invoke(this, new PeerJoinedArgs(networkId, peer));
         }
 
