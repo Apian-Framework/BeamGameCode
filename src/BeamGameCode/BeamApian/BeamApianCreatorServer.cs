@@ -11,7 +11,7 @@ namespace BeamGameCode
     {
         public BeamApianCreatorServer(IBeamGameNet _gn,  IBeamAppCore _client) : base(_gn, _client)
         {
-            GroupMgr = new CreatorServerGroupManager(this);
+            GroupMgr = new LeaderSezGroupManager(this);
         }
 
         public override void SendObservation( ApianObservation msg)

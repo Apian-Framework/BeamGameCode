@@ -25,7 +25,7 @@ namespace BeamGameCode
             case SinglePeerGroupManager.groupType:
                 result = new BeamApianSinglePeer(beamGameNet, appCore);
                 break;
-            case CreatorServerGroupManager.groupType:
+            case LeaderSezGroupManager.groupType:
                 result =  new BeamApianCreatorServer(beamGameNet, appCore);
                 break;
             default:
