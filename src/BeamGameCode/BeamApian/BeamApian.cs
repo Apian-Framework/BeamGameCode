@@ -22,10 +22,10 @@ namespace BeamGameCode
             BeamApian result;
             switch (apianGroupType)
             {
-            case SinglePeerGroupManager.groupType:
+            case SinglePeerGroupManager.kGroupType:
                 result = new BeamApianSinglePeer(beamGameNet, appCore);
                 break;
-            case LeaderSezGroupManager.groupType:
+            case LeaderSezGroupManager.kGroupType:
                 result =  new BeamApianCreatorServer(beamGameNet, appCore);
                 break;
             default:

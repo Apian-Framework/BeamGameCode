@@ -130,7 +130,7 @@ namespace BeamGameCode
             {
                 logger.Info("Splash network joined");
                 // Create gameInstance and associated Apian
-                BeamGameInfo gameInfo = appl.beamGameNet.CreateBeamGameInfo(ApianGroupName, SinglePeerGroupManager.groupType);
+                BeamGameInfo gameInfo = appl.beamGameNet.CreateBeamGameInfo(ApianGroupName, SinglePeerGroupManager.kGroupType);
                 // Create gameInstance and associated Apian
                 _CreateCorePair(gameInfo);
 

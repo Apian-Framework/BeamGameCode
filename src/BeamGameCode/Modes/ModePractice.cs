@@ -123,7 +123,7 @@ namespace BeamGameCode
             if (isLocal && appCore == null)
             {
                 logger.Info("practice network joined");
-                BeamGameInfo gameInfo = appl.beamGameNet.CreateBeamGameInfo(ApianGroupName, SinglePeerGroupManager.groupType);
+                BeamGameInfo gameInfo = appl.beamGameNet.CreateBeamGameInfo(ApianGroupName, SinglePeerGroupManager.kGroupType);
                 // Create gameInstance and associated Apian
                 _CreateCorePair(gameInfo);
                 appCore.PlayerJoinedEvt += OnMemberJoinedGroupEvt;
