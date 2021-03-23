@@ -34,6 +34,7 @@ namespace BeamGameCode
         public const int kBeamChannelInfoCount = 2;
 
         protected P2pNetChannelInfo[] beamChannelData =  {
+            // name, id, dropMs, pingMs, syncMs, maxPeers
             new P2pNetChannelInfo(null, null, 10000, 5000, 0, 0 ), // Main network channel (no clock sync)
             new P2pNetChannelInfo(null, null, 5000, 2500, 150000, 0 )  // gameplay channels
         };
