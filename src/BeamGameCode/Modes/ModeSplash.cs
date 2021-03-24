@@ -4,6 +4,7 @@ using System.Linq;
 using GameModeMgr;
 using UnityEngine;
 using Apian;
+using static UniLog.UniLogger; // for SID()
 
 namespace BeamGameCode
 {
@@ -114,7 +115,7 @@ namespace BeamGameCode
         {
             BaseBike bb =  appl.CreateBaseBike( BikeFactory.AiCtrl, appCore.LocalPeerId, BikeDemoData.RandomName(), BikeDemoData.RandomTeam());
             appl.beamGameNet.SendBikeCreateDataReq(appCore.ApianGroupId, bb); // will result in OnBikeInfo()
-            logger.Debug($"{this.ModeName()}: SpawnAiBike({ bb.bikeId})");
+            logger.Debug($"{this.ModeName()}: SpawnAiBike({SID(bb.bikeId)})");
             return bb.bikeId;  // the bike hasn't been added yet, so this id is not valid yet.
         }
 

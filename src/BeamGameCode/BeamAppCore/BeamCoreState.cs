@@ -7,6 +7,7 @@ using Newtonsoft.Json.Linq;
 using UnityEngine;
 using Apian;
 using UniLog;
+using static UniLog.UniLogger; // for SID()
 
 namespace BeamGameCode
 {
@@ -291,7 +292,7 @@ namespace BeamGameCode
         {
             if (p != null)
             {
-                Logger.Verbose($"RemoveActivePlace({p.GetPos().ToString()}) Bike: {p.bike?.bikeId}");
+                Logger.Verbose($"RemoveActivePlace({p.GetPos().ToString()}) Bike: {SID(p.bike?.bikeId)}");
                 PlaceFreedEvt?.Invoke(this,p);
                 freePlaces.Push(p); // add to free list
                 activePlaces.Remove(p.PosHash);
@@ -308,7 +309,7 @@ namespace BeamGameCode
 
         public void RemovePlacesForBike(IBike bike)
         {
-            Logger.Info($"RemovePlacesForBike({bike.bikeId})");
+            Logger.Info($"RemovePlacesForBike({SID(bike.bikeId)})");
             foreach (BeamPlace p in PlacesForBike(bike))
                 PostPlaceRemoval(p);
         }

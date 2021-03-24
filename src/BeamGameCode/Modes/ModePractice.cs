@@ -4,6 +4,7 @@ using System.Linq;
 using GameModeMgr;
 using UnityEngine;
 using Apian;
+using static UniLog.UniLogger; // for SID()
 
 namespace BeamGameCode
 {
@@ -110,7 +111,7 @@ namespace BeamGameCode
         {
             // If it's local we need to tell it to Go!
             bool isLocal = newBike.peerId == appl.LocalPeer.PeerId;
-            logger.Info($"{(ModeName())} - OnNewBikeEvt() - {(isLocal?"Local":"Remote")} Bike created, ID: {newBike.bikeId} Sending GO! command");
+            logger.Info($"{(ModeName())} - OnNewBikeEvt() - {(isLocal?"Local":"Remote")} Bike created, ID: {SID(newBike.bikeId)} Sending GO! command");
             if (isLocal)
             {
                 appl.beamGameNet.SendBikeCommandReq(appCore.ApianGroupId, newBike, BikeCommand.kGo);

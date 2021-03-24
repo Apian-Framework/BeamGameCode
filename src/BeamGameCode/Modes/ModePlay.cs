@@ -4,6 +4,7 @@ using System.Linq;
 using GameModeMgr;
 using Apian;
 using UnityEngine;
+using static UniLog.UniLogger; // for SID()
 
 namespace BeamGameCode
 {
@@ -217,7 +218,7 @@ namespace BeamGameCode
         {
             BeamNetworkPeer p = ga.peer;
             bool isLocal = p.PeerId == appl.LocalPeer.PeerId;
-            logger.Info($"{(ModeName())} - OnPeerJoinedNetEvt() - {(isLocal?"Local":"Remote")} Peer Joined: {p.Name}, ID: {p.PeerId}");
+            logger.Info($"{(ModeName())} - OnPeerJoinedNetEvt() - {(isLocal?"Local":"Remote")} Peer Joined: {p.Name}, ID: {SID(p.PeerId)}");
             if (isLocal)
             {
                 if (_curState == kJoiningNet)
@@ -280,7 +281,7 @@ namespace BeamGameCode
         public void OnPlayerJoinedEvt(object sender, PlayerJoinedArgs ga)
         {
             bool isLocal = ga.player.PeerId == appl.LocalPeer.PeerId;
-            logger.Info($"{(ModeName())} - OnPlayerJoinedEvt() - {(isLocal?"Local":"Remote")} Member Joined: {ga.player.Name}, ID: {ga.player.PeerId}");
+            logger.Info($"{(ModeName())} - OnPlayerJoinedEvt() - {(isLocal?"Local":"Remote")} Member Joined: {ga.player.Name}, ID: {SID(ga.player.PeerId)}");
             if (ga.player.PeerId == appl.LocalPeer.PeerId)
             {
                 appCore.RespawnPlayerEvt += OnRespawnPlayerEvt;  // FIXME: why does this happen here?  &&&&
@@ -293,7 +294,7 @@ namespace BeamGameCode
         {
             // If it's local we need to tell it to Go!
             bool isLocal = newBike.peerId == appl.LocalPeer.PeerId;
-            logger.Info($"{(ModeName())} - OnNewBikeEvt() - {(isLocal?"Local":"Remote")} Bike created, ID: {newBike.bikeId}");
+            logger.Info($"{(ModeName())} - OnNewBikeEvt() - {(isLocal?"Local":"Remote")} Bike created, ID: {SID(newBike.bikeId)}");
             if (isLocal)
             {
                 appl.beamGameNet.SendBikeCommandReq(appCore.ApianGroupId, newBike, BikeCommand.kGo);
@@ -313,7 +314,7 @@ namespace BeamGameCode
         {
             BaseBike bb =  appl.CreateBaseBike( BikeFactory.AiCtrl, appCore.LocalPeerId, BikeDemoData.RandomName(), BikeDemoData.RandomTeam());
             appl.beamGameNet.SendBikeCreateDataReq(appCore.ApianGroupId, bb); // will result in OnBikeInfo()
-            logger.Debug($"{this.ModeName()}: SpawnAiBike({ bb.bikeId})");
+            logger.Debug($"{this.ModeName()}: SpawnAiBike({ SID(bb.bikeId)})");
             return bb.bikeId;  // the bike hasn't been added yet, so this id is not valid yet.
         }
 
@@ -323,7 +324,7 @@ namespace BeamGameCode
             {
                 BaseBike bb =  appl.CreateBaseBike( settings.localPlayerCtrlType, appCore.LocalPeerId, appCore.LocalPlayer.Name, BikeDemoData.RandomTeam());
                 appl.beamGameNet.SendBikeCreateDataReq(appCore.ApianGroupId, bb);
-                logger.Debug($"{this.ModeName()}: SpawnPlayerBike({ bb.bikeId})");
+                logger.Debug($"{this.ModeName()}: SpawnPlayerBike({SID(bb.bikeId)})");
                 return bb.bikeId;  // the bike hasn't been added yet, so this id is not valid yet.
             }
             return null;

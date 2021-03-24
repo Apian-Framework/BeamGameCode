@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using UnityEngine;
 using GameModeMgr;
 using UniLog;
+using static UniLog.UniLogger; // for SID()
 using GameNet;
 using P2pNet; // TODO: gamenet API should be all that's needed &&&&&&&&
 using Apian;
@@ -144,7 +145,7 @@ namespace BeamGameCode
 
         public void OnPeerLeftNetwork(string p2pId, string netId)
         {
-            Logger.Info($"OnPeerLeftGame({p2pId})");
+            Logger.Info($"OnPeerLeftGame({SID(p2pId)})");
             PeerLeftEvt?.Invoke(this, new PeerLeftArgs(netId, p2pId)); // Event instance might be gone
         }
 

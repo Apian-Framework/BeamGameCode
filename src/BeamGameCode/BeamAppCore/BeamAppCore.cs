@@ -7,6 +7,7 @@ using UnityEngine;
 using GameNet;
 using Apian;
 using UniLog;
+using static UniLog.UniLogger; // for SID()
 
 namespace BeamGameCode
 {
@@ -203,37 +204,37 @@ namespace BeamGameCode
 
         public void OnPlayerLeftCmd(PlayerLeftMsg msg, long seqNum)
         {
-            logger.Info($"OnPlayerLeftCmd(#{seqNum}, {msg.peerId})");
+            logger.Info($"OnPlayerLeftCmd(#{seqNum}, {SID(msg.peerId) })");
             _RemovePlayer(msg.peerId);
         }
 
         public void OnCreateBikeCmd(BikeCreateDataMsg msg, long seqNum)
         {
-            logger.Verbose($"OnCreateBikeCmd(#{seqNum}): {msg.bikeId}.");
+            logger.Verbose($"OnCreateBikeCmd(#{seqNum}): {SID(msg.bikeId)}.");
             IBike ib = msg.ToBike(CoreData);
 
-            logger.Verbose($"** OnCreateBike() created {ib.bikeId} at ({ib.basePosition.x}, {ib.basePosition.y})");
+            logger.Verbose($"** OnCreateBike() created {SID(ib.bikeId) } at ({ib.basePosition.x}, {ib.basePosition.y})");
 
             if (_AddBike(ib))
             {
                 // *** Bikes are created stationary now - so there's no need to correct for creation time delay
-                logger.Verbose($"OnCreateBike() created {ib.bikeId} at ({ib.basePosition.x}, {ib.basePosition.y})");
+                logger.Verbose($"OnCreateBike() created {SID(ib.bikeId)} at ({ib.basePosition.x}, {ib.basePosition.y})");
             }
         }
 
         public void OnBikeCommandCmd(BikeCommandMsg msg, long seqNum)
         {
             BaseBike bb = CoreData.GetBaseBike(msg.bikeId);
-            logger.Verbose($"OnBikeCommandCmd(#{seqNum}, {msg.cmd}) Now: {FrameApianTime} Ts: {msg.TimeStamp} Bike:{msg.bikeId}");
+            logger.Verbose($"OnBikeCommandCmd(#{seqNum}, {msg.cmd}) Now: {FrameApianTime} Ts: {msg.TimeStamp} Bike:{SID(msg.bikeId)}");
             bb.ApplyCommand(msg.cmd, new Vector2(msg.nextPtX, msg.nextPtZ), msg.TimeStamp);
         }
 
         public void OnBikeTurnCmd(BikeTurnMsg msg, long seqNum)
         {
             BaseBike bb = CoreData.GetBaseBike(msg.bikeId);
-            logger.Verbose($"OnBikeTurnCmd(#{seqNum}, {msg.dir}) Now: {FrameApianTime} Ts: {msg.TimeStamp} Bike:{msg.bikeId}");
+            logger.Verbose($"OnBikeTurnCmd(#{seqNum}, {msg.dir}) Now: {FrameApianTime} Ts: {msg.TimeStamp} Bike:{SID(msg.bikeId)}");
             if (bb == null)
-                logger.Warn($"OnBikeTurnCmd() Bike:{msg.bikeId} not found!");
+                logger.Warn($"OnBikeTurnCmd() Bike:{SID(msg.bikeId)} not found!");
             bb?.ApplyTurn(msg.dir, msg.entryHead, new Vector2(msg.nextPtX, msg.nextPtZ),  msg.TimeStamp, msg.bikeState);
         }
 
@@ -245,7 +246,7 @@ namespace BeamGameCode
                 bike?.AddScore(update[id]);
                 if (bike.score <= 0)
                 {
-                    logger.Info($"ApplyScoreUpdate(). Bike: {bike.bikeId} has no score anymore!");
+                    logger.Info($"ApplyScoreUpdate(). Bike: {SID(bike.bikeId)} has no score anymore!");
                     apian.SendRemoveBikeObs(causeApianTime+1, bike.bikeId); // Bike removal is one 'tick' after whatever caused it.
                 }
             }
@@ -259,7 +260,7 @@ namespace BeamGameCode
             {
                 if (b == null)
                 {
-                    logger.Warn($"OnPlaceClaimCmd(#{seqNum}) Bike:{msg.bikeId} not found!"); // can happen if RemoveCmd and ClaimObs interleave
+                    logger.Warn($"OnPlaceClaimCmd(#{seqNum}) Bike:{SID(msg.bikeId)} not found!"); // can happen if RemoveCmd and ClaimObs interleave
                     return;
                 }
 
@@ -270,7 +271,7 @@ namespace BeamGameCode
                 if (p != null)
                 {
                     ApplyScoreUpdate(msg.TimeStamp, msg.scoreUpdates);
-                    logger.Verbose($"OnPlaceClaimCmd(#{seqNum}) Bike: {b.bikeId} claimed {BeamPlace.PlacePos( msg.xIdx, msg.zIdx).ToString()} at {msg.TimeStamp}");
+                    logger.Verbose($"OnPlaceClaimCmd(#{seqNum}) Bike: {SID(b.bikeId)} claimed {BeamPlace.PlacePos( msg.xIdx, msg.zIdx).ToString()} at {msg.TimeStamp}");
                     //logger.Verbose($"                  BikePos: {b.position.ToString()}, FrameApianTime: {FrameApianTime} ");
                     //logger.Verbose($"   at Timestamp:  BikePos: {b.PosAtTime(msg.TimeStamp, FrameApianTime).ToString()}, Time: {msg.TimeStamp} ");
                     PlaceClaimedEvt?.Invoke(this, p);
@@ -287,7 +288,7 @@ namespace BeamGameCode
                 // Fix this both here and in the BaseBike code.
                 if (b != null) // might already be gone
                 {
-                    logger.Info($"OnPlaceClaimCmd(#{seqNum}) - OFF MAP! Boom! Now: {FrameApianTime} Ts: {msg.TimeStamp} Bike: {b?.bikeId}");
+                    logger.Info($"OnPlaceClaimCmd(#{seqNum}) - OFF MAP! Boom! Now: {FrameApianTime} Ts: {msg.TimeStamp} Bike: {SID(b?.bikeId)}");
                     ApplyScoreUpdate(msg.TimeStamp, new Dictionary<string,int>(){ {b.bikeId, -b.score} });
                 }
 
@@ -303,25 +304,25 @@ namespace BeamGameCode
             if (p != null && hittingBike != null)
             {
                 hittingBike.UpdatePosFromCommand(msg.TimeStamp, FrameApianTime, p.GetPos(), msg.exitHead);
-                logger.Info($"OnPlaceHitCmd( #{seqNum}, {p?.GetPos().ToString()}) Now: {FrameApianTime} Ts: {msg.TimeStamp} Bike: {hittingBike?.bikeId} Pos: {p?.GetPos().ToString()}");
+                logger.Info($"OnPlaceHitCmd( #{seqNum}, {p?.GetPos().ToString()}) Now: {FrameApianTime} Ts: {msg.TimeStamp} Bike: {SID(hittingBike?.bikeId)} Pos: {p?.GetPos().ToString()}");
                 ApplyScoreUpdate(msg.TimeStamp, msg.scoreUpdates);
                 PlaceHitEvt?.Invoke(this, new PlaceHitArgs(p, hittingBike));
             }
             else
             {
-                logger.Info($"OnPlaceHitCmd(#{seqNum}, {p?.GetPos().ToString()}) Now: {FrameApianTime} Ts: {msg.TimeStamp} Bike: {hittingBike?.bikeId} Pos: {p?.GetPos().ToString()}");
+                logger.Info($"OnPlaceHitCmd(#{seqNum}, {p?.GetPos().ToString()}) Now: {FrameApianTime} Ts: {msg.TimeStamp} Bike: {SID(hittingBike?.bikeId)} Pos: {p?.GetPos().ToString()}");
             }
         }
 
         public void OnRemoveBikeCmd(RemoveBikeMsg msg, long seqNum)
         {
-            logger.Info($"OnRemoveBikeCmd(#{seqNum}, {msg.bikeId}) Now: {FrameApianTime} Ts: {msg.TimeStamp}");
+            logger.Info($"OnRemoveBikeCmd(#{seqNum}, {SID(msg.bikeId)}) Now: {FrameApianTime} Ts: {msg.TimeStamp}");
             IBike ib = CoreData.GetBaseBike(msg.bikeId);
             if (ib != null)
             {
                 _RemoveBike(ib, true);
             } else {
-                logger.Warn($"OnRemoveBikeCmd() {msg.bikeId} does not exist.");
+                logger.Warn($"OnRemoveBikeCmd() {SID(msg.bikeId)} does not exist.");
             }
 
         }
@@ -351,7 +352,7 @@ namespace BeamGameCode
             int scoreDelta = GameConstants.eventScores[(int)evt];
             update[bike.bikeId] = scoreDelta;
 
-            logger.Debug($"ComputeScoreUpdate(). Bike: {bike.bikeId} Event: {evt}");
+            logger.Debug($"ComputeScoreUpdate(). Bike: {SID(bike.bikeId)} Event: {evt}");
             if (evt == ScoreEvent.kHitEnemyPlace || evt == ScoreEvent.kHitFriendPlace)
             {
                 // half of the deduction goes to the owner of the place, the rest is divded
@@ -392,7 +393,7 @@ namespace BeamGameCode
 
             if (evt == ScoreEvent.kHitEnemyPlace || evt == ScoreEvent.kHitFriendPlace)
             {
-                logger.Debug($"OnScoreEvent(). Bike: {bike.bikeId} Event: {evt}");
+                logger.Debug($"OnScoreEvent(). Bike: {SID(bike.bikeId)} Event: {evt}");
 
                 // half of the deduction goes to the owner of the place, the rest is divded
                 // among the owner's team
@@ -414,7 +415,7 @@ namespace BeamGameCode
             if (evt == ScoreEvent.kOffMap || bike.score <= 0)
             {
                 bike.score = 0;
-                logger.Info($"OnScoreEvent(). Sending RemoveBikeObs: {bike.bikeId}");
+                logger.Info($"OnScoreEvent(). Sending RemoveBikeObs: {SID(bike.bikeId)}");
                 apian.SendRemoveBikeObs(FrameApianTime, bike.bikeId);
             }
         }
@@ -428,7 +429,7 @@ namespace BeamGameCode
         // Peer-related
         protected bool _AddPlayer(BeamPlayer p)
         {
-            logger.Debug($"_AddPlayer(). Name: {p.Name} ID: {p.PeerId}");
+            logger.Debug($"_AddPlayer(). Name: {p.Name} ID: {SID(p.PeerId)}");
             if  ( CoreData.Players.ContainsKey(p.PeerId))
             {
                 logger.Warn($"_AddPlayer(). Player already exists!!!!");
@@ -466,7 +467,7 @@ namespace BeamGameCode
 
         public bool _AddBike(IBike ib)
         {
-            logger.Verbose($"_AddBike(): {ib.bikeId} at ({ib.basePosition.x}, {ib.basePosition.y})");
+            logger.Verbose($"_AddBike(): {SID(ib.bikeId)} at ({ib.basePosition.x}, {ib.basePosition.y})");
 
             if (CoreData.GetBaseBike(ib.bikeId) != null)
                 return false;
@@ -480,7 +481,7 @@ namespace BeamGameCode
 
         protected void _RemoveBike(IBike ib, bool shouldBlowUp=true)
         {
-            logger.Info($"_RemoveBike(): {ib.bikeId}");
+            logger.Info($"_RemoveBike(): {SID(ib.bikeId)}");
             CoreData.RemovePlacesForBike(ib);
             BikeRemovedEvt?.Invoke(this, new BikeRemovedData(ib.bikeId,  shouldBlowUp));
             CoreData.PostBikeRemoval(ib.bikeId); // we're almost certainly iterating over the list of bikes so don;t remove it yet.
@@ -495,7 +496,7 @@ namespace BeamGameCode
 
         public void OnPlaceClaimObsEvt(object sender, PlaceReportArgs args)
         {
-            logger.Verbose($"OnPlaceClaimObsEvt(): Bike: {args.bike.bikeId} Place: {BeamPlace.PlacePos(args.xIdx, args.zIdx).ToString()}");
+            logger.Verbose($"OnPlaceClaimObsEvt(): Bike: {SID(args.bike.bikeId)} Place: {BeamPlace.PlacePos(args.xIdx, args.zIdx).ToString()}");
 
             apian.SendPlaceClaimObs(FrameApianTime, args.bike, args.xIdx, args.zIdx, args.entryHead, args.exitHead,
                 ComputeScoreUpdate(args.bike, ScoreEvent.kClaimPlace, null));
@@ -503,14 +504,14 @@ namespace BeamGameCode
 
         public void OnPlaceHitObsEvt(object sender, PlaceReportArgs args)
         {
-            logger.Verbose($"OnPlaceHitObsEvt(): Bike: {args.bike.bikeId} Place: {BeamPlace.PlacePos(args.xIdx, args.zIdx).ToString()}");
+            logger.Verbose($"OnPlaceHitObsEvt(): Bike: {SID(args.bike.bikeId)} Place: {BeamPlace.PlacePos(args.xIdx, args.zIdx).ToString()}");
             BeamPlace place = CoreData.GetPlace(args.xIdx, args.zIdx);
             if (place != null)
             {
                 ScoreEvent evType = place.bike.team == args.bike.team ? ScoreEvent.kHitFriendPlace : ScoreEvent.kHitEnemyPlace;
                 apian.SendPlaceHitObs(FrameApianTime, args.bike, args.xIdx, args.zIdx, args.entryHead, args.exitHead, ComputeScoreUpdate(args.bike, evType, place));
             } else {
-                logger.Warn($"OnPlaceHitObsEvt(): Bike: {args.bike.bikeId} No place found at: {BeamPlace.PlacePos(args.xIdx, args.zIdx).ToString()}");
+                logger.Warn($"OnPlaceHitObsEvt(): Bike: {SID(args.bike.bikeId)} No place found at: {BeamPlace.PlacePos(args.xIdx, args.zIdx).ToString()}");
             }
 
         }

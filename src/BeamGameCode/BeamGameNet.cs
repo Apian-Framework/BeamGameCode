@@ -5,6 +5,8 @@ using UnityEngine;
 using GameNet;
 using P2pNet;
 using Apian;
+using UniLog;
+using static UniLog.UniLogger; // for SID()
 
 namespace BeamGameCode
 {
@@ -147,7 +149,7 @@ namespace BeamGameCode
 
         public void SendBikeCreateDataReq(string groupId, IBike ib)
         {
-            logger.Info($"PostBikeCreateData(): {ib.bikeId}");
+            logger.Info($"PostBikeCreateData(): {SID(ib.bikeId)}");
             BeamApian apian = ApianInstances[groupId] as BeamApian;
             apian.SendBikeCreateReq(apian.CurrentRunningApianTime(), ib);
         }
