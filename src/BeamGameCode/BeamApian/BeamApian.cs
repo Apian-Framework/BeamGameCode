@@ -7,6 +7,7 @@ using Apian;
 using Newtonsoft.Json;
 using UnityEngine;
 using UniLog;
+using static UniLog.UniLogger; // for SID()
 
 namespace BeamGameCode
 {
@@ -29,7 +30,7 @@ namespace BeamGameCode
                 result =  new BeamApianCreatorServer(beamGameNet, appCore);
                 break;
             default:
-                UniLogger.GetLogger("Apian").Warn($"BeamApianFactory.Create() Unknown GroupTYpe: {apianGroupType}");
+                UniLogger.GetLogger("Apian").Warn($"BeamApianFactory.Create() Unknown GroupType: {apianGroupType}");
                 result = null;
                 break;
             }
@@ -86,6 +87,16 @@ namespace BeamGameCode
             apianPeers[p2pId] = p;
         }
 
+        public override void OnPeerMissing(string channelId, string p2pId)
+        {
+            Logger.Warn($"Peer{SID(p2pId)} is missing!");
+        }
+
+        public override void OnPeerReturned(string channelId, string p2pId)
+        {
+            Logger.Warn($"Peer{SID(p2pId)} has returned!");
+        }
+
         // Send/Handle ApianMessages
 
         public override void OnApianMessage(string fromId, string toId, ApianMessage msg, long lagMs)
@@ -108,13 +119,11 @@ namespace BeamGameCode
         public override void OnGroupMemberStatusChange(ApianGroupMember member, ApianGroupMember.Status prevStatus)
         {
             // Note that the member status has already been changed when this is called
-            Logger.Info($"OnGroupMemberStatusChange(): {member.PeerId} went from {prevStatus} to {member.CurStatus}");
+            Logger.Info($"OnGroupMemberStatusChange(): {SID(member.PeerId)} from {prevStatus} to {member.CurStatus}");
 
             // Beam-specific handling.
             // Joining->Active : PlayerJoined
             // Active->Removed : PlayerLeft
-            // Active->Missing : ????
-            // Missing->Active : ????
 
             switch(prevStatus)
             {
@@ -334,14 +343,14 @@ namespace BeamGameCode
 
         public  void SendBikeTurnReq(long timeStamp, IBike bike, TurnDir dir, Vector2 nextPt)
         {
-            Logger.Debug($"SendBikeTurnReq) Bike: {bike.bikeId}");
+            Logger.Debug($"SendBikeTurnReq) Bike: {SID(bike.bikeId)}");
             BikeTurnMsg msg = new BikeTurnMsg(timeStamp, bike, dir, nextPt);
             ApianBikeTurnRequest req = new ApianBikeTurnRequest(GroupMgr?.GroupId, msg);
             SendRequest(GroupMgr.GroupId, req);
         }
         public  void SendBikeCommandReq(long timeStamp, IBike bike, BikeCommand cmd, Vector2 nextPt)
         {
-            Logger.Debug($"BeamGameNet.SendBikeCommand() Bike: {bike.bikeId}");
+            Logger.Debug($"BeamGameNet.SendBikeCommand() Bike: {SID(bike.bikeId)}");
             BikeCommandMsg msg = new BikeCommandMsg(timeStamp, bike.bikeId, bike.peerId, cmd, nextPt);
             ApianBikeCommandRequest req = new ApianBikeCommandRequest(GroupMgr?.GroupId, msg);
             SendRequest(GroupMgr.GroupId, req);
