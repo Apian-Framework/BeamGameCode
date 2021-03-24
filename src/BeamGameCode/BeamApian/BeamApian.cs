@@ -104,14 +104,18 @@ namespace BeamGameCode
                 client.OnGroupJoined(GroupMgr.GroupId);
             }
         }
+
         public override void OnGroupMemberStatusChange(ApianGroupMember member, ApianGroupMember.Status prevStatus)
         {
+            // Note that the member status has already been changed when this is called
             Logger.Info($"OnGroupMemberStatusChange(): {member.PeerId} went from {prevStatus} to {member.CurStatus}");
 
             // Beam-specific handling.
             // Joining->Active : PlayerJoined
             // Active->Removed : PlayerLeft
-            // TODO: Deal with "missing" (future work)
+            // Active->Missing : ????
+            // Missing->Active : ????
+
             switch(prevStatus)
             {
             case ApianGroupMember.Status.Joining:
@@ -137,7 +141,9 @@ namespace BeamGameCode
                 break;
             case ApianGroupMember.Status.Active:
                 if (member.CurStatus == ApianGroupMember.Status.Removed)
+                {
                     SendPlayerLeftObs(ApianClock.CurrentTime, member.PeerId);
+                }
                 break;
             }
         }
