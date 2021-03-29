@@ -40,6 +40,8 @@ namespace BeamGameCode
         event EventHandler<BeamCoreState> NewCoreStateEvt;
         event EventHandler<PlayerJoinedArgs> PlayerJoinedEvt;
         event EventHandler<PlayerLeftArgs> PlayerLeftEvt;
+        event EventHandler<PlayerLeftArgs> PlayerMissingEvt; // not Gone... yet
+        event EventHandler<PlayerLeftArgs> PlayerReturnedEvt;
         event EventHandler PlayersClearedEvt;
         event EventHandler<IBike> NewBikeEvt;
         event EventHandler<BikeRemovedData> BikeRemovedEvt;

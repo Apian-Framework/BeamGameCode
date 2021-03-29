@@ -18,6 +18,9 @@ namespace BeamGameCode
         public event EventHandler<string> GroupJoinedEvt;
         public event EventHandler<PlayerJoinedArgs> PlayerJoinedEvt;
         public event EventHandler<PlayerLeftArgs> PlayerLeftEvt;
+        public event EventHandler<PlayerLeftArgs> PlayerMissingEvt; // not Gone... yet
+        public event EventHandler<PlayerLeftArgs> PlayerReturnedEvt;
+
         public BeamCoreState CoreData {get; private set;}
         public BeamApian apian {get; private set;}
         public UniLogger logger;
@@ -53,7 +56,7 @@ namespace BeamGameCode
 
         public BeamAppCore()
         {
-            logger = UniLogger.GetLogger("GameInstance");
+            logger = UniLogger.GetLogger("AppCore");
             CoreData = new BeamCoreState();
             OnNewCoreState();
 
@@ -147,7 +150,7 @@ namespace BeamGameCode
         }
 
         //
-        // IBeamApianClient
+        // Apian talks to these
         //
 
         public void SetApianReference(ApianBase ap)
@@ -160,6 +163,19 @@ namespace BeamGameCode
         {
             logger.Info($"OnGroupJoined({groupId}) - local peer joined");
             GroupJoinedEvt?.Invoke(this, groupId);
+        }
+
+
+        public void OnPlayerMissing(string groupId, string p2pId)
+        {
+            logger.Info($"Player: {SID(p2pId)} is missing!");
+            PlayerMissingEvt?.Invoke(this, new PlayerLeftArgs(groupId, p2pId));
+        }
+
+        public void OnPlayerReturned(string groupId, string p2pId)
+        {
+            logger.Info($"Player: {SID(p2pId)} has returned!");
+            PlayerReturnedEvt?.Invoke(this, new PlayerLeftArgs(groupId, p2pId));
         }
 
         public void ApplyCheckpointStateData( long seqNum,  long timeStamp,  string stateHash,  string serializedData)
