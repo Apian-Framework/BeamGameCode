@@ -43,7 +43,7 @@ namespace BeamGameCode
 
         public Dictionary<string, BeamApianPeer> apianPeers;
         public IBeamGameNet BeamGameNet {get; private set;}
-        protected BeamAppCore client;
+        protected BeamAppCore appCore;
 
         protected bool LocalPeerIsActive {get => (GroupMgr != null) && (GroupMgr.LocalMember?.CurStatus == ApianGroupMember.Status.Active); }
 
@@ -52,7 +52,7 @@ namespace BeamGameCode
         public BeamApian(IBeamGameNet _gn, IBeamAppCore _client) : base(_gn, _client)
         {
             BeamGameNet = _gn;
-            client = _client as BeamAppCore;
+            appCore = _client as BeamAppCore;
 
             ApianClock = new DefaultApianClock(this);
             apianPeers = new Dictionary<string, BeamApianPeer>();
@@ -89,12 +89,14 @@ namespace BeamGameCode
 
         public override void OnPeerMissing(string channelId, string p2pId)
         {
-            Logger.Warn($"Peer{SID(p2pId)} is missing!");
+            Logger.Warn($"Peer: {SID(p2pId)} is missing!");
+            appCore.OnPlayerMissing(channelId, p2pId);
         }
 
         public override void OnPeerReturned(string channelId, string p2pId)
         {
-            Logger.Warn($"Peer{SID(p2pId)} has returned!");
+            Logger.Warn($"Peer: {SID(p2pId)} has returned!");
+            appCore.OnPlayerReturned(channelId, p2pId);
         }
 
         // Send/Handle ApianMessages
@@ -112,7 +114,7 @@ namespace BeamGameCode
             // Only care about local peer's group membership status
             if (member.PeerId == GameNet.LocalP2pId())
             {
-                client.OnGroupJoined(GroupMgr.GroupId);
+                appCore.OnGroupJoined(GroupMgr.GroupId);
             }
         }
 
@@ -151,6 +153,8 @@ namespace BeamGameCode
             case ApianGroupMember.Status.Active:
                 if (member.CurStatus == ApianGroupMember.Status.Removed)
                 {
+                    // FIXME: This switch needs to all be turned inside-out.
+                    // If ANY state transitions to "removed" then PlayerLeft needs to get sent
                     SendPlayerLeftObs(ApianClock.CurrentTime, member.PeerId);
                 }
                 break;
@@ -163,7 +167,7 @@ namespace BeamGameCode
             if (GroupMgr?.LocalMember?.CurStatus == ApianGroupMember.Status.Active)
                 return; // If peer is active and using the real clock and advancing its own state, dont do anything.
 
-            long curFrameTime = client.FrameApianTime; // previous frame Time
+            long curFrameTime = appCore.FrameApianTime; // previous frame Time
 
             // TODO: come up with better way to set nominal frame advance time
             long msPerLoop = 40; // 40 ms == 25 fps
@@ -171,21 +175,21 @@ namespace BeamGameCode
             for (int i=0;i<loops;i++)
             {
                 curFrameTime += msPerLoop;
-                client.UpdateFrameTime(curFrameTime);
-                client.CoreData.Loop( client.FrameApianTime, msPerLoop);
+                appCore.UpdateFrameTime(curFrameTime);
+                appCore.CoreData.Loop( appCore.FrameApianTime, msPerLoop);
             }
 
-            if (newApianTime > client.FrameApianTime)
+            if (newApianTime > appCore.FrameApianTime)
             {
-                long msLeft =  newApianTime-client.FrameApianTime;
-                client.UpdateFrameTime(newApianTime);
-                client.CoreData.Loop(newApianTime, msLeft);
+                long msLeft =  newApianTime-appCore.FrameApianTime;
+                appCore.UpdateFrameTime(newApianTime);
+                appCore.CoreData.Loop(newApianTime, msLeft);
             }
         }
 
         public override void  ApplyCheckpointStateData(long seqNum, long timeStamp, string stateHash, string stateData)
         {
-            client.ApplyCheckpointStateData( seqNum,  timeStamp,  stateHash,  stateData);
+            appCore.ApplyCheckpointStateData( seqNum,  timeStamp,  stateHash,  stateData);
         }
 
         public override void ApplyStashedApianCommand(ApianCommand cmd)
@@ -200,9 +204,9 @@ namespace BeamGameCode
             //CommandHandlers[cmd.ClientMsg.MsgType](cmd, ApianGroup.GroupCreatorId, GroupId);
 
             if (cmd.CliMsgType == ApianMessage.CheckpointMsg ) // TODO: More chekpoint command nonsense.
-                client.OnCheckpointCommand(cmd.SequenceNum, cmd.ClientMsg.TimeStamp);
+                appCore.OnCheckpointCommand(cmd.SequenceNum, cmd.ClientMsg.TimeStamp);
             else
-                client.OnApianCommand(cmd);
+                appCore.OnApianCommand(cmd);
         }
 
         // Incoming ApianMessage handlers
@@ -241,9 +245,9 @@ namespace BeamGameCode
             case ApianCommandStatus.kShouldApply:
                 Logger.Verbose($"BeamApian.OnApianCommand() Group: {cmd.DestGroupId}, Applying Seq#: {cmd.SequenceNum} Type: {cmd.ClientMsg.MsgType}");
                 if (cmd.CliMsgType == ApianMessage.CheckpointMsg)
-                    client.OnCheckpointCommand(cmd.SequenceNum, cmd.ClientMsg.TimeStamp); // TODO: resolve "special-case-hack vs. CheckpointCommand needs to be a real command" issue
+                    appCore.OnCheckpointCommand(cmd.SequenceNum, cmd.ClientMsg.TimeStamp); // TODO: resolve "special-case-hack vs. CheckpointCommand needs to be a real command" issue
                 else
-                    client.OnApianCommand(cmd);
+                    appCore.OnApianCommand(cmd);
                 break;
             case ApianCommandStatus.kStashedInQueued:
                 Logger.Verbose($"BeamApian.OnApianCommand() Group: {cmd.DestGroupId}, Stashing Seq#: {cmd.SequenceNum} Type: {cmd.ClientMsg.MsgType}");
