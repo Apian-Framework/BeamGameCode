@@ -50,10 +50,9 @@ namespace BeamGameCode
             beamGameNet.Connect(netConnectionStr);
         }
 
+        // I think that someday I will want this back.
         // public void CreateBeamNet(BeamGameNet.BeamNetCreationData createData)
         // {
-        //     _UpdateLocalPeer();  // FIXME: I'm *pretty* sure this _UpdateLocalPeer stuff was required
-        //                         // by the old localData() callcack mechanism and isn;t needed anymore
         //     beamGameNet.CreateBeamNet(createData);
         // }
 
@@ -148,6 +147,10 @@ namespace BeamGameCode
             Logger.Info($"OnPeerLeftGame({SID(p2pId)})");
             PeerLeftEvt?.Invoke(this, new PeerLeftArgs(netId, p2pId)); // Event instance might be gone
         }
+
+            // Apian handles these at the game level. Not sure what would be useful here.
+        public void OnPeerMissing(string p2pId, string netId) { }
+        public void OnPeerReturned(string p2pId, string netId){ }
 
         public string LocalPeerData()
         {
