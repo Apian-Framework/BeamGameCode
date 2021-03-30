@@ -34,7 +34,6 @@ namespace BeamGameCode
     public class BeamCoreState : IApianCoreData
     {
         public event EventHandler<BeamPlace> PlaceFreedEvt;
-        public event EventHandler<BeamPlace> SetupPlaceMarkerEvt;
         public event EventHandler<BeamPlace> PlaceTimeoutEvt;
         public event EventHandler PlacesClearedEvt;
         public event EventHandler<PlaceReportArgs> PlaceClaimObsEvt; // exact timestamp is the long
@@ -269,22 +268,7 @@ namespace BeamGameCode
             p.xIdx = xIdx;
             p.zIdx = zIdx;
             p.bike = bike;
-            return SetupPlace(p);
-        }
-
-        public void AnnounceNewPlace(BeamPlace p )
-        {
-            // TODO: New Players and bikes get announced in appcore, especially since on
-            // deserialization CoreState gets created anew
-            // SHould all of this be in AppCore? Or should the stuff in AppCore be here?
-            SetupPlaceMarkerEvt?.Invoke(this,p);
-        }
-
-        protected BeamPlace SetupPlace(BeamPlace p )
-        {
-            // This is so a list un un-serialized places can be added directly
             activePlaces[p.PosHash] = p;
-            AnnounceNewPlace(p);
             return p;
         }
 

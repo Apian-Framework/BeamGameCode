@@ -52,7 +52,6 @@ namespace BeamGameCode
 
         // Ground events
         void OnPlaceFreedEvt(object sender, BeamPlace p);
-        void OnSetupPlaceMarkerEvt(object sender, BeamPlace p);
         void OnPlacesClearedEvt(object sender, EventArgs e);
 
         // Game Events

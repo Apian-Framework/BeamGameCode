@@ -196,10 +196,6 @@ namespace BeamGameCode
             foreach (IBike ib in CoreData.Bikes.Values)
                 NewBikeEvt?.Invoke(this, ib);
 
-
-            foreach (BeamPlace p in CoreData.activePlaces.Values)
-                CoreData.AnnounceNewPlace(p);  //
-
         }
 
         public void OnApianCommand(ApianCommand cmd)

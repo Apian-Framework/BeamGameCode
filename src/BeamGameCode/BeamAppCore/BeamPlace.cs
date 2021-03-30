@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using Apian;
@@ -50,9 +51,13 @@ namespace BeamGameCode
 
         public static int MakePosHash(int xIdx, int zIdx) => xIdx + zIdx * Ground.pointsPerAxis;
 
+        public static bool AreAdjacent(BeamPlace p1, BeamPlace p2) => Math.Abs(p1.xIdx - p2.xIdx) + Math.Abs(p1.zIdx - p2.zIdx) == 1; // only one is 1
+
+
         public Vector2 GetPos()
         {
             return PlacePos(xIdx,zIdx);
+
         }
 
         public static Vector2 PlacePos(int x, int z)
