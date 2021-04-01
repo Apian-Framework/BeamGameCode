@@ -48,7 +48,7 @@ namespace BeamGameCode
         //
         public Dictionary<string, BeamPlayer> Players { get; private set; } = null;
         public Dictionary<string, IBike> Bikes { get; private set; } = null;
-        public Dictionary<int, BeamPlace> activePlaces = null; //  BeamPlace.PosHash() -indexed Dict of places.
+        public Dictionary<int, BeamPlace> ActivePlaces { get; private set; } = null; //  BeamPlace.PosHash() -indexed Dict of places.
 
         // Ancillary data (initialize to empty if loading state data)
         protected Stack<BeamPlace> freePlaces = null; // re-use released/expired ones
@@ -80,7 +80,7 @@ namespace BeamGameCode
 
         protected void InitPlaces()
         {
-            activePlaces = new Dictionary<int, BeamPlace>();
+            ActivePlaces = new Dictionary<int, BeamPlace>();
             freePlaces = new Stack<BeamPlace>();
             _reportedTimedOutPlaces  = new Dictionary<int, BeamPlace>(); // check this before reporting. delete entry when removed.
         }
@@ -118,7 +118,7 @@ namespace BeamGameCode
             List<BeamPlace> timedOutPlaces = new List<BeamPlace>();
             // Be very, very careful not to do something that might recusively delete a list member while iterating over the list
             // This is probably unneeded given that PostPlaceRemoval() exists
-            foreach (BeamPlace p in activePlaces.Values)
+            foreach (BeamPlace p in ActivePlaces.Values)
                 if (p.expirationTimeMs <= nowMs)
                     timedOutPlaces.Add(p);
 
@@ -164,7 +164,7 @@ namespace BeamGameCode
             // Note: it's possible for an expired place to still be on the local active list 'cause of timeslice differences
             // when the Checkpoint command is fielded (it would get expired during the next loop) so we want to explicitly
             // filter out any that are expired as of the command timestamp
-            string[] placesData = activePlaces.Values
+            string[] placesData = ActivePlaces.Values
                 .Where( p => p.expirationTimeMs > sArgs.chkPtTimeStamp ) // not expired as of command timestamp
                 .Where ( p => Bikes.ContainsKey(p.bike?.bikeId))  // just to make sure the bike hasn;t gone away (note the p.bike? as well as the Bikes dict check)
                 .OrderBy(p => p.expirationTimeMs).ThenBy(p => p.PosHash)
@@ -206,7 +206,7 @@ namespace BeamGameCode
 
             newState.Players = newPlayers;
             newState.Bikes = newBikes;
-            newState.activePlaces = newPlaces;
+            newState.ActivePlaces = newPlaces;
 
             return newState;
         }
@@ -267,7 +267,7 @@ namespace BeamGameCode
             p.xIdx = xIdx;
             p.zIdx = zIdx;
             p.bike = bike;
-            activePlaces[p.PosHash] = p;
+            ActivePlaces[p.PosHash] = p;
             return p;
         }
 
@@ -278,7 +278,7 @@ namespace BeamGameCode
                 Logger.Verbose($"RemoveActivePlace({p.GetPos().ToString()}) Bike: {SID(p.bike?.bikeId)}");
                 PlaceFreedEvt?.Invoke(this,p);
                 freePlaces.Push(p); // add to free list
-                activePlaces.Remove(p.PosHash);
+                ActivePlaces.Remove(p.PosHash);
                 _reportedTimedOutPlaces.Remove(p.PosHash);
                 p.bike = null; // this is the only reference it holds
             }
@@ -299,7 +299,7 @@ namespace BeamGameCode
 
         public List<BeamPlace> PlacesForBike(IBike ib)
         {
-            return activePlaces.Values.Where(p => p.bike?.bikeId == ib.bikeId).ToList();
+            return ActivePlaces.Values.Where(p => p.bike?.bikeId == ib.bikeId).ToList();
         }
 
         // public List<BeamPlace> PlacesForBike(IBike ib)
@@ -317,7 +317,7 @@ namespace BeamGameCode
         //         } ).ToList();
         // }
 
-        public BeamPlace GetPlace(int xIdx, int zIdx) => activePlaces.GetValueOrDefault(BeamPlace.MakePosHash(xIdx,zIdx), null);
+        public BeamPlace GetPlace(int xIdx, int zIdx) => ActivePlaces.GetValueOrDefault(BeamPlace.MakePosHash(xIdx,zIdx), null);
 
         public BeamPlace GetPlace(Vector2 pos)
         {
@@ -341,7 +341,7 @@ namespace BeamGameCode
                 foreach(int z in Enumerable.Range(baseZ-grids, 2*grids))
                     possiblePlaceHashes.Add(BeamPlace.MakePosHash(x,z));
 
-            List<BeamPlace> places = possiblePlaceHashes.Select( hash => activePlaces.GetValueOrDefault(hash, null))
+            List<BeamPlace> places = possiblePlaceHashes.Select( hash => ActivePlaces.GetValueOrDefault(hash, null))
                                         .Where( p => p != null).ToList();
 
             return places;
