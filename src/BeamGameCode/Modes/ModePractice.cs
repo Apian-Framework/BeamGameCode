@@ -54,7 +54,7 @@ namespace BeamGameCode
                 if (_secsToNextRespawnCheck <= 0)
                 {
                     // TODO: respawn with prev names/teams?
-                    if (appCore.CoreData.Bikes.Count < kMaxAiBikes)
+                    if (appCore.CoreState.Bikes.Count < kMaxAiBikes)
                         SpawnAIBike();
                     _secsToNextRespawnCheck = kRespawnCheckInterval;
                 }

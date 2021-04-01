@@ -180,7 +180,7 @@ namespace BeamGameCode
                 _secsToNextRespawnCheck -= frameSecs;
                 if (_secsToNextRespawnCheck <= 0)
                 {
-                    if (appCore.CoreData.LocalBikes(appCore.LocalPeerId).Where(ib => ib.ctrlType==BikeFactory.AiCtrl).Count() < settings.aiBikeCount)
+                    if (appCore.CoreState.LocalBikes(appCore.LocalPeerId).Where(ib => ib.ctrlType==BikeFactory.AiCtrl).Count() < settings.aiBikeCount)
                         SpawnAiBike();
                     _secsToNextRespawnCheck = kRespawnCheckInterval;
                 }

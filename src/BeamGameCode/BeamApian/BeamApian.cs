@@ -176,14 +176,14 @@ namespace BeamGameCode
             {
                 curFrameTime += msPerLoop;
                 appCore.UpdateFrameTime(curFrameTime);
-                appCore.CoreData.Loop( appCore.FrameApianTime, msPerLoop);
+                appCore.CoreState.Loop( appCore.FrameApianTime, msPerLoop);
             }
 
             if (newApianTime > appCore.FrameApianTime)
             {
                 long msLeft =  newApianTime-appCore.FrameApianTime;
                 appCore.UpdateFrameTime(newApianTime);
-                appCore.CoreData.Loop(newApianTime, msLeft);
+                appCore.CoreState.Loop(newApianTime, msLeft);
             }
         }
 

@@ -60,7 +60,7 @@ namespace BeamGameCode
         Ground GetGround();
 
         string LocalPeerId {get;}
-        BeamCoreState CoreData {get;}
+        BeamCoreState CoreState {get;}
 
         string ApianNetId {get;}
         string ApianGroupName {get;}

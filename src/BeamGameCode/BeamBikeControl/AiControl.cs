@@ -28,7 +28,7 @@ namespace BikeControl
         public override void Loop(long curTime, int frameMs)
         {
             base.Loop(curTime, frameMs);
-            BeamCoreState gd = ((BeamAppCore)appCore).CoreData;
+            BeamCoreState gd = ((BeamAppCore)appCore).CoreState;
             Ground g = gd.Ground;
             float frameSecs = frameMs * .001f;
 

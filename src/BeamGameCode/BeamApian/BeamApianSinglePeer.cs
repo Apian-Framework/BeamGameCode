@@ -9,7 +9,7 @@ namespace BeamGameCode
 {
     public class BeamApianSinglePeer : BeamApian
     {
-        public BeamApianSinglePeer(IBeamGameNet _gn,  IBeamAppCore _client) : base(_gn, _client)
+        public BeamApianSinglePeer(IBeamGameNet _gn,  BeamAppCore _client) : base(_gn, _client)
         {
             GroupMgr = new SinglePeerGroupManager(this);
         }

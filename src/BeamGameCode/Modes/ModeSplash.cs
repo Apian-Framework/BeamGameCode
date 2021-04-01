@@ -78,15 +78,15 @@ namespace BeamGameCode
                 if (_secsToNextRespawnCheck <= 0)
                 {
                     // TODO: respawn with prev names/teams?
-                    if (appCore.CoreData.Bikes.Count() < kSplashBikeCount)
+                    if (appCore.CoreState.Bikes.Count() < kSplashBikeCount)
                         CreateADemoBike();
                     _secsToNextRespawnCheck = kRespawnCheckInterval;
                 }
 
-                if ( appCore.CoreData.Bikes.Count() > 0)
+                if ( appCore.CoreState.Bikes.Count() > 0)
                 {
-                    int idx = (int)UnityEngine.Random.Range(0, appCore.CoreData.Bikes.Count() - .0001f);
-                    string bikeId = appCore.CoreData.Bikes.Values.ElementAt(idx).bikeId;
+                    int idx = (int)UnityEngine.Random.Range(0, appCore.CoreState.Bikes.Count() - .0001f);
+                    string bikeId = appCore.CoreState.Bikes.Values.ElementAt(idx).bikeId;
                     _camTargetSecsLeft -= frameSecs;
                     if (_camTargetSecsLeft <= 0)
                     {
