@@ -195,16 +195,16 @@ namespace BeamGameCode
         public override void ApplyStashedApianCommand(ApianCommand cmd)
         {
             if (GroupMgr?.LocalMember?.CurStatus != ApianGroupMember.Status.Active
-                && cmd.CliMsgType == ApianMessage.CheckpointMsg )
+                && cmd.CoreMsgType == ApianMessage.CheckpointMsg )
                 return; // TODO: &&&& YIKES! See OnApianCommand for relevant comment
 
 
-            Logger.Info($"BeamApian.ApplyApianCommand() Group: {cmd.DestGroupId}, Applying STASHED Seq#: {cmd.SequenceNum} Type: {cmd.ClientMsg.MsgType} TS: {cmd.ClientMsg.TimeStamp}");
-            _AdvanceStateTo((cmd as ApianWrappedClientMessage).ClientMsg.TimeStamp);
+            Logger.Info($"BeamApian.ApplyApianCommand() Group: {cmd.DestGroupId}, Applying STASHED Seq#: {cmd.SequenceNum} Type: {cmd.CoreMsg.MsgType} TS: {cmd.CoreMsg.TimeStamp}");
+            _AdvanceStateTo((cmd as ApianWrappedCoreMessage).CoreMsg.TimeStamp);
             //CommandHandlers[cmd.ClientMsg.MsgType](cmd, ApianGroup.GroupCreatorId, GroupId);
 
-            if (cmd.CliMsgType == ApianMessage.CheckpointMsg ) // TODO: More chekpoint command nonsense.
-                appCore.OnCheckpointCommand(cmd.SequenceNum, cmd.ClientMsg.TimeStamp);
+            if (cmd.CoreMsgType == ApianMessage.CheckpointMsg ) // TODO: More chekpoint command nonsense.
+                appCore.OnCheckpointCommand(cmd.SequenceNum, cmd.CoreMsg.TimeStamp);
             else
                 appCore.OnApianCommand(cmd);
         }
@@ -243,20 +243,20 @@ namespace BeamGameCode
                 Logger.Warn($"BeamApian.OnApianCommand(): Local peer not a group member yet");
                 break;
             case ApianCommandStatus.kShouldApply:
-                Logger.Verbose($"BeamApian.OnApianCommand() Group: {cmd.DestGroupId}, Applying Seq#: {cmd.SequenceNum} Type: {cmd.ClientMsg.MsgType}");
-                if (cmd.CliMsgType == ApianMessage.CheckpointMsg)
-                    appCore.OnCheckpointCommand(cmd.SequenceNum, cmd.ClientMsg.TimeStamp); // TODO: resolve "special-case-hack vs. CheckpointCommand needs to be a real command" issue
+                Logger.Verbose($"BeamApian.OnApianCommand() Group: {cmd.DestGroupId}, Applying Seq#: {cmd.SequenceNum} Type: {cmd.CoreMsg.MsgType}");
+                if (cmd.CoreMsgType == ApianMessage.CheckpointMsg)
+                    appCore.OnCheckpointCommand(cmd.SequenceNum, cmd.CoreMsg.TimeStamp); // TODO: resolve "special-case-hack vs. CheckpointCommand needs to be a real command" issue
                 else
                     appCore.OnApianCommand(cmd);
                 break;
             case ApianCommandStatus.kStashedInQueued:
-                Logger.Verbose($"BeamApian.OnApianCommand() Group: {cmd.DestGroupId}, Stashing Seq#: {cmd.SequenceNum} Type: {cmd.ClientMsg.MsgType}");
+                Logger.Verbose($"BeamApian.OnApianCommand() Group: {cmd.DestGroupId}, Stashing Seq#: {cmd.SequenceNum} Type: {cmd.CoreMsg.MsgType}");
                 break;
             case ApianCommandStatus.kAlreadyReceived:
-                Logger.Error($"BeamApian.OnApianCommand(): Command Already Received: {fromId} Group: {cmd.DestGroupId}, Seq#: {cmd.SequenceNum} Type: {cmd.ClientMsg.MsgType}");
+                Logger.Error($"BeamApian.OnApianCommand(): Command Already Received: {fromId} Group: {cmd.DestGroupId}, Seq#: {cmd.SequenceNum} Type: {cmd.CoreMsg.MsgType}");
                 break;
             default:
-                Logger.Error($"BeamApian.OnApianCommand(): BAD COMMAND SOURCE: {fromId} Group: {cmd.DestGroupId}, Seq#: {cmd.SequenceNum} Type: {cmd.ClientMsg.MsgType}");
+                Logger.Error($"BeamApian.OnApianCommand(): BAD COMMAND SOURCE: {fromId} Group: {cmd.DestGroupId}, Seq#: {cmd.SequenceNum} Type: {cmd.CoreMsg.MsgType}");
                 break;
 
             }

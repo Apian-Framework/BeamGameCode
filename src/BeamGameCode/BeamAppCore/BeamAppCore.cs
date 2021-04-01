@@ -85,10 +85,10 @@ namespace BeamGameCode
         }
         public override void OnApianCommand(ApianCommand cmd)
         {
-            logger.Debug($"OnApianCommand() Seq#: {cmd.SequenceNum} Cmd: {cmd.CliMsgType}");
+            logger.Debug($"OnApianCommand() Seq#: {cmd.SequenceNum} Cmd: {cmd.CoreMsgType}");
             CoreState.UpdateCommandSequenceNumber(cmd.SequenceNum);
             CoreState.ResetRemovalSideEffects();
-            ClientMsgCommandHandlers[cmd.ClientMsg.MsgType](cmd.ClientMsg as ApianCoreMessage, cmd.SequenceNum);
+            ClientMsgCommandHandlers[cmd.CoreMsg.MsgType](cmd.CoreMsg as ApianCoreMessage, cmd.SequenceNum);
             CoreState.DoRemovals();
         }
 
