@@ -68,9 +68,7 @@ namespace BeamGameCode
         public class SerialArgs
         {
             public Dictionary<string,int> peerIdxDict;
-            public long curApianTime;
-            public long cpTimeStamp;
-            public SerialArgs(Dictionary<string,int> pid, long at, long ts) {peerIdxDict=pid; curApianTime=at; cpTimeStamp=ts;}
+            public SerialArgs(Dictionary<string,int> pid ) {peerIdxDict=pid;}
         };
 
         private long _RoundToNearest(long interval, long inVal)
@@ -111,7 +109,7 @@ namespace BeamGameCode
                  });
         }
 
-        public static BaseBike FromApianJson(string jsonData, BeamCoreState gData, List<string> peerIdList, long timeStamp)
+        public static BaseBike FromApianJson(string jsonData, BeamCoreState gData, List<string> peerIdList)
         {
             object[] data = JsonConvert.DeserializeObject<object[]>(jsonData);
 
@@ -123,9 +121,7 @@ namespace BeamGameCode
             int score = (int)(long)data[10];
             TurnDir pendingTurn = (TurnDir)(long)data[11];
 
-            float secsSinceGrid = (timeStamp - lastGridTime ) * .001f;
-
-            gData.Logger.Info($"BaseBike FromApianJson() - Id: {(string)data[0]} curTime: {timeStamp} timeAtPos: {lastGridTime} lastGridPos: {lastGridPos.ToString()}");
+            gData.Logger.Info($"BaseBike FromApianJson() - Id: {(string)data[0]}  timeAtPos: {lastGridTime} lastGridPos: {lastGridPos.ToString()}");
 
             BaseBike bb = new BaseBike(
                 gData,

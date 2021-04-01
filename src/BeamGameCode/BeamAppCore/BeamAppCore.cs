@@ -141,7 +141,7 @@ namespace BeamGameCode
         {
             logger.Info($"OnCheckpointCommand() seqNum: {seqNum}, timestamp: {timeStamp}, Now: {FrameApianTime}");
             CoreData.UpdateCommandSequenceNumber(seqNum);
-            string stateJson = CoreData.ApianSerialized(new BeamCoreState.SerialArgs(seqNum, FrameApianTime, timeStamp));
+            string stateJson = CoreData.ApianSerialized(new BeamCoreState.SerialArgs(seqNum, timeStamp));
             logger.Debug($"**** Checkpoint:\n{stateJson}\n************\n");
             apian.SendCheckpointState(FrameApianTime, seqNum, stateJson);
 
@@ -183,7 +183,7 @@ namespace BeamGameCode
             logger.Debug($"ApplyStateData() Seq#: seqNum ApianTime: {timeStamp}");
 
             UpdateFrameTime(timeStamp);
-            CoreData = BeamCoreState.FromApianSerialized(seqNum,  timeStamp,  stateHash,  serializedData);
+            CoreData = BeamCoreState.FromApianSerialized(seqNum,  stateHash,  serializedData);
             OnNewCoreState(); // send NewCoreStateEvt
 
             foreach (BeamPlayer p in CoreData.Players.Values)

@@ -31,7 +31,7 @@ namespace BeamGameCode
     }
 
 
-    public class BeamCoreState : IApianCoreData
+    public class BeamCoreState : ApianCoreState
     {
         public event EventHandler<BeamPlace> PlaceFreedEvt;
         public event EventHandler<BeamPlace> PlaceTimeoutEvt;
@@ -41,12 +41,11 @@ namespace BeamGameCode
 
         public UniLogger Logger;
 
+	    public Ground Ground { get; private set; } = null; // TODO: Is there any mutable state here anymore? NO
+
         //
         // Here's the actual base state data:
         //
-	    public Ground Ground { get; private set; } = null; // TODO: Is there any mutable state here anymore? NO
-
-        public long CommandSequenceNumber { get; private set; } = -1;
         public Dictionary<string, BeamPlayer> Players { get; private set; } = null;
         public Dictionary<string, IBike> Bikes { get; private set; } = null;
         public Dictionary<int, BeamPlace> activePlaces = null; //  BeamPlace.PosHash() -indexed Dict of places.
@@ -141,12 +140,11 @@ namespace BeamGameCode
         public class SerialArgs
         {
             public long seqNum;
-            public long apianTime;
-            public long timeStamp;
-            public SerialArgs(long sn, long curTime, long ts) {seqNum=sn; apianTime=curTime; timeStamp=ts;}
+            public long chkPtTimeStamp; // used to check for expired places
+            public SerialArgs(long sn, long ts) {seqNum=sn; chkPtTimeStamp=ts; }
         };
 
-        public string ApianSerialized(object args=null)
+        public override string ApianSerialized(object args=null)
         {
             SerialArgs sArgs = args as SerialArgs;
 
@@ -161,19 +159,20 @@ namespace BeamGameCode
             string[] peersData = Players.Values.OrderBy(p => p.PeerId)
                 .Select(p => p.ApianSerialized()).ToArray();
             string[] bikesData = Bikes.Values.OrderBy(ib => ib.bikeId)
-                .Select(ib => ib.ApianSerialized(new BaseBike.SerialArgs(peerIndicesDict, sArgs.apianTime, sArgs.timeStamp))).ToArray();
+                .Select(ib => ib.ApianSerialized(new BaseBike.SerialArgs(peerIndicesDict))).ToArray();
 
             // Note: it's possible for an expired place to still be on the local active list 'cause of timeslice differences
             // when the Checkpoint command is fielded (it would get expired during the next loop) so we want to explicitly
             // filter out any that are expired as of the command timestamp
             string[] placesData = activePlaces.Values
-                .Where( p => p.expirationTimeMs > sArgs.timeStamp ) // not expired as of command timestamp
+                .Where( p => p.expirationTimeMs > sArgs.chkPtTimeStamp ) // not expired as of command timestamp
                 .Where ( p => Bikes.ContainsKey(p.bike?.bikeId))  // just to make sure the bike hasn;t gone away (note the p.bike? as well as the Bikes dict check)
                 .OrderBy(p => p.expirationTimeMs).ThenBy(p => p.PosHash)
                 .Select(p => p.ApianSerialized(new BeamPlace.SerialArgs(bikeIndicesDict))).ToArray();
 
+
             return  JsonConvert.SerializeObject(new object[]{
-                CommandSequenceNumber,
+                base.ApianSerialized(), // serialize all of the AppCoreBase data
                 peersData,
                 bikesData,
                 placesData
@@ -181,12 +180,14 @@ namespace BeamGameCode
         }
 
 
-        public static BeamCoreState FromApianSerialized( long seqNum,  long timeStamp,  string stateHash,  string serializedData)
+        public static BeamCoreState FromApianSerialized( long seqNum,  string stateHash,  string serializedData)
         {
             BeamCoreState newState = new BeamCoreState();
 
             JArray sData = JArray.Parse(serializedData);
-            long newSeq = (long)sData[0];
+
+            newState.ApplyDeserializedBaseData((string)sData[0]); // Populate the base ApianCoreState  data
+            long newSeq = newState.CommandSequenceNumber; // got applied above
 
             Dictionary<string, BeamPlayer> newPlayers = (sData[1] as JArray)
                 .Select( s => BeamPlayer.FromApianJson((string)s))
@@ -194,7 +195,7 @@ namespace BeamGameCode
 
             List<string> peerIds = newPlayers.Values.OrderBy(p => p.PeerId).Select((p) => p.PeerId).ToList(); // to replace array indices in bikes
             Dictionary<string, IBike> newBikes = (sData[2] as JArray)
-                .Select( s => (IBike)BaseBike.FromApianJson((string)s, newState, peerIds, timeStamp))
+                .Select( s => (IBike)BaseBike.FromApianJson((string)s, newState, peerIds))
                 .ToDictionary(p => p.bikeId);
 
             List<string> bikeIds = newBikes.Values.OrderBy(p => p.bikeId).Select((p) => p.bikeId).ToList(); // to replace array indices in places
@@ -206,8 +207,6 @@ namespace BeamGameCode
             newState.Players = newPlayers;
             newState.Bikes = newBikes;
             newState.activePlaces = newPlaces;
-
-            newState.UpdateCommandSequenceNumber(seqNum);
 
             return newState;
         }
