@@ -108,7 +108,7 @@ namespace BeamGameCode
 
             // BeamGameState newState =  BeamGameState.FromApianSerialized(GameData, seqNum,  timeStamp,  "blahblah", stateJson);
         }
-        public override void ApplyCheckpointStateData( long seqNum,  long timeStamp,  string stateHash,  string serializedData)
+        public override void ApplyCheckpointStateData(long seqNum,  long timeStamp,  string stateHash,  string serializedData)
         {
             logger.Debug($"ApplyStateData() Seq#: seqNum ApianTime: {timeStamp}");
 

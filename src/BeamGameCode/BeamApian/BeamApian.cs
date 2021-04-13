@@ -187,7 +187,7 @@ namespace BeamGameCode
             }
         }
 
-        public override void  ApplyCheckpointStateData(long seqNum, long timeStamp, string stateHash, string stateData)
+        public override void ApplyCheckpointStateData(long epoch, long seqNum, long timeStamp, string stateHash, string stateData)
         {
             appCore.ApplyCheckpointStateData( seqNum,  timeStamp,  stateHash,  stateData);
         }
