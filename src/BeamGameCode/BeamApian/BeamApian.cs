@@ -111,10 +111,10 @@ namespace BeamGameCode
         {
             base.OnGroupMemberJoined(member);
 
-            // Only care about local peer's group membership status
+            // Beam (appCore) only cares about local peer's group membership status
             if (member.PeerId == GameNet.LocalP2pId())
             {
-                appCore.OnGroupJoined(GroupMgr.GroupId);
+                appCore.OnGroupJoined(GroupMgr.GroupId);  // TODO: wait - appCore has OnGroupJoined? SHouldn't know about groups.
             }
         }
 
