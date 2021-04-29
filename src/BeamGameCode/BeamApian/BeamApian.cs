@@ -120,8 +120,8 @@ namespace BeamGameCode
 
         public override void OnGroupMemberStatusChange(ApianGroupMember member, ApianGroupMember.Status prevStatus)
         {
+            base.OnGroupMemberStatusChange(member, prevStatus);
             // Note that the member status has already been changed when this is called
-            Logger.Info($"OnGroupMemberStatusChange(): {SID(member.PeerId)} from {prevStatus} to {member.CurStatus}");
 
             // Beam-specific handling.
             // Joining->Active : PlayerJoined

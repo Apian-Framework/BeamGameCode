@@ -166,13 +166,16 @@ namespace BeamGameCode
         public void OnPeerSync(string channel, string p2pId, long clockOffsetMs, long netLagMs) {} // stubbed
         // TODO: Be nice to be able to default-stub this somewhere.
 
-        // IApianGameManage
-
         public void OnGroupAnnounce(ApianGroupInfo groupInfo)
         {
             Logger.Info($"OnGroupAnnounce({groupInfo.GroupName})");
             BeamGameInfo bgi = new BeamGameInfo(groupInfo);
             GameAnnounceEvt?.Invoke(this, bgi);
+        }
+
+        public void OnGroupMemberStatus(string groupId, string peerId, ApianGroupMember.Status newStatus, ApianGroupMember.Status prevStatus)
+        {
+            Logger.Info($"OnGroupMemberStatus() Grp: {groupId}, Peer: {UniLogger.SID(peerId)}, Status: {newStatus}, Prev: {prevStatus}");
         }
 
         public void OnGameSelected(BeamGameInfo gameInfo, GameSelectedArgs.ReturnCode result)
