@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using UnityEngine;
 using GameModeMgr;
@@ -68,6 +70,15 @@ namespace BeamGameCode
             _UpdateLocalPeer();
             beamGameNet.RequestGroups();
         }
+
+        public async Task<Dictionary<string, BeamGameInfo>> GetExistingGames(int waitMs)
+        {
+            // Can't the mode talk to baemGameNet directly?
+            Dictionary<string, ApianGroupInfo> groupsDict = await beamGameNet.RequestGroupsAsync(waitMs);
+            Dictionary<string, BeamGameInfo> gameDict = groupsDict.Values.Select((grp) => new BeamGameInfo(grp)).ToDictionary(gm => gm.GameName, gm => gm);
+            return gameDict;
+        }
+
 
         public void  SelectGame(IDictionary<string, BeamGameInfo> existingGames)
         {

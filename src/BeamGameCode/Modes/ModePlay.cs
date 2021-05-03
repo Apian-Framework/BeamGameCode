@@ -99,7 +99,7 @@ namespace BeamGameCode
 
         // Loopfuncs
 
-        protected void _SetState(int newState, object startParam = null)
+        protected async void _SetState(int newState, object startParam = null)
         {
             _curStateSecs = 0;
             _curState = newState;
@@ -122,10 +122,14 @@ namespace BeamGameCode
                 break;
             case kCheckingForGames:
                 logger.Verbose($"{(ModeName())}: SetState: kCheckingForGames");
-                announcedGames.Clear();
-                appl.GameAnnounceEvt += OnGameAnnounceEvt;
-                appl.ListenForGames();
-                _loopFunc = _GamesListenLoop;
+                // announcedGames.Clear();
+                // appl.GameAnnounceEvt += OnGameAnnounceEvt;
+                // appl.ListenForGames();
+                // _loopFunc = _GamesListenLoop;
+                announcedGames = await appl.GetExistingGames((int)(kListenForGamesSecs*1000));
+                appl.GameSelectedEvent += OnGameSelectedEvt;
+                appl.SelectGame(announcedGames);
+                _SetState(kSelectingGame); // ends with OnGameSelected()
                 break;
             case kSelectingGame:
                 logger.Verbose($"{(ModeName())}: SetState: kSelectingGame");  // waiting for UI to return
