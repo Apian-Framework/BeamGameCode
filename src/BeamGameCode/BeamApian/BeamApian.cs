@@ -54,7 +54,11 @@ namespace BeamGameCode
             BeamGameNet = _gn;
             appCore = _client as BeamAppCore;
 
-            ApianClock = new DefaultApianClock(this);
+            //ApianClock = new CoopApianClock(this);
+
+            // FIXME: LeaderClock needs a way to set the leader. Currently uses group creator.
+            ApianClock = new LeaderApianClock(this);
+
             apianPeers = new Dictionary<string, BeamApianPeer>();
 
             // Add BeamApian-level ApianMsg handlers here
