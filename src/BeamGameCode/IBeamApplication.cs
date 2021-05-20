@@ -35,6 +35,8 @@ namespace BeamGameCode
         IBeamGameNet beamGameNet {get;}
         void OnGameSelected(BeamGameInfo gameInfo, GameSelectedArgs.ReturnCode result);
 
+        void ExitApplication(); // relatively controlled exit via modeMgr
+
         // Events
         event EventHandler<PeerJoinedArgs> PeerJoinedEvt;
         event EventHandler<PeerLeftArgs> PeerLeftEvt;

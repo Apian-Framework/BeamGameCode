@@ -103,6 +103,12 @@ namespace BeamGameCode
             beamGameNet.LeaveGame(gameId);
         }
 
+        // Mode manager
+        public void ExitApplication()
+        {
+            modeMgr.Stop();
+        }
+
         public void OnSwitchModeReq(int newModeId, object modeParam)
         {
            modeMgr.SwitchToMode(newModeId, modeParam);
