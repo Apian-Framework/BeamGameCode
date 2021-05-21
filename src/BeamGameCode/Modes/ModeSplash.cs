@@ -37,7 +37,7 @@ namespace BeamGameCode
             _DoStartup(null, param);
         }
 
-		protected void _DoStartup(string prevModeName, object param = null)
+		protected async void _DoStartup(string prevModeName, object param = null)
         {
             _secsToNextRespawnCheck = kRespawnCheckInterval;
             appCore = null;
@@ -50,7 +50,7 @@ namespace BeamGameCode
 
             // Setup/connect fake network
             appl.ConnectToNetwork("p2ploopback");
-            appl.JoinBeamNet(NetworkName);
+            await appl.JoinBeamNetAsync(NetworkName);
             _CurrentState = ModeState.JoiningNet;
             // Now wait for OnPeerJoinedNet()
         }

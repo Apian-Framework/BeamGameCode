@@ -52,18 +52,30 @@ namespace BeamGameCode
             beamGameNet.Connect(netConnectionStr);
         }
 
-        // I think that someday I will want this back.
-        // public void CreateBeamNet(BeamGameNet.BeamNetCreationData createData)
-        // {
-        //     beamGameNet.CreateBeamNet(createData);
-        // }
-
-        public void JoinBeamNet(string networkName)
+        public async Task<bool> JoinBeamNetAsync(string networkName)
         {
             _UpdateLocalPeer();
+            TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
 
+            void handler(object src, PeerJoinedArgs args)
+            {
+                if (args.peer?.PeerId == LocalPeer.PeerId)
+                {
+                    tcs.TrySetResult(true);
+                }
+            };
+            PeerJoinedEvt +=handler;
             beamGameNet.JoinBeamNet(networkName, LocalPeer);
+            return await tcs.Task.ContinueWith<bool>( t =>  {PeerJoinedEvt -= handler; return t.Result;} );
         }
+
+        public void OnPeerJoinedNetwork(string p2pId, string networkId, string helloData)
+        {
+            BeamNetworkPeer peer = JsonConvert.DeserializeObject<BeamNetworkPeer>(helloData);
+            Logger.Info($"OnPeerJoinedNetwork() {((p2pId == LocalPeer.PeerId)?"Local":"Remote")} name: {peer.Name}");
+            PeerJoinedEvt.Invoke(this, new PeerJoinedArgs(networkId, peer));
+        }
+
 
         public void ListenForGames()
         {
@@ -80,21 +92,12 @@ namespace BeamGameCode
         }
 
 
-        public void  SelectGame(IDictionary<string, BeamGameInfo> existingGames)
-        {
-         //   frontend.SelectGame(existingGames); // Starts UI, or just immediately calls OnGameSelected()
-        }
 
         public async Task<(BeamGameInfo gameInfo, GameSelectedArgs.ReturnCode result)> SelectGameAsync(IDictionary<string, BeamGameInfo> existingGames)
         {
-            await frontend.SelectGameAsync(existingGames);
-            return (null,GameSelectedArgs.ReturnCode.kCancel);
-        }
-
-        public void OnGameSelected(GameSelectedArgs selection)
-        {
-            Logger.Info($"OnGameSelected({selection.gameInfo.GameName})");
-            GameSelectedEvent?.Invoke(this, selection);
+            GameSelectedArgs selection = await frontend.SelectGameAsync(existingGames);
+            Logger.Info($"SelectGameAsync() Got result:  GameName: {selection.gameInfo.GameName} ResultCode: {selection.result}");
+            return (selection.gameInfo, selection.result);
         }
 
 
@@ -165,12 +168,6 @@ namespace BeamGameCode
         //     NetworkCreatedEvt?.Invoke(this, netP2pChannel);
         // }
 
-        public void OnPeerJoinedNetwork(string p2pId, string networkId, string helloData)
-        {
-            BeamNetworkPeer peer = JsonConvert.DeserializeObject<BeamNetworkPeer>(helloData);
-            Logger.Info($"OnPeerJoinedNetwork() {((p2pId == LocalPeer.PeerId)?"Local":"Remote")} name: {peer.Name}");
-            PeerJoinedEvt.Invoke(this, new PeerJoinedArgs(networkId, peer));
-        }
 
         public void OnPeerLeftNetwork(string p2pId, string netId)
         {

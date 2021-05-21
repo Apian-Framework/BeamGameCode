@@ -33,7 +33,6 @@ namespace BeamGameCode
     public interface IBeamApplication : IApianApplication
     {
         IBeamGameNet beamGameNet {get;}
-        void OnGameSelected(GameSelectedArgs selection);
 
         void ExitApplication(); // relatively controlled exit via modeMgr
 

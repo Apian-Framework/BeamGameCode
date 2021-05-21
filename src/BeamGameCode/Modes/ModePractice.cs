@@ -19,7 +19,7 @@ namespace BeamGameCode
         protected bool netJoined;
         protected bool bikesCreated;
 
-		public override void Start(object param = null)
+		public override async void Start(object param = null)
         {
             base.Start();
 
@@ -28,7 +28,7 @@ namespace BeamGameCode
 
             // Setup/connect fake network
             appl.ConnectToNetwork("p2ploopback");
-            appl.JoinBeamNet(networkName);
+            appl.JoinBeamNetAsync(networkName);
 
             // Now wait for OnPeerJoinedNet()
         }

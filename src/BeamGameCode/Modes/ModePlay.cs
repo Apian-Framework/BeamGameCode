@@ -126,7 +126,7 @@ namespace BeamGameCode
                 // _loopFunc = _GamesListenLoop;
                 announcedGames = await appl.GetExistingGames((int)(kListenForGamesSecs*1000));
                 appl.GameSelectedEvent += OnGameSelectedEvt;
-                appl.SelectGameAsync(announcedGames);
+                await appl.SelectGameAsync(announcedGames);
                 _SetState(kSelectingGame); // ends with OnGameSelected()
                 break;
             case kSelectingGame:
@@ -196,9 +196,22 @@ namespace BeamGameCode
 
         // utils
 
-        private void _JoinNetwork()
+        private async void DoTheStuff()
         {
-            appl.JoinBeamNet(settings.apianNetworkName);
+            try {
+                appl.ConnectToNetwork(settings.p2pConnectionString); // should be async? GameNet.Connect() currently is not
+                await appl.JoinBeamNetAsync(settings.apianNetworkName);
+
+            } catch (Exception ex) {
+                _SetState(kFailed, ex.Message);
+                return;
+            }
+        }
+
+
+        private async void _JoinNetwork()
+        {
+            await appl.JoinBeamNetAsync(settings.apianNetworkName);
             // Wait for OnNetJoinedEvt()
         }
 
