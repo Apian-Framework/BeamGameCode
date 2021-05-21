@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Apian;
 
 namespace BeamGameCode
@@ -26,8 +27,8 @@ namespace BeamGameCode
 
         void DisplayMessage(MessageSeverity level, string msgText);
 
-        void SelectGame(IDictionary<string, BeamGameInfo> existingGames);
-
+        //void SelectGame(IDictionary<string, BeamGameInfo> existingGames);
+        Task<GameSelectedArgs> SelectGameAsync(IDictionary<string, BeamGameInfo> existingGames);
 
         // Event/message handlers
 

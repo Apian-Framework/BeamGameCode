@@ -82,8 +82,21 @@ namespace BeamGameCode
 
         public void  SelectGame(IDictionary<string, BeamGameInfo> existingGames)
         {
-            frontend.SelectGame(existingGames); // Starts UI, or just immediately calls OnGameSelected()
+         //   frontend.SelectGame(existingGames); // Starts UI, or just immediately calls OnGameSelected()
         }
+
+        public async Task<(BeamGameInfo gameInfo, GameSelectedArgs.ReturnCode result)> SelectGameAsync(IDictionary<string, BeamGameInfo> existingGames)
+        {
+            await frontend.SelectGameAsync(existingGames);
+            return (null,GameSelectedArgs.ReturnCode.kCancel);
+        }
+
+        public void OnGameSelected(GameSelectedArgs selection)
+        {
+            Logger.Info($"OnGameSelected({selection.gameInfo.GameName})");
+            GameSelectedEvent?.Invoke(this, selection);
+        }
+
 
         protected BeamPlayer MakeBeamPlayer() => new BeamPlayer(LocalPeer.PeerId, LocalPeer.Name);
         // FIXME: I think maybe it should go in BeamGameNet?
@@ -193,12 +206,6 @@ namespace BeamGameCode
         public void OnGroupMemberStatus(string groupId, string peerId, ApianGroupMember.Status newStatus, ApianGroupMember.Status prevStatus)
         {
             Logger.Info($"OnGroupMemberStatus() Grp: {groupId}, Peer: {UniLogger.SID(peerId)}, Status: {newStatus}, Prev: {prevStatus}");
-        }
-
-        public void OnGameSelected(BeamGameInfo gameInfo, GameSelectedArgs.ReturnCode result)
-        {
-            Logger.Info($"OnGameSelected({gameInfo.GameName})");
-            GameSelectedEvent?.Invoke(this, new GameSelectedArgs(gameInfo, result));
         }
 
         // Utility methods

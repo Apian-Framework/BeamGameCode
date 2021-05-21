@@ -35,8 +35,6 @@ namespace BeamGameCode
 
 
         protected string networkName;
-        //protected CreateMode netCreateMode = CreateMode.CreateIfNeeded;
-        //protected string gameName;
         protected CreateMode gameCreateMode = CreateMode.CreateIfNeeded;
         public BeamUserSettings settings;
 
@@ -128,7 +126,7 @@ namespace BeamGameCode
                 // _loopFunc = _GamesListenLoop;
                 announcedGames = await appl.GetExistingGames((int)(kListenForGamesSecs*1000));
                 appl.GameSelectedEvent += OnGameSelectedEvt;
-                appl.SelectGame(announcedGames);
+                appl.SelectGameAsync(announcedGames);
                 _SetState(kSelectingGame); // ends with OnGameSelected()
                 break;
             case kSelectingGame:
@@ -172,7 +170,7 @@ namespace BeamGameCode
                 // Stop listening for games
                 appl.GameAnnounceEvt -= OnGameAnnounceEvt; // stop listening
                 appl.GameSelectedEvent += OnGameSelectedEvt;
-                appl.SelectGame(announcedGames);
+                appl.SelectGameAsync(announcedGames);
                 _SetState(kSelectingGame); // ends with OnGameSelected()
             }
         }

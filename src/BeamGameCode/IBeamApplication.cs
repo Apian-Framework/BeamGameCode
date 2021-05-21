@@ -14,7 +14,7 @@ namespace BeamGameCode
         public string p2pId;
         public PeerLeftArgs(string g, string p) {channelId=g; p2pId=p;}
     }
-    public struct GameSelectedArgs {
+    public class GameSelectedArgs {
         public enum ReturnCode {kCreate, kJoin, kCancel};
         public ReturnCode result;
         public BeamGameInfo gameInfo;
@@ -33,7 +33,7 @@ namespace BeamGameCode
     public interface IBeamApplication : IApianApplication
     {
         IBeamGameNet beamGameNet {get;}
-        void OnGameSelected(BeamGameInfo gameInfo, GameSelectedArgs.ReturnCode result);
+        void OnGameSelected(GameSelectedArgs selection);
 
         void ExitApplication(); // relatively controlled exit via modeMgr
 
