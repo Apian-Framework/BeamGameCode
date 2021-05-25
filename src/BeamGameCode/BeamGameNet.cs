@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using UnityEngine;
@@ -14,6 +15,7 @@ namespace BeamGameCode
     {
         //void CreateBeamNet(BeamGameNet.BeamNetCreationData createData);
         void JoinBeamNet(string netName, BeamNetworkPeer localPeer);
+        Task<PeerJoinedNetworkData> JoinBeamNetAsync(string netName, BeamNetworkPeer localPeer);
         void LeaveBeamNet();
 
         BeamGameInfo CreateBeamGameInfo( string gameName, string apianGroupType);
@@ -59,6 +61,15 @@ namespace BeamGameCode
             chan.id = netName;
             string beamNetworkHelloData = JsonConvert.SerializeObject(localPeer);
             base.JoinNetwork(chan, beamNetworkHelloData);
+        }
+
+        public async Task<PeerJoinedNetworkData> JoinBeamNetAsync(string netName, BeamNetworkPeer localPeer )
+        {
+            P2pNetChannelInfo chan = new P2pNetChannelInfo(beamChannelData[kBeamNetworkChannelInfo]);
+            chan.name = netName;
+            chan.id = netName;
+            string beamNetworkHelloData = JsonConvert.SerializeObject(localPeer);
+            return await base.JoinNetworkAsync(chan, beamNetworkHelloData);
         }
 
         public void LeaveBeamNet() => LeaveNetwork();

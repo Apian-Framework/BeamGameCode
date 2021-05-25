@@ -40,7 +40,7 @@ namespace BeamGameCode
         event EventHandler<PeerJoinedArgs> PeerJoinedEvt;
         event EventHandler<PeerLeftArgs> PeerLeftEvt;
         event EventHandler<BeamGameInfo> GameAnnounceEvt;
-        event EventHandler<GameSelectedArgs> GameSelectedEvent;
+        // event EventHandler<GameSelectedArgs> GameSelectedEvent;  &&&&&
 
     }
 

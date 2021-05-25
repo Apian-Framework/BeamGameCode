@@ -19,7 +19,6 @@ namespace BeamGameCode
         public event EventHandler<PeerJoinedArgs> PeerJoinedEvt;
         public event EventHandler<PeerLeftArgs> PeerLeftEvt;
         public event EventHandler<BeamGameInfo> GameAnnounceEvt;
-        public event EventHandler<GameSelectedArgs> GameSelectedEvent;
         public ModeManager modeMgr {get; private set;}
         public  IBeamGameNet beamGameNet {get; private set;}
         public IBeamFrontend frontend {get; private set;}
@@ -48,32 +47,41 @@ namespace BeamGameCode
 
         public void ConnectToNetwork(string netConnectionStr)
         {
+            // Connect is (for now) synchronous
             _UpdateLocalPeer(); // reads stuff from settings
             beamGameNet.Connect(netConnectionStr);
         }
 
-        public async Task<bool> JoinBeamNetAsync(string networkName)
+        // Turns out this was the wrong place to implment this - but here's an async call that
+        //  completes on an event invocation
+        // TODO: Get rid of this at some point
+        // public async Task<bool> JoinBeamNetAsync(string networkName)
+        // {
+        //     _UpdateLocalPeer();
+        //     TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
+        //     void handler(object src, PeerJoinedArgs args)
+        //     {
+        //         if (args.peer?.PeerId == LocalPeer.PeerId)
+        //         {
+        //             tcs.TrySetResult(true);
+        //         }
+        //     };
+        //     PeerJoinedEvt +=handler;
+        //     beamGameNet.JoinBeamNet(networkName, LocalPeer);
+        //     return await tcs.Task.ContinueWith<bool>( t =>  {PeerJoinedEvt -= handler; return t.Result;} );
+        // }
+
+        public async Task<PeerJoinedNetworkData> JoinBeamNetAsync(string networkName)
         {
             _UpdateLocalPeer();
-            TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
-
-            void handler(object src, PeerJoinedArgs args)
-            {
-                if (args.peer?.PeerId == LocalPeer.PeerId)
-                {
-                    tcs.TrySetResult(true);
-                }
-            };
-            PeerJoinedEvt +=handler;
-            beamGameNet.JoinBeamNet(networkName, LocalPeer);
-            return await tcs.Task.ContinueWith<bool>( t =>  {PeerJoinedEvt -= handler; return t.Result;} );
+            return await beamGameNet.JoinBeamNetAsync(networkName, LocalPeer);
         }
 
-        public void OnPeerJoinedNetwork(string p2pId, string networkId, string helloData)
+        public void OnPeerJoinedNetwork(PeerJoinedNetworkData peerData)
         {
-            BeamNetworkPeer peer = JsonConvert.DeserializeObject<BeamNetworkPeer>(helloData);
-            Logger.Info($"OnPeerJoinedNetwork() {((p2pId == LocalPeer.PeerId)?"Local":"Remote")} name: {peer.Name}");
-            PeerJoinedEvt.Invoke(this, new PeerJoinedArgs(networkId, peer));
+            BeamNetworkPeer peer = JsonConvert.DeserializeObject<BeamNetworkPeer>(peerData.HelloData);
+            Logger.Info($"OnPeerJoinedNetwork() {((peerData.PeerId == LocalPeer.PeerId)?"Local":"Remote")} name: {peer.Name}");
+            PeerJoinedEvt.Invoke(this, new PeerJoinedArgs(peerData.NetId, peer));
         }
 
 
@@ -93,11 +101,11 @@ namespace BeamGameCode
 
 
 
-        public async Task<(BeamGameInfo gameInfo, GameSelectedArgs.ReturnCode result)> SelectGameAsync(IDictionary<string, BeamGameInfo> existingGames)
+        public async Task<GameSelectedArgs> SelectGameAsync(IDictionary<string, BeamGameInfo> existingGames)
         {
             GameSelectedArgs selection = await frontend.SelectGameAsync(existingGames);
             Logger.Info($"SelectGameAsync() Got result:  GameName: {selection.gameInfo.GameName} ResultCode: {selection.result}");
-            return (selection.gameInfo, selection.result);
+            return selection;
         }
 
 
