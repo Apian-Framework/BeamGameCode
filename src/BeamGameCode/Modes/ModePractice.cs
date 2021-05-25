@@ -23,14 +23,13 @@ namespace BeamGameCode
         {
             base.Start();
 
-            appl.PeerJoinedEvt += OnPeerJoinedNetEvt;
             appl.AddAppCore(null); // TODO: THis is beam only. Need better way. ClearGameInstances()? Init()?
 
             // Setup/connect fake network
             appl.ConnectToNetwork("p2ploopback");
-            appl.JoinBeamNetAsync(networkName);
-
-            // Now wait for OnPeerJoinedNet()
+            await appl.JoinBeamNetAsync(networkName);
+            StartPractice();
+            // waiting for OnGroupJoined()
         }
 
 		public override void Loop(float frameSecs)
@@ -62,7 +61,6 @@ namespace BeamGameCode
         }
 
 		public override object End() {
-            appl.PeerJoinedEvt -= OnPeerJoinedNetEvt;
             appCore.PlayerJoinedEvt -= OnMemberJoinedGroupEvt;
             appCore.NewBikeEvt -= OnNewBikeEvt;
             appl.frontend?.OnEndMode(appl.modeMgr.CurrentModeId(), null);
@@ -118,23 +116,19 @@ namespace BeamGameCode
             }
         }
 
-        public void OnPeerJoinedNetEvt(object sender, PeerJoinedArgs ga)
+        public void StartPractice()
         {
-            bool isLocal = ga.peer.PeerId == appl.LocalPeer.PeerId;
-            if (isLocal && appCore == null)
-            {
-                logger.Info("practice network joined");
-                BeamGameInfo gameInfo = appl.beamGameNet.CreateBeamGameInfo(ApianGroupName, SinglePeerGroupManager.kGroupType);
-                // Create gameInstance and associated Apian
-                _CreateCorePair(gameInfo);
-                appCore.PlayerJoinedEvt += OnMemberJoinedGroupEvt;
-                appCore.NewBikeEvt += OnNewBikeEvt;
+            logger.Info("practice network joined");
+            BeamGameInfo gameInfo = appl.beamGameNet.CreateBeamGameInfo(ApianGroupName, SinglePeerGroupManager.kGroupType);
+            // Create gameInstance and associated Apian
+            _CreateCorePair(gameInfo);
+            appCore.PlayerJoinedEvt += OnMemberJoinedGroupEvt;
+            appCore.NewBikeEvt += OnNewBikeEvt;
 
-                // Dont need to check for groups in splash
-                appl.CreateAndJoinGame(gameInfo, appCore);
-                appl.frontend?.OnStartMode(BeamModeFactory.kPractice, null);
-                // waiting for OnGroupJoined()
-            }
+            // Dont need to check for groups in splash
+            appl.CreateAndJoinGame(gameInfo, appCore);
+            appl.frontend?.OnStartMode(BeamModeFactory.kPractice, null);
+            // waiting for OnGroupJoined()
         }
 
         public void OnMemberJoinedGroupEvt(object sender, PlayerJoinedArgs ga)
