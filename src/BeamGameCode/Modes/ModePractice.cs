@@ -16,39 +16,57 @@ namespace BeamGameCode
          protected BaseBike playerBike = null;
         protected const float kRespawnCheckInterval = 1.3f;
         protected float _secsToNextRespawnCheck = kRespawnCheckInterval;
-        protected bool netJoined;
-        protected bool bikesCreated;
+        protected bool bGameJoined;
+        protected bool bGameSetup;
 
-		public override async void Start(object param = null)
+		public override void Start(object param = null)
         {
             base.Start();
-
             appl.AddAppCore(null); // TODO: THis is beam only. Need better way. ClearGameInstances()? Init()?
+            DoAsyncSetupAndStartJoin();
+            appl.frontend?.OnStartMode(BeamModeFactory.kPractice, null);
 
+        }
+
+        protected async void DoAsyncSetupAndStartJoin()
+        {
             // Setup/connect fake network
             appl.ConnectToNetwork("p2ploopback");
+
             await appl.JoinBeamNetAsync(networkName);
-            StartPractice();
+
+            logger.Info("practice network joined");
+            BeamGameInfo gameInfo = appl.beamGameNet.CreateBeamGameInfo(ApianGroupName, SinglePeerGroupManager.kGroupType);
+             _CreateCorePair(gameInfo);
+            appCore.PlayerJoinedEvt += OnMemberJoinedGroupEvt;
+            appCore.NewBikeEvt += OnNewBikeEvt;
+
+            // Dont need to check for groups in splash
+            appl.CreateAndJoinGame(gameInfo, appCore);
             // waiting for OnGroupJoined()
         }
 
+        protected void DoGameSetup()
+        {
+            // Create player bike
+            string playerBikeId = SpawnPlayerBike();
+            for( int i=0;i<kMaxAiBikes; i++)
+            {
+                // TODO: create a list of names/teams and respawn them when the blow up?
+                // ...or do it when respawn gets called
+                SpawnAIBike();
+            }
+            bGameSetup = true;
+        }
+
+
 		public override void Loop(float frameSecs)
         {
-            if (netJoined && !bikesCreated)
+            if (bGameJoined)
             {
-                // Create player bike
-                string playerBikeId = SpawnPlayerBike();
-                for( int i=0;i<kMaxAiBikes; i++)
-                {
-                    // TODO: create a list of names/teams and respawn them when the blow up?
-                    // ...or do it when respawn gets called
-                    SpawnAIBike();
-                }
-                bikesCreated = true;
-            }
+                if (!bGameSetup)
+                    DoGameSetup(); // synchronous
 
-            if (bikesCreated)
-            {
                 _secsToNextRespawnCheck -= frameSecs;
                 if (_secsToNextRespawnCheck <= 0)
                 {
@@ -116,25 +134,11 @@ namespace BeamGameCode
             }
         }
 
-        public void StartPractice()
-        {
-            logger.Info("practice network joined");
-            BeamGameInfo gameInfo = appl.beamGameNet.CreateBeamGameInfo(ApianGroupName, SinglePeerGroupManager.kGroupType);
-            // Create gameInstance and associated Apian
-            _CreateCorePair(gameInfo);
-            appCore.PlayerJoinedEvt += OnMemberJoinedGroupEvt;
-            appCore.NewBikeEvt += OnNewBikeEvt;
-
-            // Dont need to check for groups in splash
-            appl.CreateAndJoinGame(gameInfo, appCore);
-            appl.frontend?.OnStartMode(BeamModeFactory.kPractice, null);
-            // waiting for OnGroupJoined()
-        }
 
         public void OnMemberJoinedGroupEvt(object sender, PlayerJoinedArgs ga)
         {
             appCore.RespawnPlayerEvt += OnRespawnPlayerEvt;
-            netJoined = true;
+            bGameJoined = true;
         }
     }
 }

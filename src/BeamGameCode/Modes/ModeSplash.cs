@@ -17,63 +17,69 @@ namespace BeamGameCode
         protected const float kRespawnCheckInterval = 1.3f;
         protected const float kCamTargetInterval = 10.0f;
         protected float _secsToNextRespawnCheck = kRespawnCheckInterval;
-        protected bool bikesCreated;
-        protected bool localPlayerJoined;
+        protected bool bGameJoined;
+        protected bool bGameSetup;
 
         protected float _camTargetSecsLeft = 0; // assign as soon as there's a bike
 
-        private enum ModeState {
-            JoiningNet = 1,
-            JoiningGroup, // really ends with OnNewPlayer(local player)
-            Playing
-        }
-
-        private ModeState _CurrentState;
 
 		public override void Start(object param = null)
         {
             logger.Info("Starting Splash");
             base.Start();
-            _DoStartup(null, param);
+            appl.AddAppCore(null); // TODO: THis is beam only. Need better way. ClearGameInstances()? Init()?
+            DoAsyncSetupAndStartJoin();
+            appl.frontend?.OnStartMode(BeamModeFactory.kSplash);
         }
 
-		protected async void _DoStartup(string prevModeName, object param = null)
+        protected async void DoAsyncSetupAndStartJoin()
         {
-            _secsToNextRespawnCheck = kRespawnCheckInterval;
-            appCore = null;
-            bikesCreated = false;
-            localPlayerJoined = false;
-            _camTargetSecsLeft = 0;
-
-            appl.PeerJoinedEvt += OnPeerJoinedNetEvt;
-            appl.AddAppCore(null); // TODO: THis is beam only. Need better way. ClearGameInstances()? Init()?
-
+            // Setup/connect fake network
             // Setup/connect fake network
             appl.ConnectToNetwork("p2ploopback");
             await appl.JoinBeamNetAsync(NetworkName);
-            _CurrentState = ModeState.JoiningNet;
-            // Now wait for OnPeerJoinedNet()
+
+            logger.Info("Splash network joined");
+            BeamGameInfo gameInfo = appl.beamGameNet.CreateBeamGameInfo(ApianGroupName, SinglePeerGroupManager.kGroupType);
+             _CreateCorePair(gameInfo);
+            appCore.PlayerJoinedEvt += OnPlayerJoinedEvt;
+            appCore.NewBikeEvt += OnNewBikeEvt;
+
+            appl.CreateAndJoinGame(gameInfo, appCore);
+            // waiting for OnPlayerJoined()
         }
 
+        protected void DoGameSetup()
+        {
+            logger.Info($"{this.ModeName()}: StartSplash() Creating bikes!");
+            string cameraTargetBikeId = CreateADemoBike();
+             for( int i=1;i<kSplashBikeCount; i++)
+                 CreateADemoBike();
+            bGameSetup = true;
+        }
+
+        // public void StartSplash()
+        // {
+        //     logger.Info("Splash network joined");
+        //     BeamGameInfo gameInfo = appl.beamGameNet.CreateBeamGameInfo(ApianGroupName, SinglePeerGroupManager.kGroupType);
+        //     _CreateCorePair(gameInfo);
+        //     appCore.PlayerJoinedEvt += OnPlayerJoinedEvt;
+        //     appCore.NewBikeEvt += OnNewBikeEvt;
+
+        //     appl.CreateAndJoinGame(gameInfo, appCore);
+
+        //     // Note that the target bike is probably NOT created yet at this point.
+        //     // This robably needs to happen differently
+
+        // }
 
 		public override void Loop(float frameSecs)
         {
-            if (localPlayerJoined && !bikesCreated)
+            if (bGameJoined)
             {
-                logger.Info($"{this.ModeName()}: Loop() Creating bikes!");
-                string cameraTargetBikeId = CreateADemoBike();
-                for( int i=1;i<kSplashBikeCount; i++)
-                    CreateADemoBike();
+                if (!bGameSetup)
+                    DoGameSetup(); // synchronous
 
-                // Note that the target bike is probably NOT created yet at this point.
-                // This robably needs to happen differently
-                appl.frontend?.OnStartMode(BeamModeFactory.kSplash);
-                bikesCreated = true;
-                _CurrentState = ModeState.Playing;
-            }
-
-            if (bikesCreated)
-            {
                 _secsToNextRespawnCheck -= frameSecs;
                 if (_secsToNextRespawnCheck <= 0)
                 {
@@ -101,7 +107,6 @@ namespace BeamGameCode
 
         protected object _DoCleanup()
         {
-            appl.PeerJoinedEvt -= OnPeerJoinedNetEvt;
             appCore.PlayerJoinedEvt -= OnPlayerJoinedEvt;
             appCore.NewBikeEvt -= OnNewBikeEvt;
             appl.frontend?.OnEndMode(appl.modeMgr.CurrentModeId(), null);
@@ -119,35 +124,9 @@ namespace BeamGameCode
             return bb.bikeId;  // the bike hasn't been added yet, so this id is not valid yet.
         }
 
-        protected void SetCameraTarget()
-        {
-
-        }
-
-        public void OnPeerJoinedNetEvt(object sender, PeerJoinedArgs ga)
-        {
-            bool isLocal = ga.peer.PeerId == appl.LocalPeer.PeerId;
-            if (isLocal && _CurrentState == ModeState.JoiningNet)
-            {
-                logger.Info("Splash network joined");
-                // Create gameInstance and associated Apian
-                BeamGameInfo gameInfo = appl.beamGameNet.CreateBeamGameInfo(ApianGroupName, SinglePeerGroupManager.kGroupType);
-                // Create gameInstance and associated Apian
-                _CreateCorePair(gameInfo);
-
-                appCore.PlayerJoinedEvt += OnPlayerJoinedEvt;
-                appCore.NewBikeEvt += OnNewBikeEvt;
-
-                appl.CreateAndJoinGame(gameInfo, appCore);
-                _CurrentState = ModeState.JoiningGroup;
-                // waiting for OnPlayerJoined(localplayer)
-            }
-        }
-
         public void OnPlayerJoinedEvt(object sender, PlayerJoinedArgs ga)
         {
-            _CurrentState = ModeState.Playing;
-            localPlayerJoined = true;
+            bGameJoined = true;
             logger.Info("Player joined!!!");
         }
 

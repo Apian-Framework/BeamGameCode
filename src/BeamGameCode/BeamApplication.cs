@@ -81,7 +81,7 @@ namespace BeamGameCode
         {
             BeamNetworkPeer peer = JsonConvert.DeserializeObject<BeamNetworkPeer>(peerData.HelloData);
             Logger.Info($"OnPeerJoinedNetwork() {((peerData.PeerId == LocalPeer.PeerId)?"Local":"Remote")} name: {peer.Name}");
-            PeerJoinedEvt.Invoke(this, new PeerJoinedArgs(peerData.NetId, peer));
+            PeerJoinedEvt?.Invoke(this, new PeerJoinedArgs(peerData.NetId, peer));
         }
 
 
