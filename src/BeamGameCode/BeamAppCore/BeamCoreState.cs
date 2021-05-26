@@ -172,7 +172,7 @@ namespace BeamGameCode
 
 
             return  JsonConvert.SerializeObject(new object[]{
-                base.ApianSerialized(), // serialize all of the AppCoreBase data
+                ApianSerializedBaseData(), // serialize all of the AppCoreBase data
                 peersData,
                 bikesData,
                 placesData
