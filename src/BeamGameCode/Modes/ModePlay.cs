@@ -115,7 +115,12 @@ namespace BeamGameCode
                 break;
             case kJoiningNet:
                 logger.Verbose($"{(ModeName())}: SetState: kJoiningNet");
-                await appl.JoinBeamNetAsync(settings.apianNetworkName);
+                try {
+                    await appl.JoinBeamNetAsync(settings.apianNetworkName);
+                } catch (Exception ex) {
+                    _SetState(kFailed, ex.Message);
+                    return;
+                }
                 _SetState(kCheckingForGames);
                 break;
             case kCheckingForGames:
