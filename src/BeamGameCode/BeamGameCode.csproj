@@ -13,6 +13,8 @@
 
       <PackageReference Include="P2pNet.Redis"  Version="1.0.3" Condition="'$(P2pNetSource)' == 'package'" />
       <ProjectReference Include="..\..\..\P2pNet\src\P2pNet.Redis\P2pNet.Redis.csproj" Condition="'$(P2pNetSource)' != 'package'"/>
+
+      <ProjectReference Include="..\..\..\P2pNet\src\P2pNet.Mqtt\P2pNet.Mqtt.csproj" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(UNITY_2019_1_OR_NEWER)' == '' ">

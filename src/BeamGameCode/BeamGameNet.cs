@@ -135,6 +135,9 @@ namespace BeamGameCode
                 case "p2ploopback":
                     ip2p = new P2pLoopback(this, null);
                     break;
+                case "p2pmqtt":
+                    ip2p = new P2pMqtt(this, parts[1]);
+                    break;
                 // case "p2pactivemq":
                 //     p2p = new P2pActiveMq(this, parts[1]);
                 //     break;
