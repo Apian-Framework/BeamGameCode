@@ -186,7 +186,7 @@ namespace BeamGameCode
             //     && cmd.CoreMsgType == ApianMessage.CheckpointMsg )
             //     return; // TODO: &&&& YIKES! See OnApianCommand for relevant comment
 
-            _AdvanceStateTo((cmd as ApianWrappedCoreMessage).CoreMsg.TimeStamp);
+            _AdvanceStateTo((cmd as ApianWrappedCoreMessage).CoreMsgTimeStamp);
 
             base.ApplyStashedApianCommand(cmd);
 
@@ -230,18 +230,16 @@ namespace BeamGameCode
 
         public void SendNewPlayerObs(long timeStamp, BeamPlayer newPlayer)
         {
-            Logger.Debug($"SendPlaceHitObs()");
+            Logger.Debug($"SendNewPlayerObs()");
             NewPlayerMsg msg = new NewPlayerMsg(timeStamp, newPlayer);
-            ApianNewPlayerObservation obs = new ApianNewPlayerObservation(GroupMgr?.GroupId, msg);
-            SendObservation( obs);
+            SendObservation( msg);
         }
 
         public void SendPlayerLeftObs( long timeStamp, string peerId)
         {
             Logger.Debug($"SendPlayerLeftObs()");
             PlayerLeftMsg msg = new PlayerLeftMsg(timeStamp, peerId);
-            ApianPlayerLeftObservation obs = new ApianPlayerLeftObservation(GroupMgr?.GroupId, msg);
-            SendObservation( obs);
+            SendObservation( msg);
         }
 
         public  void SendPlaceClaimObs(long timeStamp, IBike bike, int xIdx, int zIdx,
@@ -249,54 +247,46 @@ namespace BeamGameCode
         {
             Logger.Debug($"SendPlaceClaimObs()");
             PlaceClaimMsg msg = new PlaceClaimMsg(timeStamp, bike.bikeId, bike.peerId, xIdx, zIdx, entry, exit, scoreUpdates);
-            ApianPlaceClaimObservation obs = new ApianPlaceClaimObservation(GroupMgr?.GroupId, msg);
-            SendObservation(obs);
+            SendObservation(msg);
         }
 
         public void SendPlaceHitObs(long timeStamp, IBike bike, int xIdx, int zIdx, Heading entry, Heading exit, Dictionary<string,int> scoreUpdates)
         {
             Logger.Debug($"SendPlaceHitObs()");
             PlaceHitMsg msg = new PlaceHitMsg(timeStamp, bike.bikeId, bike.peerId, xIdx, zIdx, entry, exit, scoreUpdates);
-            ApianPlaceHitObservation obs = new ApianPlaceHitObservation(GroupMgr?.GroupId, msg);
-            SendObservation(obs);
+            SendObservation(msg);
         }
         public  void SendRemoveBikeObs(long timeStamp, string bikeId)
         {
             Logger.Info($"SendRemoveBikeObs()");
             RemoveBikeMsg msg = new RemoveBikeMsg(timeStamp, bikeId);
-            ApianRemoveBikeObservation obs = new ApianRemoveBikeObservation(GroupMgr?.GroupId, msg);
-            SendObservation(obs);
+            SendObservation(msg);
         }
 
         public void SendPlaceRemovedObs(long timeStamp, int xIdx, int zIdx)
         {
             Logger.Debug($"SendPlaceRemovedObs()");
             PlaceRemovedMsg msg = new PlaceRemovedMsg(timeStamp, xIdx, zIdx);
-            ApianPlaceRemovedObservation obs = new ApianPlaceRemovedObservation(GroupMgr?.GroupId, msg);
-            SendObservation(obs);
+            SendObservation(msg);
         }
 
         public  void SendBikeTurnReq(long timeStamp, IBike bike, TurnDir dir, Vector2 nextPt)
         {
             Logger.Debug($"SendBikeTurnReq) Bike: {SID(bike.bikeId)}");
             BikeTurnMsg msg = new BikeTurnMsg(timeStamp, bike, dir, nextPt);
-            ApianBikeTurnRequest req = new ApianBikeTurnRequest(GroupMgr?.GroupId, msg);
-            SendRequest(GroupMgr.GroupId, req);
+            SendRequest(msg);
         }
         public  void SendBikeCommandReq(long timeStamp, IBike bike, BikeCommand cmd, Vector2 nextPt)
         {
             Logger.Debug($"BeamGameNet.SendBikeCommand() Bike: {SID(bike.bikeId)}");
             BikeCommandMsg msg = new BikeCommandMsg(timeStamp, bike.bikeId, bike.peerId, cmd, nextPt);
-            ApianBikeCommandRequest req = new ApianBikeCommandRequest(GroupMgr?.GroupId, msg);
-            SendRequest(GroupMgr.GroupId, req);
+            SendRequest(msg);
         }
         public  void SendBikeCreateReq(long timeStamp, IBike ib)
         {
             Logger.Debug($"SendBikeCreateReq()");
-            // Broadcast this to send it to everyone
-            BikeCreateDataMsg msg = new BikeCreateDataMsg(timeStamp, ib);
-            ApianBikeCreateRequest req = new ApianBikeCreateRequest(GroupMgr.GroupId, msg);
-            SendRequest(GroupMgr.GroupId, req);
+            BikeCreateMsg msg = new BikeCreateMsg(timeStamp, ib);
+             SendRequest(msg);
         }
 
 

@@ -151,14 +151,6 @@ namespace BeamGameCode
             return ip2p;
         }
 
-        public override ApianMessage DeserializeApianMessage(string msgType, string msgJSON)
-        {
-            // TODO: can I do this without decoding it twice?
-            // One option would be for the deifnition of ApianMessage to have type and subType,
-            // but I'd rather just decode it smarter
-            return BeamApianMessageDeserializer.FromJSON(msgType, msgJSON);
-        }
-
         // Requests from BeamApplciation
 
         public void SendBikeCreateDataReq(string groupId, IBike ib)

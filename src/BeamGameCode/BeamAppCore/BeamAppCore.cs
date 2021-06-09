@@ -63,7 +63,7 @@ namespace BeamGameCode
             {
                 [BeamMessage.kNewPlayer] = (msg, seqNum) => OnNewPlayerCmd(msg as NewPlayerMsg, seqNum),
                 [BeamMessage.kPlayerLeft] = (msg, seqNum) => OnPlayerLeftCmd(msg as PlayerLeftMsg, seqNum),
-                [BeamMessage.kBikeCreateData] = (msg, seqNum) => this.OnCreateBikeCmd(msg as BikeCreateDataMsg, seqNum),
+                [BeamMessage.kBikeCreateData] = (msg, seqNum) => this.OnCreateBikeCmd(msg as BikeCreateMsg, seqNum),
                 [BeamMessage.kRemoveBikeMsg] = (msg, seqNum) => this.OnRemoveBikeCmd(msg as RemoveBikeMsg, seqNum),
                 [BeamMessage.kBikeTurnMsg] = (msg, seqNum) => this.OnBikeTurnCmd(msg as BikeTurnMsg, seqNum),
                 [BeamMessage.kBikeCommandMsg] =(msg, seqNum) => this.OnBikeCommandCmd(msg as BikeCommandMsg, seqNum),
@@ -79,16 +79,21 @@ namespace BeamGameCode
             apian = ap as BeamApian;
         }
 
+        public override ApianCoreMessage DeserializeCoreMessage(ApianWrappedCoreMessage aMsg)
+        {
+            return BeamCoreMessageDeserializer.FromJSON(aMsg.CoreMsgType, aMsg.SerializedCoreMsg);
+        }
+
         public override bool CommandIsValid(ApianCoreMessage cmdMsg)
         {
             throw new NotImplementedException();
         }
-        public override void OnApianCommand(ApianCommand cmd)
+        public override void OnApianCommand(long cmdSeqNum, ApianCoreMessage coreMsg)
         {
-            logger.Debug($"OnApianCommand() Seq#: {cmd.SequenceNum} Cmd: {cmd.CoreMsgType}");
-            CoreState.UpdateCommandSequenceNumber(cmd.SequenceNum);
+            logger.Debug($"OnApianCommand() Seq#: {cmdSeqNum} Cmd: {coreMsg.MsgType}");
+            CoreState.UpdateCommandSequenceNumber(cmdSeqNum);
             CoreState.ResetRemovalSideEffects();
-            ClientMsgCommandHandlers[cmd.CoreMsg.MsgType](cmd.CoreMsg as ApianCoreMessage, cmd.SequenceNum);
+            ClientMsgCommandHandlers[coreMsg.MsgType](coreMsg, cmdSeqNum);
             CoreState.DoRemovals();
         }
 
@@ -224,7 +229,7 @@ namespace BeamGameCode
             _RemovePlayer(msg.peerId);
         }
 
-        public void OnCreateBikeCmd(BikeCreateDataMsg msg, long seqNum)
+        public void OnCreateBikeCmd(BikeCreateMsg msg, long seqNum)
         {
             logger.Verbose($"OnCreateBikeCmd(#{seqNum}): {SID(msg.bikeId)}.");
             IBike ib = msg.ToBike(CoreState);

@@ -14,7 +14,7 @@ namespace BeamGameCode
             GroupMgr = new LeaderSezGroupManager(this);
         }
 
-        public override void SendObservation( ApianObservation msg)
+        public override void SendObservation( ApianCoreMessage msg)
         {
             if ( (GroupMgr?.GroupCreatorId != GameNet.LocalP2pId()))
             {

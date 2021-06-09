@@ -83,26 +83,6 @@ namespace BeamGameCode
         // No conflict detection
     }
 
-    // BeamApian sees a GroupMember change to active and creates an "observation" and send it to the
-    // GroupManager (the GroupManager doesn;t know what a BeamPlayer is, or what the criteria for a new one is - but it
-    // DOES know whether or not it should send out a submitted observation as a Command)
-    public class ApianNewPlayerObservation : ApianObservation
-    {
-        public override ApianCoreMessage CoreMsg {get => newPlayerMsg;}
-        public NewPlayerMsg newPlayerMsg;
-        public ApianNewPlayerObservation(string gid, NewPlayerMsg _newPlayerMsg) : base(gid, _newPlayerMsg) {newPlayerMsg=_newPlayerMsg;}
-        public ApianNewPlayerObservation() : base() {}
-        public override ApianCommand ToCommand(long epoch, long seqNum) => new ApianNewPlayerCommand(epoch, seqNum, DestGroupId, newPlayerMsg);
-
-    }
-    public class ApianNewPlayerCommand : ApianCommand
-    {
-        public override ApianCoreMessage CoreMsg {get => newPlayerMsg;}
-        public NewPlayerMsg newPlayerMsg;
-        public ApianNewPlayerCommand(long epoch, long seqNum, string gid, NewPlayerMsg _newPlayerMsg) : base(epoch, seqNum, gid, _newPlayerMsg) {newPlayerMsg=_newPlayerMsg;}
-        public ApianNewPlayerCommand() : base() {}
-    }
-
     public class PlayerLeftMsg : BeamMessage
     {
         public string peerId;
@@ -112,23 +92,7 @@ namespace BeamGameCode
         // No conflict detection
     }
 
-    public class ApianPlayerLeftObservation : ApianObservation
-    {
-        public override ApianCoreMessage CoreMsg {get => playerLeftMsg;}
-        public PlayerLeftMsg playerLeftMsg;
-        public ApianPlayerLeftObservation(string gid, PlayerLeftMsg _playerLeftMsg) : base(gid, _playerLeftMsg) {playerLeftMsg=_playerLeftMsg;}
-        public ApianPlayerLeftObservation() : base() {}
-        public override ApianCommand ToCommand(long epoch, long seqNum) => new ApianPlayerLeftCommand(epoch, seqNum, DestGroupId, playerLeftMsg);
-    }
-    public class ApianPlayerLeftCommand : ApianCommand
-    {
-        public override ApianCoreMessage CoreMsg {get => playerLeftMsg;}
-        public PlayerLeftMsg playerLeftMsg;
-        public ApianPlayerLeftCommand(long epoch, long seqNum, string gid, PlayerLeftMsg _playerLeftMsg) : base(epoch, seqNum, gid, _playerLeftMsg) {playerLeftMsg=_playerLeftMsg;}
-        public ApianPlayerLeftCommand() : base() {}
-    }
-
-    public class BikeCreateDataMsg : BeamMessage
+    public class BikeCreateMsg : BeamMessage
     {
         public string bikeId;
         public string peerId;
@@ -141,7 +105,7 @@ namespace BeamGameCode
         public float yPos;
         public Heading heading;
 
-        public BikeCreateDataMsg(long ts, IBike ib) : base(kBikeCreateData, ts)
+        public BikeCreateMsg(long ts, IBike ib) : base(kBikeCreateData, ts)
         {
             bikeId = ib.bikeId;
             peerId = ib.peerId;
@@ -155,30 +119,12 @@ namespace BeamGameCode
             heading = ib.baseHeading;
         }
 
-        public BikeCreateDataMsg() : base() {}
+        public BikeCreateMsg() : base() {}
 
         public BaseBike ToBike(BeamCoreState gd)
         {
             return new BaseBike(gd, bikeId, peerId , name, team, ctrlType, timeAtPos, new Vector2(xPos, yPos), heading);
         }
-    }
-
-    public class ApianBikeCreateRequest : ApianRequest
-    {
-        public override ApianCoreMessage CoreMsg {get => bikeCreateDataMsg;}
-        public BikeCreateDataMsg bikeCreateDataMsg;
-        public ApianBikeCreateRequest(string gid, BikeCreateDataMsg _bikeCreateMsg) : base(gid, _bikeCreateMsg) {bikeCreateDataMsg=_bikeCreateMsg;}
-        public ApianBikeCreateRequest() : base() {}
-        public override ApianCommand ToCommand(long epoch, long seqNum) => new ApianBikeCreateCommand(epoch, seqNum, DestGroupId, bikeCreateDataMsg);
-    }
-
-    public class ApianBikeCreateCommand : ApianCommand
-    {
-        public override ApianCoreMessage CoreMsg {get => bikeCreateDataMsg;}
-        public BikeCreateDataMsg bikeCreateDataMsg;
-        public ApianBikeCreateCommand(long epoch, long seqNum, string gid, BikeCreateDataMsg _bikeCreateMsg) : base(epoch, seqNum, gid, _bikeCreateMsg) {bikeCreateDataMsg=_bikeCreateMsg;}
-        public ApianBikeCreateCommand() : base() {}
-
     }
 
     public class RemoveBikeMsg : BeamMessage
@@ -188,22 +134,6 @@ namespace BeamGameCode
         public RemoveBikeMsg(long ts, string _bikeId) : base(kRemoveBikeMsg, ts) { bikeId = _bikeId; }
 
         // No conflict detection
-    }
-
-    public class ApianRemoveBikeObservation : ApianObservation
-    {
-        public override ApianCoreMessage CoreMsg {get => removeBikeMsg;}
-        public RemoveBikeMsg removeBikeMsg;
-        public ApianRemoveBikeObservation(string gid, RemoveBikeMsg _removeBikeMsg) : base(gid, _removeBikeMsg) {removeBikeMsg=_removeBikeMsg;}
-        public ApianRemoveBikeObservation() : base() {}
-        public override ApianCommand ToCommand(long epoch, long seqNum) => new ApianRemoveBikeCommand(epoch, seqNum, DestGroupId, removeBikeMsg);
-    }
-    public class ApianRemoveBikeCommand : ApianCommand
-    {
-        public override ApianCoreMessage CoreMsg {get => removeBikeMsg;}
-        public RemoveBikeMsg removeBikeMsg;
-        public ApianRemoveBikeCommand(long epoch, long seqNum, string gid, RemoveBikeMsg _removeBikeMsg) : base(epoch, seqNum, gid, _removeBikeMsg) {removeBikeMsg=_removeBikeMsg;}
-        public ApianRemoveBikeCommand() : base() {}
     }
 
     public class BikeTurnMsg : BeamMessage
@@ -230,22 +160,6 @@ namespace BeamGameCode
         }
     }
 
-    public class ApianBikeTurnRequest : ApianRequest
-    {
-        public override ApianCoreMessage CoreMsg {get => bikeTurnMsg;}
-        public BikeTurnMsg bikeTurnMsg;
-        public ApianBikeTurnRequest(string gid, BikeTurnMsg _bikeTurnMsg) : base(gid, _bikeTurnMsg) {bikeTurnMsg=_bikeTurnMsg;}
-        public ApianBikeTurnRequest() : base() {}
-
-        public override ApianCommand ToCommand(long epoch, long seqNum) => new ApianBikeTurnCommand(epoch, seqNum, DestGroupId, bikeTurnMsg);
-    }
-    public class ApianBikeTurnCommand : ApianCommand
-    {
-        public override ApianCoreMessage CoreMsg {get => bikeTurnMsg;}
-        public BikeTurnMsg bikeTurnMsg;
-        public ApianBikeTurnCommand(long epoch, long seqNum, string gid, BikeTurnMsg _bikeTurnMsg) : base(epoch, seqNum, gid, _bikeTurnMsg) {bikeTurnMsg=_bikeTurnMsg;}
-        public ApianBikeTurnCommand() : base() {}
-    }
 
     public class BikeCommandMsg : BeamMessage
     {
@@ -264,23 +178,6 @@ namespace BeamGameCode
             nextPtX = nextGridPt.x;
             nextPtZ = nextGridPt.y;
         }
-    }
-
-    public class ApianBikeCommandRequest : ApianRequest
-    {
-        public override ApianCoreMessage CoreMsg {get => bikeCommandMsg;}
-        public BikeCommandMsg bikeCommandMsg;
-        public ApianBikeCommandRequest(string gid, BikeCommandMsg _bikeCommandMsg) : base(gid, _bikeCommandMsg) {bikeCommandMsg=_bikeCommandMsg;}
-        public ApianBikeCommandRequest() : base() {}
-        public override ApianCommand ToCommand(long epoch, long seqNum) => new ApianBikeCommandCommand(epoch, seqNum, DestGroupId, bikeCommandMsg);
-    }
-
-    public class ApianBikeCommandCommand : ApianCommand  // Gee, no - that's not stupid-sounding at all]
-    {
-        public override ApianCoreMessage CoreMsg {get => bikeCommandMsg;}
-        public BikeCommandMsg bikeCommandMsg;
-        public ApianBikeCommandCommand(long epoch, long seqNum, string gid, BikeCommandMsg _bikeCommandMsg) : base(epoch, seqNum, gid, _bikeCommandMsg) {bikeCommandMsg=_bikeCommandMsg;}
-        public ApianBikeCommandCommand() : base() {}
     }
 
     public class PlaceClaimMsg : BeamMessage
@@ -311,25 +208,6 @@ namespace BeamGameCode
             //     { kPlaceRemovedMsg, ValidAfterPlaceRemoved}
             // };
         }
-
-
-    }
-
-    public class ApianPlaceClaimObservation : ApianObservation
-    {
-        public override ApianCoreMessage CoreMsg {get => placeClaimMsg;}
-        public PlaceClaimMsg placeClaimMsg;
-        public ApianPlaceClaimObservation(string gid, PlaceClaimMsg _placeClaimMsg) : base(gid, _placeClaimMsg) {placeClaimMsg=_placeClaimMsg;}
-        public ApianPlaceClaimObservation() : base() {}
-        public override ApianCommand ToCommand(long epoch, long seqNum) => new ApianPlaceClaimCommand(epoch, seqNum, DestGroupId, placeClaimMsg);
-    }
-
-    public class ApianPlaceClaimCommand : ApianCommand
-    {
-        public override ApianCoreMessage CoreMsg {get => placeClaimMsg;}
-        public PlaceClaimMsg placeClaimMsg;
-        public ApianPlaceClaimCommand(long epoch, long seqNum, string gid, PlaceClaimMsg _placeClaimMsg) : base(epoch, seqNum, gid, _placeClaimMsg) {placeClaimMsg=_placeClaimMsg;}
-        public ApianPlaceClaimCommand() : base() {}
     }
 
     public class PlaceHitMsg : BeamMessage
@@ -355,21 +233,6 @@ namespace BeamGameCode
         }
     }
 
-    public class ApianPlaceHitObservation : ApianObservation
-    {
-        public override ApianCoreMessage CoreMsg {get => placeHitMsg;}
-        public PlaceHitMsg placeHitMsg;
-        public ApianPlaceHitObservation(string gid, PlaceHitMsg _placeHitMsg) : base(gid, _placeHitMsg) {placeHitMsg=_placeHitMsg;}
-        public ApianPlaceHitObservation() : base() {}
-        public override ApianCommand ToCommand(long epoch, long seqNum) => new ApianPlaceHitCommand(epoch, seqNum, DestGroupId, placeHitMsg);
-    }
-    public class ApianPlaceHitCommand : ApianCommand
-    {
-        public override ApianCoreMessage CoreMsg {get => placeHitMsg;}
-        public PlaceHitMsg placeHitMsg;
-        public ApianPlaceHitCommand(long epoch, long seqNum, string gid, PlaceHitMsg _placeHitMsg) : base(epoch, seqNum, gid, _placeHitMsg) {placeHitMsg=_placeHitMsg;}
-        public ApianPlaceHitCommand() : base() {}
-    }
 
     public class PlaceRemovedMsg : BeamMessage
     {
@@ -385,68 +248,33 @@ namespace BeamGameCode
        // No observation conflict detection
     }
 
-    public class ApianPlaceRemovedObservation : ApianObservation
+    static public class BeamCoreMessageDeserializer
     {
-        public override ApianCoreMessage CoreMsg {get => placeRemovedMsg;}
-        public PlaceRemovedMsg placeRemovedMsg;
-        public ApianPlaceRemovedObservation(string gid, PlaceRemovedMsg _placeRemovedMsg) : base(gid, _placeRemovedMsg) {placeRemovedMsg=_placeRemovedMsg;}
-        public ApianPlaceRemovedObservation() : base() {}
-        public override ApianCommand ToCommand(long epoch, long seqNum) => new ApianPlaceRemovedCommand(epoch, seqNum, DestGroupId, placeRemovedMsg);
-    }
-    public class ApianPlaceRemovedCommand : ApianCommand
-    {
-        public override ApianCoreMessage CoreMsg {get => placeRemovedMsg;}
-        public PlaceRemovedMsg placeRemovedMsg;
-        public ApianPlaceRemovedCommand(long epoch, long seqNum, string gid, PlaceRemovedMsg _placeRemovedMsg) : base(epoch, seqNum, gid, _placeRemovedMsg) {placeRemovedMsg=_placeRemovedMsg;}
-        public ApianPlaceRemovedCommand() : base() {}
-    }
 
-
-    static public class BeamApianMessageDeserializer
-    {
-        // TODO: Come up with a sane way of desrializing messages
-        //(prefereably without having to include class type info in the JSON)
-        public static Dictionary<string, Func<string, ApianMessage>> beamDeserializers = new  Dictionary<string, Func<string, ApianMessage>>()
-        {
-            {ApianMessage.CliObservation+BeamMessage.kNewPlayer, (s) => JsonConvert.DeserializeObject<ApianNewPlayerObservation>(s) },
-            {ApianMessage.CliObservation+BeamMessage.kPlayerLeft, (s) => JsonConvert.DeserializeObject<ApianPlayerLeftObservation>(s) },
-            {ApianMessage.CliRequest+BeamMessage.kBikeTurnMsg, (s) => JsonConvert.DeserializeObject<ApianBikeTurnRequest>(s) },
-            {ApianMessage.CliRequest+BeamMessage.kBikeCommandMsg, (s) => JsonConvert.DeserializeObject<ApianBikeCommandRequest>(s) },
-            {ApianMessage.CliRequest+BeamMessage.kBikeCreateData, (s) => JsonConvert.DeserializeObject<ApianBikeCreateRequest>(s) },
-            {ApianMessage.CliObservation+BeamMessage.kRemoveBikeMsg, (s) => JsonConvert.DeserializeObject<ApianRemoveBikeObservation>(s) },
-            {ApianMessage.CliObservation+BeamMessage.kPlaceClaimMsg, (s) => JsonConvert.DeserializeObject<ApianPlaceClaimObservation>(s) },
-            {ApianMessage.CliObservation+BeamMessage.kPlaceHitMsg, (s) => JsonConvert.DeserializeObject<ApianPlaceHitObservation>(s) },
-            {ApianMessage.CliObservation+BeamMessage.kPlaceRemovedMsg, (s) => JsonConvert.DeserializeObject<ApianPlaceRemovedObservation>(s) },
-
-            {ApianMessage.CliCommand+BeamMessage.kNewPlayer, (s) => JsonConvert.DeserializeObject<ApianNewPlayerCommand>(s) },
-            {ApianMessage.CliCommand+BeamMessage.kPlayerLeft, (s) => JsonConvert.DeserializeObject<ApianPlayerLeftCommand>(s) },
-            {ApianMessage.CliCommand+BeamMessage.kBikeTurnMsg, (s) => JsonConvert.DeserializeObject<ApianBikeTurnCommand>(s) },
-            {ApianMessage.CliCommand+BeamMessage.kBikeCommandMsg, (s) => JsonConvert.DeserializeObject<ApianBikeCommandCommand>(s) },
-            {ApianMessage.CliCommand+BeamMessage.kBikeCreateData, (s) => JsonConvert.DeserializeObject<ApianBikeCreateCommand>(s) },
-            {ApianMessage.CliCommand+BeamMessage.kRemoveBikeMsg, (s) => JsonConvert.DeserializeObject<ApianRemoveBikeCommand>(s) },
-            {ApianMessage.CliCommand+BeamMessage.kPlaceClaimMsg, (s) => JsonConvert.DeserializeObject<ApianPlaceClaimCommand>(s) },
-            {ApianMessage.CliCommand+BeamMessage.kPlaceHitMsg, (s) => JsonConvert.DeserializeObject<ApianPlaceHitCommand>(s) },
-            {ApianMessage.CliCommand+BeamMessage.kPlaceRemovedMsg, (s) => JsonConvert.DeserializeObject<ApianPlaceRemovedCommand>(s) },
+         public static Dictionary<string, Func<string, ApianCoreMessage>> beamDeserializers = new  Dictionary<string, Func<string, ApianCoreMessage>>()
+         {
+            {BeamMessage.kNewPlayer, (s) => JsonConvert.DeserializeObject<NewPlayerMsg>(s) },
+            {BeamMessage.kPlayerLeft, (s) => JsonConvert.DeserializeObject<PlayerLeftMsg>(s) },
+            {BeamMessage.kBikeTurnMsg, (s) => JsonConvert.DeserializeObject<BikeTurnMsg>(s) },
+            {BeamMessage.kBikeCommandMsg, (s) => JsonConvert.DeserializeObject<BikeCommandMsg>(s) },
+            {BeamMessage.kBikeCreateData, (s) => JsonConvert.DeserializeObject<BikeCreateMsg>(s) },
+            {BeamMessage.kRemoveBikeMsg, (s) => JsonConvert.DeserializeObject<RemoveBikeMsg>(s) },
+            {BeamMessage.kPlaceClaimMsg, (s) => JsonConvert.DeserializeObject<PlaceClaimMsg>(s) },
+            {BeamMessage.kPlaceHitMsg, (s) => JsonConvert.DeserializeObject<PlaceHitMsg>(s) },
+            {BeamMessage.kPlaceRemovedMsg, (s) => JsonConvert.DeserializeObject<PlaceRemovedMsg>(s) },
 
             // TODO: &&&& This is AWFUL! I want the checkpoint command to be a proper ApianCommand so it has a sequence # is part of
             // the command stream and all - but the deserialization "chain" that I've create really only works if the command is deserialized
-            // here. est plan fo rthe mment is probably a special-case "hook" in FromJSON() below to pass Apian-defined mock-client-commands
-            // to Apian to decode.
-            {ApianMessage.CliCommand+ApianMessage.CheckpointMsg, (s) => JsonConvert.DeserializeObject<ApianCheckpointCommand>(s) },
-        };
+            // here. I could check for the msgType in this dict and if not there get it from an ApianMessage-defined one, but it seems a shame
+            // to do the test?
+            // TODO: Nah - do the test
+            {ApianMessage.CheckpointMsg, (s) => JsonConvert.DeserializeObject<ApianCheckpointMsg>(s) },
+         };
 
-        public static ApianMessage FromJSON(string msgType, string json)
+        public static ApianCoreMessage FromJSON(string coreMsgType, string json)
         {
-            // Deserialize once. May have to do it again
-            ApianMessage aMsg = ApianMessageDeserializer.FromJSON(msgType, json);
-
-            string subType = ApianMessageDeserializer.GetSubType(aMsg);
-
-            return  aMsg.MsgType == ApianMessage.GroupMessage ? ApianGroupMessageDeserializer.FromJson(subType, json) :
-                subType == null ? aMsg :
-                     beamDeserializers[msgType+subType](json) as ApianMessage;
+            return  beamDeserializers[coreMsgType](json) as ApianCoreMessage;
         }
-
     }
 
 
