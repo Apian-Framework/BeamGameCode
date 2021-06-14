@@ -3,6 +3,7 @@
     "references": [
         "P2pNet",
         "P2pRedis",
+        "P2pMqtt",
         "Apian",
         "UniLog"
     ],
