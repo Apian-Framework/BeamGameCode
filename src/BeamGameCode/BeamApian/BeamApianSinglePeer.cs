@@ -11,10 +11,8 @@ namespace BeamGameCode
     {
         public BeamApianSinglePeer(IBeamGameNet _gn,  BeamAppCore _client) : base(_gn, _client)
         {
+            ApianClock = new CoopApianClock(this); // TODO: This is wasteful. Needs a trivial single peer clock.
             GroupMgr = new SinglePeerGroupManager(this);
         }
-
-
     }
-
 }

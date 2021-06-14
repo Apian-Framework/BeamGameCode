@@ -7,10 +7,14 @@ using UnityEngine;
 
 namespace BeamGameCode
 {
-    public class BeamApianCreatorServer : BeamApian
+    public class BeamApianLeaderSez : BeamApian
     {
-        public BeamApianCreatorServer(IBeamGameNet _gn,  IBeamAppCore _client) : base(_gn, _client)
+        public BeamApianLeaderSez(IBeamGameNet _gn,  IBeamAppCore _client) : base(_gn, _client)
         {
+            // TODO: LeaderClock needs a way to set the leader. Currently uses group creator.
+            ApianClock = new LeaderApianClock(this);
+            //ApianClock = new CoopApianClock(this);  // Could use this, but LeaderClock seems mor sensible
+
             GroupMgr = new LeaderSezGroupManager(this);
         }
 

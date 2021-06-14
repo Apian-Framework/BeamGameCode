@@ -27,7 +27,7 @@ namespace BeamGameCode
                 result = new BeamApianSinglePeer(beamGameNet, appCore);
                 break;
             case LeaderSezGroupManager.kGroupType:
-                result =  new BeamApianCreatorServer(beamGameNet, appCore);
+                result =  new BeamApianLeaderSez(beamGameNet, appCore);
                 break;
             default:
                 UniLogger.GetLogger("Apian").Warn($"BeamApianFactory.Create() Unknown GroupType: {apianGroupType}");
@@ -54,10 +54,8 @@ namespace BeamGameCode
             BeamGameNet = _gn;
             appCore = _client as BeamAppCore;
 
-            //ApianClock = new CoopApianClock(this);
-
-            // FIXME: LeaderClock needs a way to set the leader. Currently uses group creator.
-            ApianClock = new LeaderApianClock(this);
+            // ApianClock and GroupMgr are created in the group-manager-specific subclass
+            // ie. BeamApianLeaderSez
 
             apianPeers = new Dictionary<string, BeamApianPeer>();
 
