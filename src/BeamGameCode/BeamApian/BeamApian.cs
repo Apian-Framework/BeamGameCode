@@ -18,6 +18,13 @@ namespace BeamGameCode
 
     public class BeamApianFactory
     {
+        public static readonly List<string> ApianGroupTypes = new List<string>()
+        {
+            SinglePeerGroupManager.kGroupType,
+            CreatorSezGroupManager.kGroupType,
+            LeaderSezGroupManager.kGroupType
+        };
+
         public static BeamApian Create(string apianGroupType, IBeamGameNet beamGameNet, BeamAppCore appCore)
         {
             BeamApian result;
@@ -25,6 +32,9 @@ namespace BeamGameCode
             {
             case SinglePeerGroupManager.kGroupType:
                 result = new BeamApianSinglePeer(beamGameNet, appCore);
+                break;
+            case CreatorSezGroupManager.kGroupType:
+                result =  new BeamApianCreatorSez(beamGameNet, appCore);
                 break;
             case LeaderSezGroupManager.kGroupType:
                 result =  new BeamApianLeaderSez(beamGameNet, appCore);
