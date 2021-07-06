@@ -70,6 +70,7 @@ namespace BeamGameCode
                 [BeamMessage.kPlaceClaimMsg] = (msg, seqNum) => this.OnPlaceClaimCmd(msg as PlaceClaimMsg, seqNum),
                 [BeamMessage.kPlaceHitMsg] = (msg, seqNum) => this.OnPlaceHitCmd(msg as PlaceHitMsg, seqNum),
                 [BeamMessage.kPlaceRemovedMsg] = (msg, seqNum) => this.OnPlaceRemovedCmd(msg as PlaceRemovedMsg, seqNum),
+                [ApianMessage.CheckpointMsg] = (msg, seqNum) => this.OnCheckpointCommand(msg as ApianCheckpointMsg, seqNum),
             };
         }
 
@@ -103,11 +104,11 @@ namespace BeamGameCode
             return BeamMessageValidity.ValidateObservations( prevMsg as BeamMessage, testMsg as BeamMessage);
         }
 
-        public override void OnCheckpointCommand(long seqNum, long timeStamp)
+        public override void OnCheckpointCommand(ApianCheckpointMsg msg, long seqNum)
         {
-            logger.Info($"OnCheckpointCommand() seqNum: {seqNum}, timestamp: {timeStamp}, Now: {FrameApianTime}");
+            logger.Info($"OnCheckpointCommand() seqNum: {seqNum}, timestamp: {msg.TimeStamp}, Now: {FrameApianTime}");
             CoreState.UpdateCommandSequenceNumber(seqNum);
-            string stateJson = CoreState.ApianSerialized(new BeamCoreState.SerialArgs(seqNum, timeStamp));
+            string stateJson = CoreState.ApianSerialized(new BeamCoreState.SerialArgs(seqNum, msg.TimeStamp));
             logger.Debug($"**** Checkpoint:\n{stateJson}\n************\n");
             apian.SendCheckpointState(FrameApianTime, seqNum, stateJson);
 
