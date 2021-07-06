@@ -18,16 +18,16 @@ namespace BeamGameCode
             GroupMgr = new CreatorSezGroupManager(this);
         }
 
-        public override void SendObservation( ApianCoreMessage msg)
-        {
-            if ( (GroupMgr?.GroupCreatorId != GameNet.LocalP2pId()))
-            {
-                // This next line is too verbose for even Debug-level
-                //Logger.Debug($"SendRequestOrObservation() We are not server, so don't send observations.");
-                return;
-            }
-            base.SendObservation(msg); // let this filter it too
-        }
+        // public override void SendObservation( ApianCoreMessage msg)
+        // {
+        //     if ( (GroupMgr?.GroupCreatorId != GameNet.LocalP2pId()))
+        //     {
+        //         // This next line is too verbose for even Debug-level
+        //         //Logger.Debug($"SendRequestOrObservation() We are not server, so don't send observations.");
+        //         return;
+        //     }
+        //     base.SendObservation(msg); // let this filter it too
+        // }
 
     }
 }
