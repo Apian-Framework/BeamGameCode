@@ -190,14 +190,8 @@ namespace BeamGameCode
 
         public override void ApplyStashedApianCommand(ApianCommand cmd)
         {
-            // if (GroupMgr?.LocalMember?.CurStatus != ApianGroupMember.Status.Active
-            //     && cmd.CoreMsgType == ApianMessage.CheckpointMsg )
-            //     return; // TODO: &&&& YIKES! See OnApianCommand for relevant comment
-
             _AdvanceStateTo((cmd as ApianWrappedCoreMessage).CoreMsgTimeStamp);
-
             base.ApplyStashedApianCommand(cmd);
-
         }
 
 
