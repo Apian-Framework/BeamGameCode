@@ -18,7 +18,6 @@ namespace BeamGameCode
         public enum ReturnCode {kCreate, kJoin, kCancel};
         public ReturnCode result;
         public BeamGameInfo gameInfo;
-
         public GameSelectedArgs( BeamGameInfo gi, ReturnCode r) { gameInfo = gi; result = r; }
     }
 
@@ -40,7 +39,6 @@ namespace BeamGameCode
         event EventHandler<PeerJoinedArgs> PeerJoinedEvt;
         event EventHandler<PeerLeftArgs> PeerLeftEvt;
         event EventHandler<BeamGameInfo> GameAnnounceEvt;
-        // event EventHandler<GameSelectedArgs> GameSelectedEvent;  &&&&&
 
     }
 

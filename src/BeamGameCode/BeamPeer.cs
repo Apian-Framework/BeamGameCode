@@ -8,7 +8,6 @@ namespace BeamGameCode
 {
     public class BeamNetworkPeer
     {
-
         public string PeerId { get; private set;}
         public string Name { get; private set;}
 
