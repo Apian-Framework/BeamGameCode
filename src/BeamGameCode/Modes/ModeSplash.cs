@@ -41,7 +41,7 @@ namespace BeamGameCode
 
             logger.Info("Splash network joined");
             BeamGameInfo gameInfo = appl.beamGameNet.CreateBeamGameInfo(ApianGroupName, SinglePeerGroupManager.kGroupType);
-             _CreateCorePair(gameInfo);
+            CreateCorePair(gameInfo);
             appCore.PlayerJoinedEvt += OnPlayerJoinedEvt;
             appCore.NewBikeEvt += OnNewBikeEvt;
 
@@ -105,7 +105,7 @@ namespace BeamGameCode
 
 		public override object End() { return _DoCleanup(); }
 
-        protected object _DoCleanup()
+        private object _DoCleanup()
         {
             appCore.PlayerJoinedEvt -= OnPlayerJoinedEvt;
             appCore.NewBikeEvt -= OnNewBikeEvt;

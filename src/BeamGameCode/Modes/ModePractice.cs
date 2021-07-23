@@ -37,7 +37,7 @@ namespace BeamGameCode
 
             logger.Info("practice network joined");
             BeamGameInfo gameInfo = appl.beamGameNet.CreateBeamGameInfo(ApianGroupName, SinglePeerGroupManager.kGroupType);
-             _CreateCorePair(gameInfo);
+            CreateCorePair(gameInfo);
             appCore.PlayerJoinedEvt += OnMemberJoinedGroupEvt;
             appCore.NewBikeEvt += OnNewBikeEvt;
 

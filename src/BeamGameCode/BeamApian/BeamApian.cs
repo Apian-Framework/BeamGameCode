@@ -197,7 +197,7 @@ namespace BeamGameCode
 
         // State checkpoints
 
-        static string GetMd5Hash(MD5 md5Hash, string input)
+        private static string _GetMd5Hash(MD5 md5Hash, string input)
         {
             // Convert the input string to a byte array and compute the hash.
             byte[] data = md5Hash.ComputeHash(Encoding.UTF8.GetBytes(input));
@@ -221,7 +221,7 @@ namespace BeamGameCode
         {
             using (MD5 md5Hash = MD5.Create())
             {
-                string hash = GetMd5Hash(md5Hash, serializedState);
+                string hash = _GetMd5Hash(md5Hash, serializedState);
                 Logger.Verbose($"SendStateCheckpoint(): SeqNum: {seqNum}, Hash: {hash}");
                 GroupMgr.OnLocalStateCheckpoint(seqNum, timeStamp, hash, serializedState);
 

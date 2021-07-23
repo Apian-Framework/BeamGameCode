@@ -151,7 +151,7 @@ namespace GameModeMgr
 		//
 		// Internal calls
 		//
-		protected ModeData _CurrentModeData()
+		private ModeData _CurrentModeData()
 		{
 			try {
 				return _modeDataStack.Peek();
@@ -160,7 +160,7 @@ namespace GameModeMgr
 			}
 		}
 
-		protected object _StopCurrentMode()
+		private object _StopCurrentMode()
 		{
 			//  pop the current state from the stack and call it's end()
 			// returns the result from end()
@@ -174,14 +174,14 @@ namespace GameModeMgr
 			}
 			return retVal;
 		}
-		protected void _Stop()
+		private void _Stop()
 		{
 			// Unwind the stack
 			while(_modeDataStack.Count > 0)
 				_StopCurrentMode();
 		}
 
-		protected void _StartMode(OpData opData)
+		private void _StartMode(OpData opData)
 		{
 			IGameMode nextMode = _factory.Create(opData.NextModeId);
 			_modeDataStack.Push(new ModeData(opData.NextModeId, nextMode));
@@ -189,13 +189,13 @@ namespace GameModeMgr
 			nextMode.Start(opData.NextParam);
 		}
 
-		protected void _SuspendCurrentMode()
+		private void _SuspendCurrentMode()
 		{
 			// Pause current state before pushing a new one - leave on stack
 			CurrentMode()?.Pause();
 		}
 
-		protected void _ResumeMode(string prevStateName, object resultVal)
+		private void _ResumeMode(string prevStateName, object resultVal)
 		{
 			// Resume state a top of stack, passing it
 			// the result of the state that ended

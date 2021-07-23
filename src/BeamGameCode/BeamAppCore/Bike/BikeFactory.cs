@@ -25,7 +25,7 @@ namespace BeamGameCode
 			return (Heading)headInt;
 		}
 
-		static  Vector2 PickRandomPos( Heading head, Vector2 basePos, float radius)
+		public static Vector2 PickRandomPos( Heading head, Vector2 basePos, float radius)
 		{
 			Vector2 closestPos = Ground.NearestGridPoint(
 						new Vector2(Random.Range(-radius, radius), Random.Range(-radius, radius)) + basePos );

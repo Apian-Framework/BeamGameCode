@@ -96,7 +96,7 @@ namespace BeamGameCode
 
         // Loopfuncs
 
-        protected async void _SetState(int newState, object startParam = null)
+        private async void _SetState(int newState, object startParam = null)
         {
             _curStateSecs = 0;
             _curState = newState;
@@ -157,7 +157,7 @@ namespace BeamGameCode
             }
         }
 
-        protected void _DoNothingLoop(float frameSecs) {}
+        private void _DoNothingLoop(float frameSecs) {}
 
         // protected void _GamesListenLoop(float frameSecs)
         // {
@@ -171,7 +171,7 @@ namespace BeamGameCode
         //     }
         // }
 
-        protected void _PlayLoop(float frameSecs)
+        private void _PlayLoop(float frameSecs)
         {
             if (settings.regenerateAiBikes)
             {
@@ -185,14 +185,14 @@ namespace BeamGameCode
             }
         }
 
-        protected void _FailedLoop(float frameSecs)
+        private void _FailedLoop(float frameSecs)
         {
             //if (_curStateSecs > 5)
         }
 
         // utils
 
-        private async void DoTheStuff()
+        private async void _DoTheStuff()
         {
             try {
                 appl.ConnectToNetwork(settings.p2pConnectionString); // should be async? GameNet.Connect() currently is not
@@ -242,7 +242,7 @@ namespace BeamGameCode
 
             bool targetGameExisted = (gameName != null) && announcedGames.ContainsKey(gameName);
 
-            _CreateCorePair(gameInfo);
+            CreateCorePair(gameInfo);
             appCore.PlayerJoinedEvt += OnPlayerJoinedEvt;
             appCore.NewBikeEvt += OnNewBikeEvt;
 

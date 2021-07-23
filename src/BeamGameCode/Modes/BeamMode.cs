@@ -40,7 +40,7 @@ namespace BeamGameCode
 
 		// Utils
 
-        protected void _CreateCorePair(BeamGameInfo gameInfo)
+        protected void CreateCorePair(BeamGameInfo gameInfo)
         {
             // Create gameinstance and ApianInstance
             appCore = new BeamAppCore();

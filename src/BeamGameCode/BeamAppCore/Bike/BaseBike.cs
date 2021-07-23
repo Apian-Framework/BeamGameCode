@@ -175,7 +175,7 @@ namespace BeamGameCode
 
         public void Loop(long apianTime)
         {
-            _checkPosition(apianTime);
+            _CheckPosition(apianTime);
         }
 
         public void AddScore(int val) => score += val;
@@ -215,7 +215,7 @@ namespace BeamGameCode
             }
         }
 
-        private void _checkPosition(long apianTime)
+        private void _CheckPosition(long apianTime)
         {
             if (baseTime == 0) // TODO: get rid of this one the changeover is complete
                 logger.Error($"_checkPosition() Bike: {bikeId} TimeAtPosition UNINITIALIZED!");
@@ -244,11 +244,11 @@ namespace BeamGameCode
                 // pre-emptively update the next grid position
                 // There will almost certainly be an ApianCommand later arriving with the same data
                 // but we're better off assuming it'll match and fixing it if not than waiting for it
-                _updatePosition(newPos, newHead, timeAtPoint);
+                _UpdatePosition(newPos, newHead, timeAtPoint);
             }
         }
 
-        private void _updatePosition(Vector2 pos, Heading head,  long apianTime)
+        private void _UpdatePosition(Vector2 pos, Heading head,  long apianTime)
         {
             optTime = apianTime;
             optPendingTurn = TurnDir.kUnset;

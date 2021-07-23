@@ -279,7 +279,7 @@ namespace BeamGameCode
                 if (p != null)
                 {
                     _ApplyScoreUpdate(msg.TimeStamp, msg.scoreUpdates);
-                    logger.Verbose($"OnPlaceClaimCmd(#{seqNum}) Bike: {SID(b.bikeId)} claimed {BeamPlace.PlacePos( msg.xIdx, msg.zIdx).ToString()} at {msg.TimeStamp}");
+                    logger.Verbose($"OnPlaceClaimCmd(#{seqNum}) Bike: {SID(b.bikeId)} claimed {BeamPlace.PlacePos( msg.xIdx, msg.zIdx)} at {msg.TimeStamp}");
                     //logger.Verbose($"                  BikePos: {b.position.ToString()}, FrameApianTime: {FrameApianTime} ");
                     //logger.Verbose($"   at Timestamp:  BikePos: {b.PosAtTime(msg.TimeStamp, FrameApianTime).ToString()}, Time: {msg.TimeStamp} ");
                     PlaceClaimedEvt?.Invoke(this, p);
@@ -342,7 +342,7 @@ namespace BeamGameCode
             CoreState.PostPlaceRemoval(p);
         }
 
-        protected void _ApplyScoreUpdate(long causeApianTime, Dictionary<string,int> update)
+        private void _ApplyScoreUpdate(long causeApianTime, Dictionary<string,int> update)
         {
             foreach( string id in update.Keys)
             {
@@ -366,7 +366,7 @@ namespace BeamGameCode
         public Ground GetGround() => CoreState.Ground;
 
 
-        protected Dictionary<string,int> _ComputeScoreUpdate(IBike bike, ScoreEvent evt, BeamPlace place)
+        private Dictionary<string,int> _ComputeScoreUpdate(IBike bike, ScoreEvent evt, BeamPlace place)
         {
             // BIG NOTE: total score is NOT conserved.
             Dictionary<string,int> update = new Dictionary<string,int>();
@@ -410,7 +410,7 @@ namespace BeamGameCode
         }
 
         // Peer-related
-        protected bool _AddPlayer(BeamPlayer p)
+        private bool _AddPlayer(BeamPlayer p)
         {
             logger.Debug($"_AddPlayer(). Name: {p.Name} ID: {SID(p.PeerId)}");
             if  ( CoreState.Players.ContainsKey(p.PeerId))
@@ -426,7 +426,7 @@ namespace BeamGameCode
             return true;
         }
 
-        protected bool _RemovePlayer(string p2pId)
+        private bool _RemovePlayer(string p2pId)
         {
             if  (!CoreState.Players.ContainsKey(p2pId))
                 return false;
@@ -462,7 +462,7 @@ namespace BeamGameCode
             return true;
         }
 
-        protected void _RemoveBike(IBike ib, bool shouldBlowUp=true)
+        private void _RemoveBike(IBike ib, bool shouldBlowUp=true)
         {
             logger.Info($"_RemoveBike(): {SID(ib.bikeId)}");
             CoreState.RemovePlacesForBike(ib);
@@ -479,7 +479,7 @@ namespace BeamGameCode
 
         public void OnPlaceClaimObsEvt(object sender, PlaceReportArgs args)
         {
-            logger.Verbose($"OnPlaceClaimObsEvt(): Bike: {SID(args.bike.bikeId)} Place: {BeamPlace.PlacePos(args.xIdx, args.zIdx).ToString()}");
+            logger.Verbose($"OnPlaceClaimObsEvt(): Bike: {SID(args.bike.bikeId)} Place: {BeamPlace.PlacePos(args.xIdx, args.zIdx)}");
 
             apian.SendPlaceClaimObs(FrameApianTime, args.bike, args.xIdx, args.zIdx, args.entryHead, args.exitHead,
                 _ComputeScoreUpdate(args.bike, ScoreEvent.kClaimPlace, null));
@@ -487,21 +487,21 @@ namespace BeamGameCode
 
         public void OnPlaceHitObsEvt(object sender, PlaceReportArgs args)
         {
-            logger.Verbose($"OnPlaceHitObsEvt(): Bike: {SID(args.bike.bikeId)} Place: {BeamPlace.PlacePos(args.xIdx, args.zIdx).ToString()}");
+            logger.Verbose($"OnPlaceHitObsEvt(): Bike: {SID(args.bike.bikeId)} Place: {BeamPlace.PlacePos(args.xIdx, args.zIdx)}");
             BeamPlace place = CoreState.GetPlace(args.xIdx, args.zIdx);
             if (place != null)
             {
                 ScoreEvent evType = place.bike.team == args.bike.team ? ScoreEvent.kHitFriendPlace : ScoreEvent.kHitEnemyPlace;
                 apian.SendPlaceHitObs(FrameApianTime, args.bike, args.xIdx, args.zIdx, args.entryHead, args.exitHead, _ComputeScoreUpdate(args.bike, evType, place));
             } else {
-                logger.Warn($"OnPlaceHitObsEvt(): Bike: {SID(args.bike.bikeId)} No place found at: {BeamPlace.PlacePos(args.xIdx, args.zIdx).ToString()}");
+                logger.Warn($"OnPlaceHitObsEvt(): Bike: {SID(args.bike.bikeId)} No place found at: {BeamPlace.PlacePos(args.xIdx, args.zIdx)}");
             }
 
         }
 
         public void OnPlaceTimeoutEvt(object sender, BeamPlace p)
         {
-            logger.Verbose($"OnPlaceTimeoutEvt(): {p.GetPos().ToString()}");
+            logger.Verbose($"OnPlaceTimeoutEvt(): {p.GetPos()}");
             apian.SendPlaceRemovedObs(p.expirationTimeMs, p.xIdx, p.zIdx);
         }
 
