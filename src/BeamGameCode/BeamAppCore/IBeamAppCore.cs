@@ -6,28 +6,50 @@ namespace BeamGameCode
     //
     // Event args
     //
-    public struct PlayerJoinedArgs {
+    public class StringEventArgs : EventArgs
+    {
+        public string str;
+        public StringEventArgs(string s) {str = s; }
+    }
+
+    public class NewCoreStateEventArgs : EventArgs {
+        public BeamCoreState coreState;
+        public NewCoreStateEventArgs(BeamCoreState _coreState) { coreState = _coreState;}
+    }
+
+    public class PlayerJoinedEventArgs : EventArgs {
         public string groupChannel;
         public BeamPlayer player;
-        public PlayerJoinedArgs(string g, BeamPlayer p) {groupChannel=g; player=p;}
+        public PlayerJoinedEventArgs(string g, BeamPlayer p) {groupChannel=g; player=p;}
     }
-    public struct PlayerLeftArgs {
+    public class PlayerLeftEventArgs : EventArgs {
         public string groupChannel;
         public string p2pId;
-        public PlayerLeftArgs(string g, string p) {groupChannel=g; p2pId=p;}
+        public PlayerLeftEventArgs(string g, string p) {groupChannel=g; p2pId=p;}
     }
 
-    public struct BikeRemovedData {
+    public class BikeEventArgs : EventArgs {
+        public IBike ib;
+        public BikeEventArgs(IBike iBike) { ib = iBike; }
+    }
+
+    public class BikeRemovedEventArgs : EventArgs {
         public string bikeId;
         public bool doExplode;
-        public BikeRemovedData(string i, bool b) {bikeId=i; doExplode=b;}
+        public BikeRemovedEventArgs(string i, bool b) {bikeId=i; doExplode=b;}
     }
 
-    public struct PlaceHitArgs
+    public class BeamPlaceEventArgs : EventArgs
+    {
+        public BeamPlace p;
+        public BeamPlaceEventArgs(BeamPlace _p) { p=_p; }
+    }
+
+    public class PlaceHitEventArgs : EventArgs
     {
         public BeamPlace p;
         public IBike ib;
-        public PlaceHitArgs(BeamPlace _p, IBike _ib) { p=_p; ib=_ib; }
+        public PlaceHitEventArgs(BeamPlace _p, IBike _ib) { p=_p; ib=_ib; }
     }
 
 
@@ -36,19 +58,19 @@ namespace BeamGameCode
         // API for application code
 
         // Events
-        event EventHandler<string> GroupJoinedEvt;
-        event EventHandler<BeamCoreState> NewCoreStateEvt;
-        event EventHandler<PlayerJoinedArgs> PlayerJoinedEvt;
-        event EventHandler<PlayerLeftArgs> PlayerLeftEvt;
-        event EventHandler<PlayerLeftArgs> PlayerMissingEvt; // not Gone... yet
-        event EventHandler<PlayerLeftArgs> PlayerReturnedEvt;
+        event EventHandler<StringEventArgs> GroupJoinedEvt;
+        event EventHandler<NewCoreStateEventArgs> NewCoreStateEvt;
+        event EventHandler<PlayerJoinedEventArgs> PlayerJoinedEvt;
+        event EventHandler<PlayerLeftEventArgs> PlayerLeftEvt;
+        event EventHandler<PlayerLeftEventArgs> PlayerMissingEvt; // not Gone... yet
+        event EventHandler<PlayerLeftEventArgs> PlayerReturnedEvt;
         event EventHandler PlayersClearedEvt;
-        event EventHandler<IBike> NewBikeEvt;
-        event EventHandler<BikeRemovedData> BikeRemovedEvt;
+        event EventHandler<BikeEventArgs> NewBikeEvt;
+        event EventHandler<BikeRemovedEventArgs> BikeRemovedEvt;
         event EventHandler BikesClearedEvt;
-        event EventHandler<BeamPlace> PlaceClaimedEvt;
-        event EventHandler<PlaceHitArgs> PlaceHitEvt;
-        event EventHandler<string> UnknownBikeEvt;
+        event EventHandler<BeamPlaceEventArgs> PlaceClaimedEvt;
+        event EventHandler<PlaceHitEventArgs> PlaceHitEvt;
+        event EventHandler<StringEventArgs> UnknownBikeEvt;
 
         // Instigated by game mode code
         event EventHandler ReadyToPlayEvt;

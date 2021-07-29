@@ -14,17 +14,17 @@ namespace BeamGameCode
 
     public class BeamAppCore : ApianAppCore,  IBeamAppCore
     {
-        public event EventHandler<BeamCoreState> NewCoreStateEvt;
-        public event EventHandler<string> GroupJoinedEvt;
-        public event EventHandler<PlayerJoinedArgs> PlayerJoinedEvt;
-        public event EventHandler<PlayerLeftArgs> PlayerLeftEvt;
-        public event EventHandler<PlayerLeftArgs> PlayerMissingEvt; // not Gone... yet
-        public event EventHandler<PlayerLeftArgs> PlayerReturnedEvt;
+        public event EventHandler<NewCoreStateEventArgs> NewCoreStateEvt;
+        public event EventHandler<StringEventArgs> GroupJoinedEvt;
+        public event EventHandler<PlayerJoinedEventArgs> PlayerJoinedEvt;
+        public event EventHandler<PlayerLeftEventArgs> PlayerLeftEvt;
+        public event EventHandler<PlayerLeftEventArgs> PlayerMissingEvt; // not Gone... yet
+        public event EventHandler<PlayerLeftEventArgs> PlayerReturnedEvt;
 
         public BeamCoreState CoreState {get; private set;}
         public BeamApian apian {get; private set;}
         public UniLogger logger;
-        public BeamPlayer LocalPlayer { get; private set; } = null;
+        public BeamPlayer LocalPlayer { get; private set; }
         public string LocalPeerId => apian?.GameNet.LocalP2pId(); // TODO: make LocalP2pId a property?
 
         public string ApianNetId => apian?.NetworkId;
@@ -43,12 +43,12 @@ namespace BeamGameCode
         // IBeamBackend events
 
         public event EventHandler PlayersClearedEvt;
-        public event EventHandler<IBike> NewBikeEvt;
-        public event EventHandler<BikeRemovedData> BikeRemovedEvt;
+        public event EventHandler<BikeEventArgs> NewBikeEvt;
+        public event EventHandler<BikeRemovedEventArgs> BikeRemovedEvt;
         public event EventHandler BikesClearedEvt;
-        public event EventHandler<BeamPlace> PlaceClaimedEvt;
-        public event EventHandler<PlaceHitArgs> PlaceHitEvt;
-        public event EventHandler<string> UnknownBikeEvt;
+        public event EventHandler<BeamPlaceEventArgs> PlaceClaimedEvt;
+        public event EventHandler<PlaceHitEventArgs> PlaceHitEvt;
+        public event EventHandler<StringEventArgs> UnknownBikeEvt;
 
         public event EventHandler ReadyToPlayEvt;
         public event EventHandler RespawnPlayerEvt;
@@ -126,22 +126,22 @@ namespace BeamGameCode
             {
                 if (p.PeerId == LocalPeerId )
                     LocalPlayer = p;
-                PlayerJoinedEvt.Invoke(this, new PlayerJoinedArgs(ApianGroupId, p));
+                PlayerJoinedEvt.Invoke(this, new PlayerJoinedEventArgs(ApianGroupId, p));
             }
 
             foreach (IBike ib in CoreState.Bikes.Values)
-                NewBikeEvt?.Invoke(this, ib);
+                NewBikeEvt?.Invoke(this, new BikeEventArgs(ib));
         }
 
         // Beam stuff
 
         protected void OnNewCoreState()
         {
-            NewCoreStateEvt?.Invoke(this, CoreState);
+            NewCoreStateEvt?.Invoke(this, new NewCoreStateEventArgs(CoreState));
 
-            CoreState.PlaceTimeoutEvt += OnPlaceTimeoutEvt;
-            CoreState.PlaceClaimObsEvt += OnPlaceClaimObsEvt;
-            CoreState.PlaceHitObsEvt += OnPlaceHitObsEvt;
+            CoreState.PlaceTimeoutEvt += _OnPlaceTimeoutEvt;
+            CoreState.PlaceClaimObsEvt += _OnPlaceClaimObsEvt;
+            CoreState.PlaceHitObsEvt += _OnPlaceHitObsEvt;
         }
 
 
@@ -197,20 +197,20 @@ namespace BeamGameCode
         public void OnGroupJoined(string groupId)
         {
             logger.Info($"OnGroupJoined({groupId}) - local peer joined");
-            GroupJoinedEvt?.Invoke(this, groupId);
+            GroupJoinedEvt?.Invoke(this, new StringEventArgs(groupId));
         }
 
 
         public void OnPlayerMissing(string groupId, string p2pId)
         {
             logger.Info($"Player: {SID(p2pId)} is missing!");
-            PlayerMissingEvt?.Invoke(this, new PlayerLeftArgs(groupId, p2pId));
+            PlayerMissingEvt?.Invoke(this, new PlayerLeftEventArgs(groupId, p2pId));
         }
 
         public void OnPlayerReturned(string groupId, string p2pId)
         {
             logger.Info($"Player: {SID(p2pId)} has returned!");
-            PlayerReturnedEvt?.Invoke(this, new PlayerLeftArgs(groupId, p2pId));
+            PlayerReturnedEvt?.Invoke(this, new PlayerLeftEventArgs(groupId, p2pId));
         }
 
         //
@@ -282,7 +282,7 @@ namespace BeamGameCode
                     logger.Verbose($"OnPlaceClaimCmd(#{seqNum}) Bike: {SID(b.bikeId)} claimed {BeamPlace.PlacePos( msg.xIdx, msg.zIdx)} at {msg.TimeStamp}");
                     //logger.Verbose($"                  BikePos: {b.position.ToString()}, FrameApianTime: {FrameApianTime} ");
                     //logger.Verbose($"   at Timestamp:  BikePos: {b.PosAtTime(msg.TimeStamp, FrameApianTime).ToString()}, Time: {msg.TimeStamp} ");
-                    PlaceClaimedEvt?.Invoke(this, p);
+                    PlaceClaimedEvt?.Invoke(this, new BeamPlaceEventArgs(p));
                 } else {
                     // &&&& Debugger crap for BeamGameCode#5
                     // p = CoreData.GetPlace(msg.xIdx, msg.zIdx);
@@ -296,7 +296,7 @@ namespace BeamGameCode
                 // Fix this both here and in the BaseBike code.
                 if (b != null) // might already be gone
                 {
-                    logger.Info($"OnPlaceClaimCmd(#{seqNum}) - OFF MAP! Boom! Now: {FrameApianTime} Ts: {msg.TimeStamp} Bike: {SID(b?.bikeId)}");
+                    logger.Info($"OnPlaceClaimCmd(#{seqNum}) - OFF MAP! Boom! Now: {FrameApianTime} Ts: {msg.TimeStamp} Bike: {SID(b.bikeId)}");
                     _ApplyScoreUpdate(msg.TimeStamp, new Dictionary<string,int>(){ {b.bikeId, -b.score} });
                 }
 
@@ -312,9 +312,9 @@ namespace BeamGameCode
             if (p != null && hittingBike != null)
             {
                 hittingBike.UpdatePosFromCommand(msg.TimeStamp, FrameApianTime, p.GetPos(), msg.exitHead);
-                logger.Info($"OnPlaceHitCmd( #{seqNum}, {p?.GetPos().ToString()}) Now: {FrameApianTime} Ts: {msg.TimeStamp} Bike: {SID(hittingBike?.bikeId)} Pos: {p?.GetPos().ToString()}");
+                logger.Info($"OnPlaceHitCmd( #{seqNum}, {p.GetPos().ToString()}) Now: {FrameApianTime} Ts: {msg.TimeStamp} Bike: {SID(hittingBike.bikeId)} Pos: {p.GetPos().ToString()}");
                 _ApplyScoreUpdate(msg.TimeStamp, msg.scoreUpdates);
-                PlaceHitEvt?.Invoke(this, new PlaceHitArgs(p, hittingBike));
+                PlaceHitEvt?.Invoke(this, new PlaceHitEventArgs(p, hittingBike));
             }
             else
             {
@@ -387,7 +387,7 @@ namespace BeamGameCode
 
                 IEnumerable<IBike> rewardedOtherBikes =
                     CoreState.Bikes.Values.Where( b => b != bike && b.team == place.bike.team);  // Bikes other the "bike" on affected team
-                if (rewardedOtherBikes.Count() > 0)
+                if (rewardedOtherBikes.Any())
                 {
                     foreach (BaseBike b  in rewardedOtherBikes)
                         update[b.bikeId] = -scoreDelta / rewardedOtherBikes.Count(); // all might not get exactly the same amount
@@ -406,7 +406,7 @@ namespace BeamGameCode
         //  informational
         public void OnUnknownBike(string bikeId, string srcId)
         {
-            UnknownBikeEvt?.Invoke(this, bikeId);
+            UnknownBikeEvt?.Invoke(this, new StringEventArgs(bikeId));
         }
 
         // Peer-related
@@ -422,7 +422,7 @@ namespace BeamGameCode
             CoreState.Players[p.PeerId] = p;
             if (p.PeerId == LocalPeerId )
                 LocalPlayer = p;
-            PlayerJoinedEvt.Invoke(this, new PlayerJoinedArgs(ApianGroupId, p));
+            PlayerJoinedEvt.Invoke(this, new PlayerJoinedEventArgs(ApianGroupId, p));
             return true;
         }
 
@@ -431,7 +431,7 @@ namespace BeamGameCode
             if  (!CoreState.Players.ContainsKey(p2pId))
                 return false;
 
-            PlayerLeftEvt?.Invoke(this, new PlayerLeftArgs(ApianGroupId, p2pId));
+            PlayerLeftEvt?.Invoke(this, new PlayerLeftEventArgs(ApianGroupId, p2pId));
 
             foreach (IBike ib in CoreState.LocalBikes(p2pId))
                 _RemoveBike(ib, true); // Blow em up just for yuks.
@@ -457,7 +457,7 @@ namespace BeamGameCode
 
             CoreState.Bikes[ib.bikeId] = ib;
 
-            NewBikeEvt?.Invoke(this, ib);
+            NewBikeEvt?.Invoke(this, new BikeEventArgs(ib));
 
             return true;
         }
@@ -466,7 +466,7 @@ namespace BeamGameCode
         {
             logger.Info($"_RemoveBike(): {SID(ib.bikeId)}");
             CoreState.RemovePlacesForBike(ib);
-            BikeRemovedEvt?.Invoke(this, new BikeRemovedData(ib.bikeId,  shouldBlowUp));
+            BikeRemovedEvt?.Invoke(this, new BikeRemovedEventArgs(ib.bikeId,  shouldBlowUp));
             CoreState.PostBikeRemoval(ib.bikeId); // we're almost certainly iterating over the list of bikes so don;t remove it yet.
         }
         public void ClearBikes()
@@ -477,7 +477,7 @@ namespace BeamGameCode
 
        // Ground-related
 
-        public void OnPlaceClaimObsEvt(object sender, PlaceReportArgs args)
+        private void _OnPlaceClaimObsEvt(object sender, PlaceReportEventArgs args)
         {
             logger.Verbose($"OnPlaceClaimObsEvt(): Bike: {SID(args.bike.bikeId)} Place: {BeamPlace.PlacePos(args.xIdx, args.zIdx)}");
 
@@ -485,7 +485,7 @@ namespace BeamGameCode
                 _ComputeScoreUpdate(args.bike, ScoreEvent.kClaimPlace, null));
           }
 
-        public void OnPlaceHitObsEvt(object sender, PlaceReportArgs args)
+        private void _OnPlaceHitObsEvt(object sender, PlaceReportEventArgs args)
         {
             logger.Verbose($"OnPlaceHitObsEvt(): Bike: {SID(args.bike.bikeId)} Place: {BeamPlace.PlacePos(args.xIdx, args.zIdx)}");
             BeamPlace place = CoreState.GetPlace(args.xIdx, args.zIdx);
@@ -499,8 +499,9 @@ namespace BeamGameCode
 
         }
 
-        public void OnPlaceTimeoutEvt(object sender, BeamPlace p)
+        private void _OnPlaceTimeoutEvt(object sender, BeamPlaceEventArgs pev)
         {
+            BeamPlace p =  pev?.p;
             logger.Verbose($"OnPlaceTimeoutEvt(): {p.GetPos()}");
             apian.SendPlaceRemovedObs(p.expirationTimeMs, p.xIdx, p.zIdx);
         }

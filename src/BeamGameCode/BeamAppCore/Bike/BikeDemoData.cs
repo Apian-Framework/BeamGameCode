@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 namespace BeamGameCode
 {
-    public class BikeDemoData
+    public static class BikeDemoData
     {
         private static readonly List<string> firstNames = new List<string>() {
             "Alice", "Bob", "Carol", "Don", "Evan", "Frank", "Gayle", "Herb",

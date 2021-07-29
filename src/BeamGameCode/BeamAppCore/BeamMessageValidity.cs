@@ -4,7 +4,7 @@ using Apian;
 
 namespace BeamGameCode
 {
-    public class BeamMessageValidity
+    public static class BeamMessageValidity
     {
         // - PlaceClaimMsg
         //     invalidated after?

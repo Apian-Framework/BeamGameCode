@@ -2,7 +2,7 @@
 {
     public class RemoteControl : BikeControlBase
     {
-        public override void SetupImpl()
+        public override void SetupImplementation()
         {
 
         }

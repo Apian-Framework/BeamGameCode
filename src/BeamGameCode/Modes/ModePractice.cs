@@ -13,7 +13,7 @@ namespace BeamGameCode
         static public readonly string networkName = "LocalPracticeGame";
         static public readonly string ApianGroupName = "LocalPracticeGroup";
         public readonly int kMaxAiBikes = 11;
-         protected BaseBike playerBike = null;
+         protected BaseBike playerBike;
         protected const float kRespawnCheckInterval = 1.3f;
         protected float _secsToNextRespawnCheck = kRespawnCheckInterval;
         protected bool bGameJoined;
@@ -33,13 +33,13 @@ namespace BeamGameCode
             // Setup/connect fake network
             appl.ConnectToNetwork("p2ploopback");
 
-            await appl.JoinBeamNetAsync(networkName);
+            await appl.JoinBeamNetAsync(networkName).ConfigureAwait(false);
 
             logger.Info("practice network joined");
             BeamGameInfo gameInfo = appl.beamGameNet.CreateBeamGameInfo(ApianGroupName, SinglePeerGroupManager.kGroupType);
             CreateCorePair(gameInfo);
-            appCore.PlayerJoinedEvt += OnMemberJoinedGroupEvt;
-            appCore.NewBikeEvt += OnNewBikeEvt;
+            appCore.PlayerJoinedEvt += _OnMemberJoinedGroupEvt;
+            appCore.NewBikeEvt += _OnNewBikeEvt;
 
             // Dont need to check for groups in splash
             appl.CreateAndJoinGame(gameInfo, appCore);
@@ -79,8 +79,8 @@ namespace BeamGameCode
         }
 
 		public override object End() {
-            appCore.PlayerJoinedEvt -= OnMemberJoinedGroupEvt;
-            appCore.NewBikeEvt -= OnNewBikeEvt;
+            appCore.PlayerJoinedEvt -= _OnMemberJoinedGroupEvt;
+            appCore.NewBikeEvt -= _OnNewBikeEvt;
             appl.frontend?.OnEndMode(appl.modeMgr.CurrentModeId(), null);
             appCore.End();
             appl.beamGameNet.LeaveNetwork();
@@ -115,7 +115,7 @@ namespace BeamGameCode
         }
 
 
-        public  void OnRespawnPlayerEvt(object sender, EventArgs args)
+        private void _OnRespawnPlayerEvt(object sender, EventArgs args)
         {
             logger.Info("Respawning Player");
             SpawnPlayerBike();
@@ -123,8 +123,9 @@ namespace BeamGameCode
             // will catch and deal with. Maybe it'll point a camera at the new bike or whatever.
         }
 
-        public void OnNewBikeEvt(object sender, IBike newBike)
+        private void _OnNewBikeEvt(object sender, BikeEventArgs newBikeArg)
         {
+            IBike newBike = newBikeArg?.ib;
             // If it's local we need to tell it to Go!
             bool isLocal = newBike.peerId == appl.LocalPeer.PeerId;
             logger.Info($"{(ModeName())} - OnNewBikeEvt() - {(isLocal?"Local":"Remote")} Bike created, ID: {SID(newBike.bikeId)} Sending GO! command");
@@ -135,9 +136,9 @@ namespace BeamGameCode
         }
 
 
-        public void OnMemberJoinedGroupEvt(object sender, PlayerJoinedArgs ga)
+        private void _OnMemberJoinedGroupEvt(object sender, PlayerJoinedEventArgs ga)
         {
-            appCore.RespawnPlayerEvt += OnRespawnPlayerEvt;
+            appCore.RespawnPlayerEvt += _OnRespawnPlayerEvt;
             bGameJoined = true;
         }
     }

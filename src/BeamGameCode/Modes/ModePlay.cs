@@ -45,7 +45,7 @@ namespace BeamGameCode
         protected float _curStateSecs;
         protected delegate void LoopFunc(float f);
         protected LoopFunc _loopFunc;
-          protected BaseBike playerBike = null;
+          protected BaseBike playerBike;
 
         // mode substates
 
@@ -68,7 +68,7 @@ namespace BeamGameCode
 
             settings = appl.frontend.GetUserSettings();
 
-            appl.PeerJoinedEvt += OnPeerJoinedNetEvt;
+            appl.PeerJoinedEvt += _OnPeerJoinedNetEvt;
             appl.AddAppCore(null);
             _SetState(kConnecting);
             appl.frontend?.OnStartMode(ModeId(), null );
@@ -81,11 +81,11 @@ namespace BeamGameCode
         }
 
 		public override object End() {
-            appl.PeerJoinedEvt -= OnPeerJoinedNetEvt;
+            appl.PeerJoinedEvt -= _OnPeerJoinedNetEvt;
             if (appCore != null)
             {
-                appCore.PlayerJoinedEvt -= OnPlayerJoinedEvt;
-                appCore.NewBikeEvt -= OnNewBikeEvt;
+                appCore.PlayerJoinedEvt -= _OnPlayerJoinedEvt;
+                appCore.NewBikeEvt -= _OnNewBikeEvt;
                 appl.frontend?.OnEndMode(appl.modeMgr.CurrentModeId(), null);
                 appCore.End();
                 appl.beamGameNet.LeaveNetwork();
@@ -116,7 +116,7 @@ namespace BeamGameCode
             case kJoiningNet:
                 logger.Verbose($"{(ModeName())}: SetState: kJoiningNet");
                 //try {
-                    await appl.JoinBeamNetAsync(settings.apianNetworkName);
+                    await appl.JoinBeamNetAsync(settings.apianNetworkName).ConfigureAwait(false);
                 //} catch (Exception ex) {
                 //    _SetState(kFailed, ex.Message);
                 //    return;
@@ -124,8 +124,8 @@ namespace BeamGameCode
                 _SetState(kCheckingForGames);
                 break;
             case kCheckingForGames:
-                announcedGames = await appl.GetExistingGames((int)(kListenForGamesSecs*1000));
-                GameSelectedArgs selection = await appl.SelectGameAsync(announcedGames);
+                announcedGames = await appl.GetExistingGames((int)(kListenForGamesSecs*1000)).ConfigureAwait(false);
+                GameSelectedEventArgs selection = await appl.SelectGameAsync(announcedGames).ConfigureAwait(false);
                 OnGameSelected(selection);
                 break;
             case kJoiningExistingGame:
@@ -196,7 +196,7 @@ namespace BeamGameCode
         {
             try {
                 appl.ConnectToNetwork(settings.p2pConnectionString); // should be async? GameNet.Connect() currently is not
-                await appl.JoinBeamNetAsync(settings.apianNetworkName);
+                await appl.JoinBeamNetAsync(settings.apianNetworkName).ConfigureAwait(false);
 
             } catch (Exception ex) {
                 _SetState(kFailed, ex.Message);
@@ -219,7 +219,7 @@ namespace BeamGameCode
 
         // Event handlers
 
-        public void OnPeerJoinedNetEvt(object sender, PeerJoinedArgs ga)
+        private void _OnPeerJoinedNetEvt(object sender, PeerJoinedEventArgs ga)
         {
             BeamNetworkPeer p = ga.peer;
             bool isLocal = p.PeerId == appl.LocalPeer.PeerId;
@@ -232,10 +232,10 @@ namespace BeamGameCode
             announcedGames[gameInfo.GameName] = gameInfo;
         }
 
-        public void OnGameSelected( GameSelectedArgs args)
+        public void OnGameSelected( GameSelectedEventArgs args)
         {
             BeamGameInfo gameInfo = args.gameInfo;
-            GameSelectedArgs.ReturnCode result = args.result;
+            GameSelectedEventArgs.ReturnCode result = args.result;
             string gameName = gameInfo?.GameName;
 
             logger.Info($"{(ModeName())} - OnGameSelected(): {gameName}, result: {result}");
@@ -243,12 +243,12 @@ namespace BeamGameCode
             bool targetGameExisted = (gameName != null) && announcedGames.ContainsKey(gameName);
 
             CreateCorePair(gameInfo);
-            appCore.PlayerJoinedEvt += OnPlayerJoinedEvt;
-            appCore.NewBikeEvt += OnNewBikeEvt;
+            appCore.PlayerJoinedEvt += _OnPlayerJoinedEvt;
+            appCore.NewBikeEvt += _OnNewBikeEvt;
 
             switch (result)
             {
-            case GameSelectedArgs.ReturnCode.kCreate:
+            case GameSelectedEventArgs.ReturnCode.kCreate:
                 if (targetGameExisted)
                     _SetState(kFailed, $"Cannot create.  Beam Game \"{gameName}\" already exists");
                 else {
@@ -256,7 +256,7 @@ namespace BeamGameCode
                 }
                 break;
 
-            case GameSelectedArgs.ReturnCode.kJoin:
+            case GameSelectedEventArgs.ReturnCode.kJoin:
                  if (targetGameExisted)
                  {
                     _SetState(kJoiningExistingGame, gameInfo);
@@ -265,26 +265,27 @@ namespace BeamGameCode
                     _SetState(kFailed, $"Apian Game \"{gameName}\" Not Found");
                 break;
 
-            case GameSelectedArgs.ReturnCode.kCancel:
+            case GameSelectedEventArgs.ReturnCode.kCancel:
                 _SetState(kFailed, $"No Game Selected.");
                 break;
             }
         }
 
-        public void OnPlayerJoinedEvt(object sender, PlayerJoinedArgs ga)
+        private void _OnPlayerJoinedEvt(object sender, PlayerJoinedEventArgs ga)
         {
             bool isLocal = ga.player.PeerId == appl.LocalPeer.PeerId;
             logger.Info($"{(ModeName())} - OnPlayerJoinedEvt() - {(isLocal?"Local":"Remote")} Member Joined: {ga.player.Name}, ID: {SID(ga.player.PeerId)}");
             if (ga.player.PeerId == appl.LocalPeer.PeerId)
             {
-                appCore.RespawnPlayerEvt += OnRespawnPlayerEvt;  // FIXME: why does this happen here?  &&&&
+                appCore.RespawnPlayerEvt += _OnRespawnPlayerEvt;  // FIXME: why does this happen here?  &&&&
                 //_SetState(kWaitingForMembers);
                 _SetState(kPlaying);
             }
         }
 
-        public void OnNewBikeEvt(object sender, IBike newBike)
+        private void _OnNewBikeEvt(object sender, BikeEventArgs newBikeArgs)
         {
+            IBike newBike = newBikeArgs?.ib;
             // If it's local we need to tell it to Go!
             bool isLocal = newBike.peerId == appl.LocalPeer.PeerId;
             logger.Info($"{(ModeName())} - OnNewBikeEvt() - {(isLocal?"Local":"Remote")} Bike created, ID: {SID(newBike.bikeId)}");
@@ -294,7 +295,7 @@ namespace BeamGameCode
             }
         }
 
-        public void OnRespawnPlayerEvt(object sender, EventArgs args)
+        private void _OnRespawnPlayerEvt(object sender, EventArgs args)
         {
             logger.Info("Respawning Player");
             SpawnPlayerBike();

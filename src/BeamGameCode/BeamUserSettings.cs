@@ -14,12 +14,7 @@ namespace BeamGameCode
         public const string subFolder = ".beam";
         public const string defaultBaseName= "beamsettings";
         public static string fileBaseName;
-        public static string path;
-
-        static UserSettingsMgr()
-        {
-            path = GetPath(subFolder);
-        }
+        public static string path =  GetPath(subFolder);
 
         public static BeamUserSettings Load(string baseName = defaultBaseName)
         {

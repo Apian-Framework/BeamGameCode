@@ -12,7 +12,7 @@ namespace GameModeMgr
 	public class ModeFactory : IModeFactory
 	{
 		// ReSharper disable MemberCanBePrivate.Global,UnusedMember.Global,FieldCanBeMadeReadOnly.Global
-		protected Dictionary<int, Func<IGameMode>> ModeFactories	= null;
+		protected Dictionary<int, Func<IGameMode>> ModeFactories;
         public IGameMode Create(int modeId)
         {
             return ModeFactories[modeId]();

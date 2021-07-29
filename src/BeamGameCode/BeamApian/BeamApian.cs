@@ -16,7 +16,7 @@ namespace BeamGameCode
         public BeamApianPeer(string _p2pId, string _appHelloData) : base(_p2pId, _appHelloData) { }
     }
 
-    public class BeamApianFactory
+    public static class BeamApianFactory
     {
         public static readonly List<string> ApianGroupTypes = new List<string>()
         {
@@ -59,7 +59,7 @@ namespace BeamGameCode
 
         public long SystemTime { get => DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;}  // system clock
 
-        public BeamApian(IBeamGameNet _gn, IBeamAppCore _client) : base(_gn, _client)
+        protected BeamApian(IBeamGameNet _gn, IBeamAppCore _client) : base(_gn, _client)
         {
             BeamGameNet = _gn;
             appCore = _client as BeamAppCore;

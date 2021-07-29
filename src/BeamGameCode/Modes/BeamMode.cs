@@ -9,7 +9,7 @@ namespace BeamGameCode
     {
 		public ModeManager manager;
 		public BeamApplication appl;
-        public BeamAppCore appCore = null;
+        public BeamAppCore appCore;
 		public UniLogger logger;
 		public int ModeId() => manager.CurrentModeId();
 

@@ -15,14 +15,13 @@ namespace BeamGameCode
 {
     public class BeamApplication : IModalGame, IApianApplication, IBeamApplication
     {
-        //public event EventHandler<string> NetworkCreatedEvt; // net channelId
-        public event EventHandler<PeerJoinedArgs> PeerJoinedEvt;
-        public event EventHandler<PeerLeftArgs> PeerLeftEvt;
-        public event EventHandler<BeamGameInfo> GameAnnounceEvt;
+        public event EventHandler<PeerJoinedEventArgs> PeerJoinedEvt;
+        public event EventHandler<PeerLeftEventArgs> PeerLeftEvt;
+        public event EventHandler<GameAnnounceEventArgs> GameAnnounceEvt;
         public ModeManager modeMgr {get; private set;}
         public  IBeamGameNet beamGameNet {get; private set;}
         public IBeamFrontend frontend {get; private set;}
-        public BeamNetworkPeer LocalPeer { get; private set; } = null;
+        public BeamNetworkPeer LocalPeer { get; private set; }
 
         public UniLogger Logger;
         public BeamAppCore mainAppCore {get; private set;}
@@ -74,14 +73,14 @@ namespace BeamGameCode
         public async Task<PeerJoinedNetworkData> JoinBeamNetAsync(string networkName)
         {
             _UpdateLocalPeer();
-            return await beamGameNet.JoinBeamNetAsync(networkName, LocalPeer);
+            return await beamGameNet.JoinBeamNetAsync(networkName, LocalPeer).ConfigureAwait(false);
         }
 
         public void OnPeerJoinedNetwork(PeerJoinedNetworkData peerData)
         {
             BeamNetworkPeer peer = JsonConvert.DeserializeObject<BeamNetworkPeer>(peerData.HelloData);
             Logger.Info($"OnPeerJoinedNetwork() {((peerData.PeerId == LocalPeer.PeerId)?"Local":"Remote")} name: {peer.Name}");
-            PeerJoinedEvt?.Invoke(this, new PeerJoinedArgs(peerData.NetId, peer));
+            PeerJoinedEvt?.Invoke(this, new PeerJoinedEventArgs(peerData.NetId, peer));
         }
 
 
@@ -94,16 +93,16 @@ namespace BeamGameCode
         public async Task<Dictionary<string, BeamGameInfo>> GetExistingGames(int waitMs)
         {
             // Can't the mode talk to baemGameNet directly?
-            Dictionary<string, ApianGroupInfo> groupsDict = await beamGameNet.RequestGroupsAsync(waitMs);
+            Dictionary<string, ApianGroupInfo> groupsDict = await beamGameNet.RequestGroupsAsync(waitMs).ConfigureAwait(false);
             Dictionary<string, BeamGameInfo> gameDict = groupsDict.Values.Select((grp) => new BeamGameInfo(grp)).ToDictionary(gm => gm.GameName, gm => gm);
             return gameDict;
         }
 
 
 
-        public async Task<GameSelectedArgs> SelectGameAsync(IDictionary<string, BeamGameInfo> existingGames)
+        public async Task<GameSelectedEventArgs> SelectGameAsync(IDictionary<string, BeamGameInfo> existingGames)
         {
-            GameSelectedArgs selection = await frontend.SelectGameAsync(existingGames);
+            GameSelectedEventArgs selection = await frontend.SelectGameAsync(existingGames).ConfigureAwait(false);
             Logger.Info($"SelectGameAsync() Got result:  GameName: {selection.gameInfo.GameName} ResultCode: {selection.result}");
             return selection;
         }
@@ -180,7 +179,7 @@ namespace BeamGameCode
         public void OnPeerLeftNetwork(string p2pId, string netId)
         {
             Logger.Info($"OnPeerLeftGame({SID(p2pId)})");
-            PeerLeftEvt?.Invoke(this, new PeerLeftArgs(netId, p2pId)); // Event instance might be gone
+            PeerLeftEvt?.Invoke(this, new PeerLeftEventArgs(netId, p2pId)); // Event instance might be gone
         }
 
             // Apian handles these at the game level. Not sure what would be useful here.
@@ -205,7 +204,7 @@ namespace BeamGameCode
         {
             Logger.Info($"OnGroupAnnounce({groupInfo.GroupName})");
             BeamGameInfo bgi = new BeamGameInfo(groupInfo);
-            GameAnnounceEvt?.Invoke(this, bgi);
+            GameAnnounceEvt?.Invoke(this, new GameAnnounceEventArgs(bgi));
         }
 
         public void OnGroupMemberStatus(string groupId, string peerId, ApianGroupMember.Status newStatus, ApianGroupMember.Status prevStatus)

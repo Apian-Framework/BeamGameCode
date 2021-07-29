@@ -69,7 +69,7 @@ namespace BeamGameCode
             chan.name = netName;
             chan.id = netName;
             string beamNetworkHelloData = JsonConvert.SerializeObject(localPeer);
-            return await base.JoinNetworkAsync(chan, beamNetworkHelloData);
+            return await JoinNetworkAsync(chan, beamNetworkHelloData).ConfigureAwait(false);
         }
 
         public void LeaveBeamNet() => LeaveNetwork();
@@ -127,7 +127,7 @@ namespace BeamGameCode
             IP2pNet ip2p = null;
             string[] parts = p2pConnectionString.Split(new string[]{"::"},StringSplitOptions.None); // Yikes! This is fugly.
 
-            switch(parts[0].ToLower())
+            switch(parts[0])
             {
                 case "p2predis":
                     ip2p = new P2pRedis(this, parts[1]);
@@ -145,8 +145,9 @@ namespace BeamGameCode
                     throw( new Exception($"Invalid connection type: {parts[0]}"));
             }
 
-            if (ip2p == null)
-                throw( new Exception("p2p Connect failed"));
+            // TODO: Since C# ctors can't fail and return null we don;t have a generic
+            // "It didn;t work" path. As it stands, the P2pNet ctor will throw and we'll crash.
+            // That's probably OK for now - but this TODO is here to remind me later.
 
             return ip2p;
         }

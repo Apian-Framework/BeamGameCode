@@ -20,7 +20,7 @@ namespace BeamGameCode
         protected bool bGameJoined;
         protected bool bGameSetup;
 
-        protected float _camTargetSecsLeft = 0; // assign as soon as there's a bike
+        protected float _camTargetSecsLeft; // assign as soon as there's a bike
 
 
 		public override void Start(object param = null)
@@ -37,13 +37,13 @@ namespace BeamGameCode
             // Setup/connect fake network
             // Setup/connect fake network
             appl.ConnectToNetwork("p2ploopback");
-            await appl.JoinBeamNetAsync(NetworkName);
+            await appl.JoinBeamNetAsync(NetworkName).ConfigureAwait(false);
 
             logger.Info("Splash network joined");
             BeamGameInfo gameInfo = appl.beamGameNet.CreateBeamGameInfo(ApianGroupName, SinglePeerGroupManager.kGroupType);
             CreateCorePair(gameInfo);
-            appCore.PlayerJoinedEvt += OnPlayerJoinedEvt;
-            appCore.NewBikeEvt += OnNewBikeEvt;
+            appCore.PlayerJoinedEvt += _OnPlayerJoinedEvt;
+            appCore.NewBikeEvt += _OnNewBikeEvt;
 
             appl.CreateAndJoinGame(gameInfo, appCore);
             // waiting for OnPlayerJoined()
@@ -84,14 +84,14 @@ namespace BeamGameCode
                 if (_secsToNextRespawnCheck <= 0)
                 {
                     // TODO: respawn with prev names/teams?
-                    if (appCore.CoreState.Bikes.Count() < kSplashBikeCount)
+                    if (appCore.CoreState.Bikes.Count < kSplashBikeCount)
                         CreateADemoBike();
                     _secsToNextRespawnCheck = kRespawnCheckInterval;
                 }
 
-                if ( appCore.CoreState.Bikes.Count() > 0)
+                if ( appCore.CoreState.Bikes.Count > 0)
                 {
-                    int idx = (int)UnityEngine.Random.Range(0, appCore.CoreState.Bikes.Count() - .0001f);
+                    int idx = (int)UnityEngine.Random.Range(0, appCore.CoreState.Bikes.Count - .0001f);
                     string bikeId = appCore.CoreState.Bikes.Values.ElementAt(idx).bikeId;
                     _camTargetSecsLeft -= frameSecs;
                     if (_camTargetSecsLeft <= 0)
@@ -107,8 +107,8 @@ namespace BeamGameCode
 
         private object _DoCleanup()
         {
-            appCore.PlayerJoinedEvt -= OnPlayerJoinedEvt;
-            appCore.NewBikeEvt -= OnNewBikeEvt;
+            appCore.PlayerJoinedEvt -= _OnPlayerJoinedEvt;
+            appCore.NewBikeEvt -= _OnNewBikeEvt;
             appl.frontend?.OnEndMode(appl.modeMgr.CurrentModeId(), null);
             appCore.End();
             appl.beamGameNet.LeaveNetwork();
@@ -124,14 +124,15 @@ namespace BeamGameCode
             return bb.bikeId;  // the bike hasn't been added yet, so this id is not valid yet.
         }
 
-        public void OnPlayerJoinedEvt(object sender, PlayerJoinedArgs ga)
+        private void _OnPlayerJoinedEvt(object sender, PlayerJoinedEventArgs ga)
         {
             bGameJoined = true;
             logger.Info("Player joined!!!");
         }
 
-        public void OnNewBikeEvt(object sender, IBike newBike)
+        private void _OnNewBikeEvt(object sender, BikeEventArgs newBikeArg)
         {
+            IBike newBike = newBikeArg?.ib;
             // If it's local we need to tell it to Go!
             bool isLocal = newBike.peerId == appl.LocalPeer.PeerId;
             logger.Info($"{(ModeName())} - OnNewBikeEvt() - {(isLocal?"Local":"Remote")} Bike created, ID: {newBike.bikeId} Sending GO! command");

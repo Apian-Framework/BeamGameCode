@@ -22,20 +22,14 @@ namespace GameModeMgr
 			public readonly int NextModeId;
 			public readonly object NextParam;
 
-			public static readonly OpData DoNothing;
-			public static readonly OpData DoQuit;
+			public static readonly OpData DoNothing = new OpData(ModeOp.Nop, -1, null);
+			public static readonly OpData DoQuit = new OpData(ModeOp.Quit, -1, null);
 
 			public OpData(ModeOp op, int modeId, object param)
 			{
 				NextOp = op;
 				NextModeId = modeId;
 				NextParam = param;
-			}
-
-			static OpData()
-			{
-				DoNothing = new OpData(ModeOp.Nop, -1, null);
-				DoQuit = new OpData(ModeOp.Quit, -1, null);
 			}
 		}
 

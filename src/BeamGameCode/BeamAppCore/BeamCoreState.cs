@@ -11,7 +11,7 @@ using static UniLog.UniLogger; // for SID()
 
 namespace BeamGameCode
 {
-    public struct PlaceReportArgs // report events of claims and hits take these
+    public class PlaceReportEventArgs : EventArgs // report events of claims and hits take these
     {
         public long apianTime;
         public IBike bike;
@@ -19,7 +19,7 @@ namespace BeamGameCode
         public int zIdx;
         public  Heading entryHead;
         public  Heading exitHead;
-        public PlaceReportArgs(long _apianTime, IBike _bike, int _xIdx, int _zIdx, Heading _entryH, Heading _exitH)
+        public PlaceReportEventArgs(long _apianTime, IBike _bike, int _xIdx, int _zIdx, Heading _entryH, Heading _exitH)
         {
             apianTime = _apianTime;
             bike = _bike;
@@ -33,25 +33,25 @@ namespace BeamGameCode
 
     public class BeamCoreState : ApianCoreState
     {
-        public event EventHandler<BeamPlace> PlaceFreedEvt;
-        public event EventHandler<BeamPlace> PlaceTimeoutEvt;
+        public event EventHandler<BeamPlaceEventArgs> PlaceFreedEvt;
+        public event EventHandler<BeamPlaceEventArgs> PlaceTimeoutEvt;
         public event EventHandler PlacesClearedEvt;
-        public event EventHandler<PlaceReportArgs> PlaceClaimObsEvt; // exact timestamp is the long
-        public event EventHandler<PlaceReportArgs> PlaceHitObsEvt;
+        public event EventHandler<PlaceReportEventArgs> PlaceClaimObsEvt; // exact timestamp is the long
+        public event EventHandler<PlaceReportEventArgs> PlaceHitObsEvt;
 
         public UniLogger Logger;
 
-	    public Ground Ground { get; private set; } = null; // TODO: Is there any mutable state here anymore? NO
+	    public Ground Ground { get; private set; } // TODO: Is there any mutable state here anymore? NO
 
         //
         // Here's the actual base state data:
         //
-        public Dictionary<string, BeamPlayer> Players { get; private set; } = null;
-        public Dictionary<string, IBike> Bikes { get; private set; } = null;
-        public Dictionary<int, BeamPlace> ActivePlaces { get; private set; } = null; //  BeamPlace.PosHash() -indexed Dict of places.
+        public Dictionary<string, BeamPlayer> Players { get; private set; }
+        public Dictionary<string, IBike> Bikes { get; private set; }
+        public Dictionary<int, BeamPlace> ActivePlaces { get; private set; } //  BeamPlace.PosHash() -indexed Dict of places.
 
         // Ancillary data (initialize to empty if loading state data)
-        protected Stack<BeamPlace> freePlaces = null; // re-use released/expired ones
+        protected Stack<BeamPlace> freePlaces; // re-use released/expired ones
 
         // TODO: Is there an elegant way to get rid of these next 3 "side effect" members and still do what they do?
         protected List<string> _playerIdsToRemove;
@@ -127,7 +127,7 @@ namespace BeamGameCode
                 if ( !_reportedTimedOutPlaces.ContainsKey(p.PosHash))
                 {
                     _reportedTimedOutPlaces[p.PosHash] = p;
-                    PlaceTimeoutEvt?.Invoke(this,p); // causes GameInst to post a PlaceRemovedMsg observation (*actual time is in the place definition*)
+                    PlaceTimeoutEvt?.Invoke(this, new BeamPlaceEventArgs(p)); // causes GameInst to post a PlaceRemovedMsg observation (*actual time is in the place definition*)
                 }
             }
         }
@@ -276,7 +276,7 @@ namespace BeamGameCode
             if (p != null)
             {
                 Logger.Verbose($"RemoveActivePlace({p.GetPos().ToString()}) Bike: {SID(p.bike?.bikeId)}");
-                PlaceFreedEvt?.Invoke(this,p);
+                PlaceFreedEvt?.Invoke(this, new BeamPlaceEventArgs(p) );
                 freePlaces.Push(p); // add to free list
                 ActivePlaces.Remove(p.PosHash);
                 _reportedTimedOutPlaces.Remove(p.PosHash);
@@ -356,12 +356,12 @@ namespace BeamGameCode
         // Called by bikes to report observed stuff
         public void ReportPlaceClaimed( long apianTime, IBike bike, int xIdx, int zIdx, Heading entryHead, Heading exitHead)
         {
-            PlaceClaimObsEvt?.Invoke(this, new PlaceReportArgs(apianTime,bike, xIdx, zIdx, entryHead, exitHead) ); // causes GameInst to post a PlaceClaimed observation
+            PlaceClaimObsEvt?.Invoke(this, new PlaceReportEventArgs(apianTime,bike, xIdx, zIdx, entryHead, exitHead) ); // causes GameInst to post a PlaceClaimed observation
         }
 
         public void ReportPlaceHit( long apianTime, IBike bike, int xIdx, int zIdx, Heading entryHead, Heading exitHead)
         {
-            PlaceHitObsEvt?.Invoke(this, new PlaceReportArgs(apianTime, bike, xIdx, zIdx, entryHead, exitHead) ); // causes GameInst to post a PlaceHit observation
+            PlaceHitObsEvt?.Invoke(this, new PlaceReportEventArgs(apianTime, bike, xIdx, zIdx, entryHead, exitHead) ); // causes GameInst to post a PlaceHit observation
         }
 
     }

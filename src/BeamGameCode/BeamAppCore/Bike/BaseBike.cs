@@ -24,7 +24,7 @@ namespace BeamGameCode
 
         // State vars
         public int score {get; set;}
-        public float speed { get; private set;} = 0;
+        public float speed { get; private set;}
 
         // position and heading have both "base" entries and sometimes "optimistic" entries
         // the idea is that if we locally see the time when a remote bike would pass by a grid point
@@ -46,7 +46,7 @@ namespace BeamGameCode
         public Heading optHeading { get; private set;} = Heading.kNorth;
         public TurnDir optPendingTurn { get; private set;} = TurnDir.kUnset; // set this and turn will start at next grid point
 
-        public BeamCoreState gameData = null;
+        public BeamCoreState gameData;
         public UniLogger logger;
 
 

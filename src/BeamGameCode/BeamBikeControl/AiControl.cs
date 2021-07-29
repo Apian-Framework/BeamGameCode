@@ -12,7 +12,7 @@ namespace BikeControl
 
         public float aiCheckTimeout = .7f;
 
-        public float secsSinceLastAiCheck = 0;
+        public float secsSinceLastAiCheck;
 
         public float maxX = Ground.maxX - 10*Ground.gridSize; // assumes min === -max
         public float maxZ = Ground.maxZ - 10*Ground.gridSize;
@@ -20,7 +20,7 @@ namespace BikeControl
         public TurnDir pendingTurn { get => bb.basePendingTurn; } // TODOL: Get rid of these? No?
         public Heading heading { get => bb.baseHeading; }
 
-        public override void SetupImpl()
+        public override void SetupImplementation()
         {
 
         }

@@ -28,7 +28,7 @@ namespace BeamGameCode
         void DisplayMessage(MessageSeverity level, string msgText);
 
         //void SelectGame(IDictionary<string, BeamGameInfo> existingGames);
-        Task<GameSelectedArgs> SelectGameAsync(IDictionary<string, BeamGameInfo> existingGames);
+        Task<GameSelectedEventArgs> SelectGameAsync(IDictionary<string, BeamGameInfo> existingGames);
 
         // Event/message handlers
 
@@ -38,21 +38,21 @@ namespace BeamGameCode
         void DispatchModeCmd(int modeId, int cmdId, object param = null);
 
         // Players
-        void OnPeerJoinedGameEvt(object sender, PeerJoinedArgs pa);
-        void OnPeerLeftGameEvt(object sender, PeerLeftArgs pa);
+        void OnPeerJoinedGameEvt(object sender, PeerJoinedEventArgs pa);
+        void OnPeerLeftGameEvt(object sender, PeerLeftEventArgs pa);
         void OnPlayersClearedEvt(object sender, EventArgs e);
         // Bikes
-        void OnNewBikeEvt(object sender, IBike ib);
-        void OnBikeRemovedEvt(object sender, BikeRemovedData data);
+        void OnNewBikeEvt(object sender, BikeEventArgs ib);
+        void OnBikeRemovedEvt(object sender, BikeRemovedEventArgs data);
         void OnBikesClearedEvt(object sender, EventArgs e);
-        void OnPlaceClaimedEvt(object sender, BeamPlace place);
+        void OnPlaceClaimedEvt(object sender, BeamPlaceEventArgs place);
         // Places
-        void OnPlaceHitEvt(object sender, PlaceHitArgs args);
+        void OnPlaceHitEvt(object sender, PlaceHitEventArgs args);
         // scoring
         // void OnScoreEvent(string bikeId, ScoreEvent evt, Ground.Place place); Need this?
 
         // Ground events
-        void OnPlaceFreedEvt(object sender, BeamPlace p);
+        void OnPlaceFreedEvt(object sender, BeamPlaceEventArgs p);
         void OnPlacesClearedEvt(object sender, EventArgs e);
 
         // Game Events

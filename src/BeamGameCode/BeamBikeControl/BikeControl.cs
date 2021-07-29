@@ -21,7 +21,7 @@ namespace BikeControl
 
         public UniLogger Logger;
 
-        public BikeControlBase()
+        protected BikeControlBase()
         {
             Logger = UniLogger.GetLogger("BikeCtrl");
         }
@@ -31,10 +31,10 @@ namespace BikeControl
             appl = beamApp;
             appCore = core;
             bb = ibike as BaseBike;
-            SetupImpl();
+            SetupImplementation();
         }
 
-        public abstract void SetupImpl(); // do any implmentation-specific setup
+        public abstract void SetupImplementation(); // do any implmentation-specific setup
 
         public virtual void Loop(long curTime, int frameMs)
         {
