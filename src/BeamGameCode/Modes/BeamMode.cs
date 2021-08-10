@@ -1,24 +1,23 @@
 using System;
-using System.Collections.Generic;
-using GameModeMgr;
+using ModalApplication;
 using UniLog;
 
 namespace BeamGameCode
 {
-    public class BeamGameMode : IGameMode
+    public class BeamGameMode : ILoopMode
     {
-		public ModeManager manager;
+		public LoopModeManager manager;
 		public BeamApplication appl;
         public BeamAppCore appCore;
 		public UniLogger logger;
 		public int ModeId() => manager.CurrentModeId();
 
-		public void Setup(ModeManager mgr, IModalGame gInst = null)
+		public void Setup(AppModeManager mgr, IModalApp gInst = null)
 		{
 			// Called by manager before Start()
 			// Not virtual
 			// TODO: this should be the engine and not the modeMgr - but what IS an engine...
-			manager = mgr;
+			manager = mgr as LoopModeManager;
 			appl = gInst as BeamApplication;
 			logger = UniLogger.GetLogger("BeamMode");
         }

@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-using GameModeMgr;
+using ModalApplication;
 
 namespace BeamGameCode
 {
-    public class BeamModeFactory : ModeFactory
+    public class BeamModeFactory : AppModeFactory
     {
         public const int kSplash = 0;
         public const int kPlay = 1;
@@ -12,7 +12,7 @@ namespace BeamGameCode
 
         public BeamModeFactory()
         {
-            ModeFactories =  new Dictionary<int, Func<IGameMode>>  {
+            AppModeCtors =  new Dictionary<int, Func<IAppMode>>  {
                 { kSplash, ()=> new ModeSplash() },
                 { kPlay, ()=> new ModePlay() },
                 { kPractice, ()=> new ModePractice() },

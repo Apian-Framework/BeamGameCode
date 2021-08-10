@@ -4,21 +4,20 @@ using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using UnityEngine;
-using GameModeMgr;
+using ModalApplication;
 using UniLog;
 using static UniLog.UniLogger; // for SID()
 using GameNet;
-using P2pNet; // TODO: gamenet API should be all that's needed &&&&&&&&
 using Apian;
 
 namespace BeamGameCode
 {
-    public class BeamApplication : IModalGame, IApianApplication, IBeamApplication
+    public class BeamApplication : ILoopingApp, IApianApplication, IBeamApplication
     {
         public event EventHandler<PeerJoinedEventArgs> PeerJoinedEvt;
         public event EventHandler<PeerLeftEventArgs> PeerLeftEvt;
         public event EventHandler<GameAnnounceEventArgs> GameAnnounceEvt;
-        public ModeManager modeMgr {get; private set;}
+        public LoopModeManager modeMgr {get; private set;}
         public  IBeamGameNet beamGameNet {get; private set;}
         public IBeamFrontend frontend {get; private set;}
         public BeamNetworkPeer LocalPeer { get; private set; }
@@ -32,7 +31,7 @@ namespace BeamGameCode
             beamGameNet.AddClient(this);
             frontend = fe;
             Logger = UniLogger.GetLogger("BeamApplication");
-            modeMgr = new ModeManager(new BeamModeFactory(), this);
+            modeMgr = new LoopModeManager(new BeamModeFactory(), this);
 
             frontend.SetBeamApplication(this);
         }
