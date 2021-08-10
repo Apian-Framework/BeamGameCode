@@ -19,6 +19,9 @@ dotnet_diagnostic.CA1716.severity = silent; # Rename  member SomeClass.Foo() so 
 # Sorry - I disagree with this one. Could *maybe* live with it being a suggestion. But I don't think so.
 dotnet_diagnostic.CA1034.severity = silent; # Do not nest type Foo. Alternatively, change its accessibility so that it is not externally visible.
 
+# This just pisses me off: "Consider using ConfigureAwait()" Ok, I considered it - bad idea in my application code. And it's a WARNING and so kills the build!
+dotnet_diagnostic.CA2007.severity = silent
+
 #  There are a lot of these in public APIs in order to keep the API consistent.
 dotnet_diagnostic.IDE0060.severity = silent # IDE0060 - Remove unused parameter 'foo' if it is not part of a shipped public API
 dotnet_diagnostic.CA1801.severity = silent  # Parameter "foo"" of method "bar"" is never used. Remove the parameter or use it in the method body

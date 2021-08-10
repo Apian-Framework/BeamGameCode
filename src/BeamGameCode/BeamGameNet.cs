@@ -69,7 +69,7 @@ namespace BeamGameCode
             chan.name = netName;
             chan.id = netName;
             string beamNetworkHelloData = JsonConvert.SerializeObject(localPeer);
-            return await JoinNetworkAsync(chan, beamNetworkHelloData).ConfigureAwait(false);
+            return await JoinNetworkAsync(chan, beamNetworkHelloData);
         }
 
         public void LeaveBeamNet() => LeaveNetwork();

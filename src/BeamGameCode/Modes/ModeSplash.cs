@@ -37,7 +37,7 @@ namespace BeamGameCode
             // Setup/connect fake network
             // Setup/connect fake network
             appl.ConnectToNetwork("p2ploopback");
-            await appl.JoinBeamNetAsync(NetworkName).ConfigureAwait(false);
+            await appl.JoinBeamNetAsync(NetworkName);
 
             logger.Info("Splash network joined");
             BeamGameInfo gameInfo = appl.beamGameNet.CreateBeamGameInfo(ApianGroupName, SinglePeerGroupManager.kGroupType);

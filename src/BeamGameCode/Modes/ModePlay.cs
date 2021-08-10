@@ -116,7 +116,7 @@ namespace BeamGameCode
             case kJoiningNet:
                 logger.Verbose($"{(ModeName())}: SetState: kJoiningNet");
                 //try {
-                    await appl.JoinBeamNetAsync(settings.apianNetworkName).ConfigureAwait(false);
+                    await appl.JoinBeamNetAsync(settings.apianNetworkName);
                 //} catch (Exception ex) {
                 //    _SetState(kFailed, ex.Message);
                 //    return;
@@ -124,8 +124,8 @@ namespace BeamGameCode
                 _SetState(kCheckingForGames);
                 break;
             case kCheckingForGames:
-                announcedGames = await appl.GetExistingGames((int)(kListenForGamesSecs*1000)).ConfigureAwait(false);
-                GameSelectedEventArgs selection = await appl.SelectGameAsync(announcedGames).ConfigureAwait(false);
+                announcedGames = await appl.GetExistingGames((int)(kListenForGamesSecs*1000));
+                GameSelectedEventArgs selection = await appl.SelectGameAsync(announcedGames);
                 OnGameSelected(selection);
                 break;
             case kJoiningExistingGame:
@@ -196,7 +196,7 @@ namespace BeamGameCode
         {
             try {
                 appl.ConnectToNetwork(settings.p2pConnectionString); // should be async? GameNet.Connect() currently is not
-                await appl.JoinBeamNetAsync(settings.apianNetworkName).ConfigureAwait(false);
+                await appl.JoinBeamNetAsync(settings.apianNetworkName);
 
             } catch (Exception ex) {
                 _SetState(kFailed, ex.Message);

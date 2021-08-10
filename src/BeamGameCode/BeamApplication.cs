@@ -73,7 +73,7 @@ namespace BeamGameCode
         public async Task<PeerJoinedNetworkData> JoinBeamNetAsync(string networkName)
         {
             _UpdateLocalPeer();
-            return await beamGameNet.JoinBeamNetAsync(networkName, LocalPeer).ConfigureAwait(false);
+            return await beamGameNet.JoinBeamNetAsync(networkName, LocalPeer);
         }
 
         public void OnPeerJoinedNetwork(PeerJoinedNetworkData peerData)
@@ -93,7 +93,7 @@ namespace BeamGameCode
         public async Task<Dictionary<string, BeamGameInfo>> GetExistingGames(int waitMs)
         {
             // Can't the mode talk to baemGameNet directly?
-            Dictionary<string, ApianGroupInfo> groupsDict = await beamGameNet.RequestGroupsAsync(waitMs).ConfigureAwait(false);
+            Dictionary<string, ApianGroupInfo> groupsDict = await beamGameNet.RequestGroupsAsync(waitMs);
             Dictionary<string, BeamGameInfo> gameDict = groupsDict.Values.Select((grp) => new BeamGameInfo(grp)).ToDictionary(gm => gm.GameName, gm => gm);
             return gameDict;
         }
@@ -102,7 +102,7 @@ namespace BeamGameCode
 
         public async Task<GameSelectedEventArgs> SelectGameAsync(IDictionary<string, BeamGameInfo> existingGames)
         {
-            GameSelectedEventArgs selection = await frontend.SelectGameAsync(existingGames).ConfigureAwait(false);
+            GameSelectedEventArgs selection = await frontend.SelectGameAsync(existingGames);
             Logger.Info($"SelectGameAsync() Got result:  GameName: {selection.gameInfo.GameName} ResultCode: {selection.result}");
             return selection;
         }
