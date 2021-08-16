@@ -1,6 +1,7 @@
 {
     "name": "BeamGameCode",
     "references": [
+        "ModalApplication",
         "P2pNet",
         "P2pRedis",
         "P2pMqtt",

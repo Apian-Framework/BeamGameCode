@@ -11,6 +11,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+      <ProjectReference Include="..\..\..\ApianAppUtils\src\ModalApplication\ModalApplication.csproj" />
+
       <PackageReference Include="Apian"  Version="1.0.1" Condition="'$(ApianSource)' == 'package'" />
       <ProjectReference Include="..\..\..\Apian.Net\src\Apian\Apian.csproj" Condition="'$(ApianSource)' != 'package'"/>
 
