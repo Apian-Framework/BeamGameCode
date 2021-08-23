@@ -14,7 +14,6 @@ namespace BeamGameCode
 
     public class BeamAppCore : ApianAppCore,  IBeamAppCore
     {
-        public event EventHandler<NewCoreStateEventArgs> NewCoreStateEvt;
         public event EventHandler<StringEventArgs> GroupJoinedEvt;
         public event EventHandler<PlayerJoinedEventArgs> PlayerJoinedEvt;
         public event EventHandler<PlayerLeftEventArgs> PlayerLeftEvt;
@@ -133,16 +132,17 @@ namespace BeamGameCode
                 NewBikeEvt?.Invoke(this, new BikeEventArgs(ib));
         }
 
-        // Beam stuff
-
-        protected void OnNewCoreState()
+        protected override void OnNewCoreState(ApianCoreState _ = null)
         {
-            NewCoreStateEvt?.Invoke(this, new NewCoreStateEventArgs(CoreState));
+            base.OnNewCoreState(CoreState);
 
             CoreState.PlaceTimeoutEvt += _OnPlaceTimeoutEvt;
             CoreState.PlaceClaimObsEvt += _OnPlaceClaimObsEvt;
             CoreState.PlaceHitObsEvt += _OnPlaceHitObsEvt;
         }
+
+        // Beam stuff
+
 
 
         //

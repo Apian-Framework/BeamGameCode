@@ -39,9 +39,7 @@ namespace BeamGameCode
         public event EventHandler<PlaceReportEventArgs> PlaceClaimObsEvt; // exact timestamp is the long
         public event EventHandler<PlaceReportEventArgs> PlaceHitObsEvt;
 
-        public UniLogger Logger;
-
-	    public Ground Ground { get; private set; } // TODO: Is there any mutable state here anymore? NO
+     	    public Ground Ground { get; private set; } // TODO: Is there any mutable state here anymore? NO
 
         //
         // Here's the actual base state data:
@@ -61,7 +59,6 @@ namespace BeamGameCode
 
         public BeamCoreState()
         {
-            Logger = UniLogger.GetLogger("GameState");
             Players = new Dictionary<string, BeamPlayer>();
             Bikes = new Dictionary<string, IBike>();
             Ground = new Ground();
@@ -132,10 +129,6 @@ namespace BeamGameCode
             }
         }
 
-        public void UpdateCommandSequenceNumber(long newNum)
-        {
-            CommandSequenceNumber = newNum;
-        }
 
         public class SerialArgs
         {

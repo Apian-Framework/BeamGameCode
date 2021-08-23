@@ -12,10 +12,6 @@ namespace BeamGameCode
         public StringEventArgs(string s) {str = s; }
     }
 
-    public class NewCoreStateEventArgs : EventArgs {
-        public BeamCoreState coreState;
-        public NewCoreStateEventArgs(BeamCoreState _coreState) { coreState = _coreState;}
-    }
 
     public class PlayerJoinedEventArgs : EventArgs {
         public string groupChannel;
@@ -59,7 +55,6 @@ namespace BeamGameCode
 
         // Events
         event EventHandler<StringEventArgs> GroupJoinedEvt;
-        event EventHandler<NewCoreStateEventArgs> NewCoreStateEvt;
         event EventHandler<PlayerJoinedEventArgs> PlayerJoinedEvt;
         event EventHandler<PlayerLeftEventArgs> PlayerLeftEvt;
         event EventHandler<PlayerLeftEventArgs> PlayerMissingEvt; // not Gone... yet

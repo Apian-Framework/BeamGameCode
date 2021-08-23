@@ -46,8 +46,7 @@ namespace BeamGameCode
         public void ConnectToNetwork(string netConnectionStr)
         {
             // Connect is (for now) synchronous
-            _UpdateLocalPeer(); // reads stuff from settings
-            beamGameNet.Connect(netConnectionStr);
+              beamGameNet.Connect(netConnectionStr);
         }
 
         // Turns out this was the wrong place to implment this - but here's an async call that
@@ -71,7 +70,7 @@ namespace BeamGameCode
 
         public async Task<PeerJoinedNetworkData> JoinBeamNetAsync(string networkName)
         {
-            _UpdateLocalPeer();
+            _CreateLocalPeer(); // reads stuff from settings  and p2p instance
             return await beamGameNet.JoinBeamNetAsync(networkName, LocalPeer);
         }
 
@@ -85,7 +84,6 @@ namespace BeamGameCode
 
         public void ListenForGames()
         {
-            _UpdateLocalPeer();
             beamGameNet.RequestGroups();
         }
 
@@ -145,7 +143,7 @@ namespace BeamGameCode
            modeMgr.PopMode(resultParam);
         }
 
-        private void _UpdateLocalPeer()
+        private void _CreateLocalPeer()
         {
             BeamUserSettings settings = frontend.GetUserSettings();
             LocalPeer = new BeamNetworkPeer(beamGameNet.LocalP2pId(), settings.screenName);
