@@ -161,7 +161,6 @@ namespace BeamGameCode
 
         public bool Loop(float frameSecs)
         {
-            mainAppCore?.Loop(frameSecs);
             return modeMgr.Loop(frameSecs);
         }
 

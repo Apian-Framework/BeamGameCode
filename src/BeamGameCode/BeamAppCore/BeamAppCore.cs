@@ -160,16 +160,10 @@ namespace BeamGameCode
             ClearPlaces();
         }
 
-        public bool Loop(float frameSecs)
+        public bool Loop()
         {
-            //
-            // Ignore passed in frameSecs.
-            //
 
-
-            bool isActive = apian.Update();  // returns "True" if Active
-
-            if (isActive) // Don't call loop if not active
+            if (apian.LocalPeerIsActive) // Don't call loop if not active
             {
                 long prevFrameApianTime = FrameApianTime;
                 UpdateFrameTime(apian.CurrentRunningApianTime());

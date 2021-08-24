@@ -55,8 +55,6 @@ namespace BeamGameCode
         public IBeamGameNet BeamGameNet {get; private set;}
         protected BeamAppCore appCore;
 
-        protected bool LocalPeerIsActive {get => (GroupMgr != null) && (GroupMgr.LocalMember?.CurStatus == ApianGroupMember.Status.Active); }
-
         public long SystemTime { get => DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;}  // system clock
 
         protected BeamApian(IBeamGameNet _gn, IBeamAppCore _client) : base(_gn, _client)
@@ -80,12 +78,13 @@ namespace BeamGameCode
         }
 
 
-        public override bool Update()
+        public override void Update()
         {
-            // Returns TRUE is local peer is "active"
             GroupMgr?.Update();
             ApianClock?.Update();
-            return GroupMgr?.LocalMember?.CurStatus == ApianGroupMember.Status.Active;
+
+            ((BeamAppCore)AppCore)?.Loop();
+
         }
 
         protected void AddApianPeer(string p2pId, string peerHelloData)
@@ -131,7 +130,7 @@ namespace BeamGameCode
             switch(prevStatus)
             {
             case ApianGroupMember.Status.Joining:
-                if (member.CurStatus == ApianGroupMember.Status.Active)
+                if (LocalPeerIsActive)
                 {
                     // This is the criterion for a player join
                     // NOTE: currently GroupMgr cant send this directly because BeamPlayerJoined is a BEAM message
@@ -146,7 +145,7 @@ namespace BeamGameCode
                 }
                 break;
             case ApianGroupMember.Status.Syncing:
-                if (member.CurStatus == ApianGroupMember.Status.Active)
+                if (LocalPeerIsActive)
                 {
                     SendNewPlayerObs(ApianClock.CurrentTime, BeamPlayer.FromApianJson(member.AppDataJson));
                 }
@@ -165,7 +164,7 @@ namespace BeamGameCode
 
         private void _AdvanceStateTo(long newApianTime)
         {
-            if (GroupMgr?.LocalMember?.CurStatus == ApianGroupMember.Status.Active)
+            if (LocalPeerIsActive)
                 return; // If peer is active and using the real clock and advancing its own state, dont do anything.
 
             long curFrameTime = appCore.FrameApianTime; // previous frame Time
