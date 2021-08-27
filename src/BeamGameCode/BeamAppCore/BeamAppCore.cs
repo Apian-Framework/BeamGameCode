@@ -24,11 +24,6 @@ namespace BeamGameCode
         public BeamApian apian {get; private set;}
         public UniLogger logger;
         public BeamPlayer LocalPlayer { get; private set; }
-        public string LocalPeerId => apian?.GameNet.LocalP2pId(); // TODO: make LocalP2pId a property?
-
-        public string ApianNetId => apian?.NetworkId;
-        public string ApianGroupName => apian?.GroupName;
-        public string ApianGroupId => apian?.GroupId; // <net>/<group>
         public long CurrentRunningGameTime => apian.CurrentRunningApianTime();
 
         // public long NextCheckpointMs; FIXME: appears unused
@@ -76,6 +71,7 @@ namespace BeamGameCode
         // IApianAppCore
         public override void SetApianReference(ApianBase ap)
         {
+            base.SetApianReference(ap);
             apian = ap as BeamApian;
         }
 
