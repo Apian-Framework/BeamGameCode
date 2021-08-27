@@ -127,26 +127,22 @@ namespace BeamGameCode
             // Joining->Active : PlayerJoined
             // Active->Removed : PlayerLeft
 
-            switch(prevStatus)
+            //  When we see these transitions send an OBSERVATION.
+            // The ApianGroup will can then convert it to a Command and distribute that.
+
+             switch(prevStatus)
             {
             case ApianGroupMember.Status.Joining:
-                if (LocalPeerIsActive)
+                if (member.CurStatus == ApianGroupMember.Status.Active)
                 {
-                    // This is the criterion for a player join
-                    // NOTE: currently GroupMgr cant send this directly because BeamPlayerJoined is a BEAM message
-                    // and the GroupMgrs don;t know about beam stuff. THIS INCLUDEs PLAYER JOIN CRITERIA!
-                    // TODO: This is really awkward because:
-                    //      a) We can't have the group manager isntances knowing about the client app
-                    //      b) we can't create a command without a "next sequence number")
-
-                    // Try this: it's an OBSERVATION! So it'll get routed to GroupMgr, which will send a command
-                    // when appropriate.
+                    // In a leader-based ApianGroup the first peer will probably go stright from Joining to Active
                     SendNewPlayerObs(ApianClock.CurrentTime, BeamPlayer.FromApianJson(member.AppDataJson));
                 }
                 break;
             case ApianGroupMember.Status.Syncing:
-                if (LocalPeerIsActive)
+                if (member.CurStatus == ApianGroupMember.Status.Active)
                 {
+                    // Most common situation
                     SendNewPlayerObs(ApianClock.CurrentTime, BeamPlayer.FromApianJson(member.AppDataJson));
                 }
                 break;
