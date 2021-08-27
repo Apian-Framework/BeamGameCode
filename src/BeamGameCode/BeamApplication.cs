@@ -100,7 +100,7 @@ namespace BeamGameCode
         public async Task<GameSelectedEventArgs> SelectGameAsync(IDictionary<string, BeamGameInfo> existingGames)
         {
             GameSelectedEventArgs selection = await frontend.SelectGameAsync(existingGames);
-            Logger.Info($"SelectGameAsync() Got result:  GameName: {selection.gameInfo.GameName} ResultCode: {selection.result}");
+            Logger.Info($"SelectGameAsync() Got result:  GameName: {selection.gameInfo?.GameName} ResultCode: {selection.result}");
             return selection;
         }
 
