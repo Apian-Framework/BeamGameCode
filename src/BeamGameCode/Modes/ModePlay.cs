@@ -235,36 +235,43 @@ namespace BeamGameCode
             GameSelectedEventArgs.ReturnCode result = args.result;
             string gameName = gameInfo?.GameName;
 
-            logger.Info($"{(ModeName())} - OnGameSelected(): {gameName}, result: {result}");
+            logger.Info($"{(ModeName())} - OnGameSelected(): {gameName ?? "<none>"}, result: {result}");
 
             bool targetGameExisted = (gameName != null) && announcedGames.ContainsKey(gameName);
 
-            CreateCorePair(gameInfo);
-            appCore.PlayerJoinedEvt += _OnPlayerJoinedEvt;
-            appCore.NewBikeEvt += _OnNewBikeEvt;
 
-            switch (result)
+            if (result == GameSelectedEventArgs.ReturnCode.kCancel)
             {
-            case GameSelectedEventArgs.ReturnCode.kCreate:
-                if (targetGameExisted)
-                    _SetState(kFailed, $"Cannot create.  Beam Game \"{gameName}\" already exists");
-                else {
-                    _SetState(kCreatingAndJoiningGame, gameInfo);
+                _SetState( kFailed, $"OnGameSelected(): No Game Selected.");
+            }
+            else
+            {
+                if (gameInfo != null)
+                {
+                    CreateCorePair(gameInfo);
+                    appCore.PlayerJoinedEvt += _OnPlayerJoinedEvt;
+                    appCore.NewBikeEvt += _OnNewBikeEvt;
                 }
-                break;
 
-            case GameSelectedEventArgs.ReturnCode.kJoin:
-                 if (targetGameExisted)
-                 {
-                    _SetState(kJoiningExistingGame, gameInfo);
-                 }
-                else
-                    _SetState(kFailed, $"Apian Game \"{gameName}\" Not Found");
-                break;
+                switch (result)
+                {
+                case GameSelectedEventArgs.ReturnCode.kCreate:
+                    if (targetGameExisted)
+                        _SetState(kFailed, $"Cannot create.  Beam Game \"{gameName}\" already exists");
+                    else {
+                        _SetState(kCreatingAndJoiningGame, gameInfo);
+                    }
+                    break;
 
-            case GameSelectedEventArgs.ReturnCode.kCancel:
-                _SetState(kFailed, $"No Game Selected.");
-                break;
+                case GameSelectedEventArgs.ReturnCode.kJoin:
+                    if (targetGameExisted)
+                    {
+                        _SetState(kJoiningExistingGame, gameInfo);
+                    }
+                    else
+                        _SetState(kFailed, $"Apian Game \"{gameName}\" Not Found");
+                    break;
+                }
             }
         }
 
