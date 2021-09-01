@@ -4,11 +4,11 @@ using Apian;
 namespace BeamGameCode
 {
 
-    public class BeamGameInfo
+    public class BeamGameInfo : ApianGroupInfo
     {
-        public ApianGroupInfo GroupInfo;
-        public string GameName { get => GroupInfo.GroupName; }
-        public BeamGameInfo(ApianGroupInfo agi) { GroupInfo = agi; }
+        public string GameName { get => GroupName; }
+        public int MaxPlayers { get => int.Parse(GroupParams["MaxPlayers"]); }
+        public BeamGameInfo(ApianGroupInfo agi) : base(agi) {}
     }
 
     public class PeerJoinedEventArgs : EventArgs {

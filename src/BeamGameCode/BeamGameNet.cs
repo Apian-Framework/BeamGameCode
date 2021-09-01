@@ -89,6 +89,8 @@ namespace BeamGameCode
 
             ApianGroupInfo groupInfo = new ApianGroupInfo(apianGroupType, groupChanInfo, LocalP2pId(), gameName);
 
+            groupInfo.GroupParams["MaxPlayers"] = "4";
+
             return new BeamGameInfo(groupInfo);
         }
 
@@ -101,7 +103,7 @@ namespace BeamGameCode
                 return;
             }
 
-            base.JoinExistingGroup(gameInfo.GroupInfo, apian, localData);
+            base.JoinExistingGroup(gameInfo, apian, localData);
         }
 
         public void CreateAndJoinGame(BeamGameInfo gameInfo, BeamApian apian, string localData)
@@ -113,7 +115,7 @@ namespace BeamGameCode
                 return;
             }
 
-            base.CreateAndJoinGroup(gameInfo.GroupInfo, apian, localData);
+            base.CreateAndJoinGroup(gameInfo, apian, localData);
 
         }
 
