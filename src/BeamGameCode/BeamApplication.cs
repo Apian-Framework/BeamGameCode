@@ -203,6 +203,11 @@ namespace BeamGameCode
             GameAnnounceEvt?.Invoke(this, new GameAnnounceEventArgs(bgi));
         }
 
+        public void OnPeerJoinedGroup(PeerJoinedGroupData data)
+        {
+
+        }
+
         public void OnGroupMemberStatus(string groupId, string peerId, ApianGroupMember.Status newStatus, ApianGroupMember.Status prevStatus)
         {
             Logger.Info($"OnGroupMemberStatus() Grp: {groupId}, Peer: {UniLogger.SID(peerId)}, Status: {newStatus}, Prev: {prevStatus}");
