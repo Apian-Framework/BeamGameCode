@@ -102,7 +102,6 @@ namespace BeamGameCode
         public override void OnCheckpointCommand(ApianCheckpointMsg msg, long seqNum)
         {
             logger.Info($"OnCheckpointCommand() seqNum: {seqNum}, timestamp: {msg.TimeStamp}, Now: {FrameApianTime}");
-            CoreState.UpdateCommandSequenceNumber(seqNum);
             string stateJson = CoreState.ApianSerialized(new BeamCoreState.SerialArgs(seqNum, msg.TimeStamp));
             logger.Debug($"**** Checkpoint:\n{stateJson}\n************\n");
             apian.SendCheckpointState(FrameApianTime, seqNum, stateJson);
