@@ -16,11 +16,13 @@ namespace BeamGameCode
         public BeamNetworkPeer peer;
         public PeerJoinedEventArgs(string g, BeamNetworkPeer p) {channelId=g; peer=p;}
     }
+
     public class PeerLeftEventArgs : EventArgs {
         public string channelId;
         public string p2pId;
         public PeerLeftEventArgs(string g, string p) {channelId=g; p2pId=p;}
     }
+
     public class GameSelectedEventArgs : EventArgs {
         public enum ReturnCode {kCreate, kJoin, kCancel};
         public ReturnCode result;
@@ -33,6 +35,17 @@ namespace BeamGameCode
         public GameAnnounceEventArgs( BeamGameInfo gi) { gameInfo = gi; }
     }
 
+    public class LocalPeerJoinedGameData {
+        public bool success;
+        public string groupId;
+        public string failureReason;
+        public LocalPeerJoinedGameData( bool result,  string gId,  string fr)
+        {
+            success = result;
+            groupId = gId;
+            failureReason = fr;
+        }
+    }
 
     public interface IBeamApplication : IApianApplication
     {
@@ -44,7 +57,6 @@ namespace BeamGameCode
         event EventHandler<PeerJoinedEventArgs> PeerJoinedEvt;
         event EventHandler<PeerLeftEventArgs> PeerLeftEvt;
         event EventHandler<GameAnnounceEventArgs> GameAnnounceEvt;
-
     }
 
 }

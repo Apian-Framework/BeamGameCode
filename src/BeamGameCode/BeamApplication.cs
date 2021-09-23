@@ -49,25 +49,6 @@ namespace BeamGameCode
               beamGameNet.Connect(netConnectionStr);
         }
 
-        // Turns out this was the wrong place to implment this - but here's an async call that
-        //  completes on an event invocation
-        // TODO: Get rid of this at some point
-        // public async Task<bool> JoinBeamNetAsync(string networkName)
-        // {
-        //     _UpdateLocalPeer();
-        //     TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
-        //     void handler(object src, PeerJoinedArgs args)
-        //     {
-        //         if (args.peer?.PeerId == LocalPeer.PeerId)
-        //         {
-        //             tcs.TrySetResult(true);
-        //         }
-        //     };
-        //     PeerJoinedEvt +=handler;
-        //     beamGameNet.JoinBeamNet(networkName, LocalPeer);
-        //     return await tcs.Task.ContinueWith<bool>( t =>  {PeerJoinedEvt -= handler; return t.Result;} );
-        // }
-
         public async Task<PeerJoinedNetworkData> JoinBeamNetAsync(string networkName)
         {
             _CreateLocalPeer(); // reads stuff from settings  and p2p instance
@@ -81,21 +62,13 @@ namespace BeamGameCode
             PeerJoinedEvt?.Invoke(this, new PeerJoinedEventArgs(peerData.NetId, peer));
         }
 
-
-        public void ListenForGames()
-        {
-            beamGameNet.RequestGroups();
-        }
-
-        public async Task<Dictionary<string, BeamGameInfo>> GetExistingGames(int waitMs)
+        public async Task<Dictionary<string, BeamGameInfo>> GetExistingGamesAsync(int waitMs)
         {
             // Can't the mode talk to baemGameNet directly?
             Dictionary<string, ApianGroupInfo> groupsDict = await beamGameNet.RequestGroupsAsync(waitMs);
             Dictionary<string, BeamGameInfo> gameDict = groupsDict.Values.Select((grp) => new BeamGameInfo(grp)).ToDictionary(gm => gm.GameName, gm => gm);
             return gameDict;
         }
-
-
 
         public async Task<GameSelectedEventArgs> SelectGameAsync(IDictionary<string, BeamGameInfo> existingGames)
         {
@@ -104,18 +77,31 @@ namespace BeamGameCode
             return selection;
         }
 
-
         protected BeamPlayer MakeBeamPlayer() => new BeamPlayer(LocalPeer.PeerId, LocalPeer.Name);
         // FIXME: I think maybe it should go in BeamGameNet?
 
 
         public void CreateAndJoinGame(BeamGameInfo gameInfo, BeamAppCore appCore)
         {
-            beamGameNet.CreateAndJoinGame(gameInfo, appCore.apian, MakeBeamPlayer().ApianSerialized() );
+            // Splash and Practice use this
+            beamGameNet.CreateAndJoinGame(gameInfo, appCore?.apian, MakeBeamPlayer().ApianSerialized() );
         }
-       public void JoinExistingGame(BeamGameInfo gameInfo, BeamAppCore appCore)
+
+        public async Task<LocalPeerJoinedGameData> CreateAndJoinGameAsync(BeamGameInfo gameInfo, BeamAppCore appCore)
         {
-            beamGameNet.JoinExistingGame(gameInfo, appCore.apian, MakeBeamPlayer().ApianSerialized() );
+            PeerJoinedGroupData joinData = await beamGameNet.CreateAndJoinGameAsync(gameInfo, appCore?.apian, MakeBeamPlayer().ApianSerialized() );
+            return new LocalPeerJoinedGameData(joinData.Success, joinData.GroupInfo.GroupId, joinData.Message);
+        }
+
+        // public void JoinExistingGame(BeamGameInfo gameInfo, BeamAppCore appCore)
+        // {
+        //     beamGameNet.JoinExistingGame(gameInfo, appCore.apian, MakeBeamPlayer().ApianSerialized() );
+        // }
+
+        public async Task<LocalPeerJoinedGameData> JoinExistingGameAsync(BeamGameInfo gameInfo, BeamAppCore appCore)
+        {
+            PeerJoinedGroupData joinData = await beamGameNet.JoinExistingGameAsync(gameInfo, appCore?.apian, MakeBeamPlayer().ApianSerialized() );
+            return new LocalPeerJoinedGameData(joinData.Success, joinData.GroupInfo.GroupId, joinData.Message);
         }
 
         public void LeaveGame(string gameId)
@@ -163,13 +149,6 @@ namespace BeamGameCode
         {
             return modeMgr.Loop(frameSecs);
         }
-
-        // IGameNetClient
-        // public void OnNetworkCreated(string netP2pChannel)
-        // {
-        //     Logger.Info($"OnGameCreated({netP2pChannel}");
-        //     NetworkCreatedEvt?.Invoke(this, netP2pChannel);
-        // }
 
 
         public void OnPeerLeftNetwork(string p2pId, string netId)

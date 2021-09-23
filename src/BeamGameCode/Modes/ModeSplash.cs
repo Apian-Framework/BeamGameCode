@@ -55,20 +55,6 @@ namespace BeamGameCode
             bGameSetup = true;
         }
 
-        // public void StartSplash()
-        // {
-        //     logger.Info("Splash network joined");
-        //     BeamGameInfo gameInfo = appl.beamGameNet.CreateBeamGameInfo(ApianGroupName, SinglePeerGroupManager.kGroupType);
-        //     _CreateCorePair(gameInfo);
-        //     appCore.PlayerJoinedEvt += OnPlayerJoinedEvt;
-        //     appCore.NewBikeEvt += OnNewBikeEvt;
-
-        //     appl.CreateAndJoinGame(gameInfo, appCore);
-
-        //     // Note that the target bike is probably NOT created yet at this point.
-        //     // This robably needs to happen differently
-
-        // }
 
 		public override void Loop(float frameSecs)
         {

@@ -20,7 +20,9 @@ namespace BeamGameCode
 
         BeamGameInfo CreateBeamGameInfo( string gameName, string apianGroupType);
         void CreateAndJoinGame(BeamGameInfo gameInfo, BeamApian apian, string localData);
+        Task<PeerJoinedGroupData> CreateAndJoinGameAsync(BeamGameInfo gameInfo, BeamApian apian, string localData);
         void JoinExistingGame(BeamGameInfo gameInfo, BeamApian apian, string localData );
+        Task<PeerJoinedGroupData> JoinExistingGameAsync(BeamGameInfo gameInfo, BeamApian apian, string localData );
         void LeaveGame(string gameId);
 
         void SendBikeCreateDataReq(string groupId, IBike ib);
@@ -102,8 +104,11 @@ namespace BeamGameCode
                 logger.Error($"JoinExistingGame() - Must join network first"); // TODO: probably ought to assert? Can this be recoverable?
                 return;
             }
-
             base.JoinExistingGroup(gameInfo, apian, localData);
+        }
+        public async Task<PeerJoinedGroupData> JoinExistingGameAsync(BeamGameInfo gameInfo, BeamApian apian, string localData )
+        {
+            return await base.JoinExistingGroupAsync(gameInfo, apian, localData);
         }
 
         public void CreateAndJoinGame(BeamGameInfo gameInfo, BeamApian apian, string localData)
@@ -118,6 +123,12 @@ namespace BeamGameCode
             base.CreateAndJoinGroup(gameInfo, apian, localData);
 
         }
+
+        public async Task<PeerJoinedGroupData> CreateAndJoinGameAsync(BeamGameInfo gameInfo, BeamApian apian, string localData)
+        {
+            return await base.CreateAndJoinGroupAsync(gameInfo, apian, localData);
+        }
+
 
         public void LeaveGame(string gameId) => LeaveGroup(gameId); // ApianGameNet.LeaveGroup()
 
