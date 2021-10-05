@@ -77,6 +77,10 @@ namespace BeamGameCode
             return ApianClock == null ? SystemTime : ApianClock.CurrentTime;
         }
 
+        public override ApianGroupMember CreateGroupMember(string peerId, string appMemberDataJson)
+        {
+            return new BeamApianPeer(peerId, appMemberDataJson);
+        }
 
         public override void Update()
         {
@@ -129,31 +133,30 @@ namespace BeamGameCode
 
             //  When we see these transitions send an OBSERVATION.
             // The ApianGroup will can then convert it to a Command and distribute that.
+            BeamApianPeer peer = member as BeamApianPeer;
 
-             switch(prevStatus)
+            switch(prevStatus)
             {
             case ApianGroupMember.Status.Joining:
-                if (member.CurStatus == ApianGroupMember.Status.Active)
+                if (peer.CurStatus == ApianGroupMember.Status.Active)
                 {
                     // In a leader-based ApianGroup the first peer will probably go stright from Joining to Active
-                    SendNewPlayerObs(ApianClock.CurrentTime, BeamPlayer.FromApianJson(member.AppDataJson));
+                    SendNewPlayerObs(ApianClock.CurrentTime, BeamPlayer.FromApianJson(peer.AppDataJson));
                 }
                 break;
             case ApianGroupMember.Status.Syncing:
-                if (member.CurStatus == ApianGroupMember.Status.Active)
+                if (peer.CurStatus == ApianGroupMember.Status.Active)
                 {
                     // Most common situation
-                    SendNewPlayerObs(ApianClock.CurrentTime, BeamPlayer.FromApianJson(member.AppDataJson));
+                    SendNewPlayerObs(ApianClock.CurrentTime, BeamPlayer.FromApianJson(peer.AppDataJson));
                 }
                 break;
-            case ApianGroupMember.Status.Active:
-                if (member.CurStatus == ApianGroupMember.Status.Removed)
-                {
-                    // FIXME: This switch needs to all be turned inside-out.
-                    // If ANY state transitions to "removed" then PlayerLeft needs to get sent
-                    SendPlayerLeftObs(ApianClock.CurrentTime, member.PeerId);
-                }
-                break;
+            }
+
+            // No matter Wwhat state it was - it's gone now...
+            if (peer.CurStatus == ApianGroupMember.Status.Removed)
+            {
+                SendPlayerLeftObs(ApianClock.CurrentTime, peer.PeerId);
             }
         }
 
