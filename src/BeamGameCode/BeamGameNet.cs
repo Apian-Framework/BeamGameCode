@@ -106,6 +106,7 @@ namespace BeamGameCode
             }
             base.JoinExistingGroup(gameInfo, apian, localData);
         }
+
         public async Task<PeerJoinedGroupData> JoinExistingGameAsync(BeamGameInfo gameInfo, BeamApian apian, string localData )
         {
             return await base.JoinExistingGroupAsync(gameInfo, apian, localData);
