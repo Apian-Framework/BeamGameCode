@@ -228,12 +228,6 @@ namespace BeamGameCode
             }
         }
 
-        public override string ValidateJoinRequest(GroupJoinRequestMsg req)
-        {
-            Logger.Warn($"ValidateJoinRequest() unimplmented. Allowing join.");
-            return null;  // null says "Let 'em join:
-        }
-
         public void SendNewPlayerObs(long timeStamp, BeamPlayer newPlayer)
         {
             Logger.Debug($"SendNewPlayerObs()");
