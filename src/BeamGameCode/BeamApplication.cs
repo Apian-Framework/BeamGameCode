@@ -62,15 +62,17 @@ namespace BeamGameCode
             PeerJoinedEvt?.Invoke(this, new PeerJoinedEventArgs(peerData.NetId, peer));
         }
 
-        public async Task<Dictionary<string, BeamGameInfo>> GetExistingGamesAsync(int waitMs)
+        public async Task<Dictionary<string, BeamGameAnnounceData>> GetExistingGamesAsync(int waitMs)
         {
             // Can't the mode talk to baemGameNet directly?
-            Dictionary<string, ApianGroupInfo> groupsDict = await beamGameNet.RequestGroupsAsync(waitMs);
-            Dictionary<string, BeamGameInfo> gameDict = groupsDict.Values.Select((grp) => new BeamGameInfo(grp)).ToDictionary(gm => gm.GameName, gm => gm);
+            Dictionary<string, GroupAnnounceResult> groupsDict = await beamGameNet.RequestGroupsAsync(waitMs);
+            Dictionary<string, BeamGameAnnounceData> gameDict = groupsDict.Values
+                .Select((gar) => new BeamGameAnnounceData(gar))
+                .ToDictionary(bgd => bgd.GameInfo.GameName, bgd => bgd);
             return gameDict;
         }
 
-        public async Task<GameSelectedEventArgs> SelectGameAsync(IDictionary<string, BeamGameInfo> existingGames)
+        public async Task<GameSelectedEventArgs> SelectGameAsync(IDictionary<string, BeamGameAnnounceData> existingGames)
         {
             GameSelectedEventArgs selection = await frontend.SelectGameAsync(existingGames);
             Logger.Info($"SelectGameAsync() Got result:  GameName: {selection.gameInfo?.GameName} ResultCode: {selection.result}");

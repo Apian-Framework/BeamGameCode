@@ -28,7 +28,7 @@ namespace BeamGameCode
         void DisplayMessage(MessageSeverity level, string msgText);
 
         //void SelectGame(IDictionary<string, BeamGameInfo> existingGames);
-        Task<GameSelectedEventArgs> SelectGameAsync(IDictionary<string, BeamGameInfo> existingGames);
+        Task<GameSelectedEventArgs> SelectGameAsync(IDictionary<string, BeamGameAnnounceData> existingGames);
 
         // Event/message handlers
 

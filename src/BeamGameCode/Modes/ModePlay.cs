@@ -147,7 +147,7 @@ namespace BeamGameCode
                 appl.ConnectToNetwork(settings.p2pConnectionString); // should be async? GameNet.Connect() currently is not
                 GameNet.PeerJoinedNetworkData netJoinData = await appl.JoinBeamNetAsync(settings.apianNetworkName);
 
-                Dictionary<string, BeamGameInfo> gamesAvail = await appl.GetExistingGamesAsync((int)(kListenForGamesSecs*1000));
+                Dictionary<string, BeamGameAnnounceData> gamesAvail = await appl.GetExistingGamesAsync((int)(kListenForGamesSecs*1000));
                 GameSelectedEventArgs selection = await appl.SelectGameAsync(gamesAvail);
 
                 // OnGameSelected( selection )

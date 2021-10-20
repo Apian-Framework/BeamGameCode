@@ -11,6 +11,24 @@ namespace BeamGameCode
         public BeamGameInfo(ApianGroupInfo agi) : base(agi) {}
     }
 
+    public class BeamGameStatus : ApianGroupStatus
+    {
+        public int PlayerCount { get => int.Parse(OtherStatus["PlayerCount"]); set => OtherStatus["PlayerCount"] = $"{value}"; }
+        public int ValidatorCount { get => int.Parse(OtherStatus["ValidatorCount"]); set => OtherStatus["ValidatorCount"] = $"{value}";}
+        public BeamGameStatus(ApianGroupStatus ags) : base(ags) {}
+    }
+
+    public class BeamGameAnnounceData
+    {
+        public BeamGameInfo GameInfo { get; }
+        public BeamGameStatus GameStatus { get; }
+        public BeamGameAnnounceData(GroupAnnounceResult gar)
+        {
+            GameInfo = new BeamGameInfo(gar.GroupInfo);
+            GameStatus = new BeamGameStatus(gar.GroupStatus);
+        }
+    }
+
     public class PeerJoinedEventArgs : EventArgs {
         public string channelId;
         public BeamNetworkPeer peer;
