@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using UnityEngine;
@@ -248,34 +249,25 @@ namespace BeamGameCode
        // No observation conflict detection
     }
 
-    static public class BeamCoreMessageDeserializer
+    public class BeamCoreMessageDeserializer : ApianCoreMessageDeserializer
     {
 
-         public static Dictionary<string, Func<string, ApianCoreMessage>> beamDeserializers = new  Dictionary<string, Func<string, ApianCoreMessage>>()
-         {
-            {BeamMessage.kNewPlayer, (s) => JsonConvert.DeserializeObject<NewPlayerMsg>(s) },
-            {BeamMessage.kPlayerLeft, (s) => JsonConvert.DeserializeObject<PlayerLeftMsg>(s) },
-            {BeamMessage.kBikeTurnMsg, (s) => JsonConvert.DeserializeObject<BikeTurnMsg>(s) },
-            {BeamMessage.kBikeCommandMsg, (s) => JsonConvert.DeserializeObject<BikeCommandMsg>(s) },
-            {BeamMessage.kBikeCreateData, (s) => JsonConvert.DeserializeObject<BikeCreateMsg>(s) },
-            {BeamMessage.kRemoveBikeMsg, (s) => JsonConvert.DeserializeObject<RemoveBikeMsg>(s) },
-            {BeamMessage.kPlaceClaimMsg, (s) => JsonConvert.DeserializeObject<PlaceClaimMsg>(s) },
-            {BeamMessage.kPlaceHitMsg, (s) => JsonConvert.DeserializeObject<PlaceHitMsg>(s) },
-            {BeamMessage.kPlaceRemovedMsg, (s) => JsonConvert.DeserializeObject<PlaceRemovedMsg>(s) },
-
-            // TODO: &&&& This is AWFUL! I want the checkpoint command to be a proper ApianCommand so it has a sequence # is part of
-            // the command stream and all - but the deserialization "chain" that I've create really only works if the command is deserialized
-            // here. I could check for the msgType in this dict and if not there get it from an ApianMessage-defined one, but it seems a shame
-            // to do the test?
-            // TODO: Nah - do the test
-            {ApianMessage.CheckpointMsg, (s) => JsonConvert.DeserializeObject<ApianCheckpointMsg>(s) },
-         };
-
-        public static ApianCoreMessage FromJSON(string coreMsgType, string json)
+        public BeamCoreMessageDeserializer() : base()
         {
-            return  beamDeserializers[coreMsgType](json) as ApianCoreMessage;
+
+            coreDeserializers =  coreDeserializers.Concat(
+                new  Dictionary<string, Func<string, ApianCoreMessage>>()
+                {
+                    {BeamMessage.kNewPlayer, (s) => JsonConvert.DeserializeObject<NewPlayerMsg>(s) },
+                    {BeamMessage.kPlayerLeft, (s) => JsonConvert.DeserializeObject<PlayerLeftMsg>(s) },
+                    {BeamMessage.kBikeTurnMsg, (s) => JsonConvert.DeserializeObject<BikeTurnMsg>(s) },
+                    {BeamMessage.kBikeCommandMsg, (s) => JsonConvert.DeserializeObject<BikeCommandMsg>(s) },
+                    {BeamMessage.kBikeCreateData, (s) => JsonConvert.DeserializeObject<BikeCreateMsg>(s) },
+                    {BeamMessage.kRemoveBikeMsg, (s) => JsonConvert.DeserializeObject<RemoveBikeMsg>(s) },
+                    {BeamMessage.kPlaceClaimMsg, (s) => JsonConvert.DeserializeObject<PlaceClaimMsg>(s) },
+                    {BeamMessage.kPlaceHitMsg, (s) => JsonConvert.DeserializeObject<PlaceHitMsg>(s) },
+                    {BeamMessage.kPlaceRemovedMsg, (s) => JsonConvert.DeserializeObject<PlaceRemovedMsg>(s) },
+                } ).ToDictionary(x=>x.Key,x=>x.Value);
         }
     }
-
-
 }

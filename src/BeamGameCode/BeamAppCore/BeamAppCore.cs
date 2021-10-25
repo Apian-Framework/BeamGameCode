@@ -47,11 +47,15 @@ namespace BeamGameCode
         public event EventHandler ReadyToPlayEvt;
         public event EventHandler RespawnPlayerEvt;
 
+        protected BeamCoreMessageDeserializer coreMsgDeser;
+
         public BeamAppCore()
         {
             logger = UniLogger.GetLogger("AppCore");
             CoreState = new BeamCoreState();
             OnNewCoreState();
+
+            coreMsgDeser = new BeamCoreMessageDeserializer();
 
             ClientMsgCommandHandlers = new  Dictionary<string, Action<ApianCoreMessage, long>>()
             {
@@ -77,7 +81,7 @@ namespace BeamGameCode
 
         public override ApianCoreMessage DeserializeCoreMessage(ApianWrappedCoreMessage aMsg)
         {
-            return BeamCoreMessageDeserializer.FromJSON(aMsg.CoreMsgType, aMsg.SerializedCoreMsg);
+            return coreMsgDeser.FromJSON(aMsg.CoreMsgType, aMsg.SerializedCoreMsg);
         }
 
         public override bool CommandIsValid(ApianCoreMessage cmdMsg)
