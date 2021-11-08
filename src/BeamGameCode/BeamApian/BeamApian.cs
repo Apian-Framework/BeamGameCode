@@ -188,7 +188,7 @@ namespace BeamGameCode
 
         public override void ApplyStashedApianCommand(ApianCommand cmd)
         {
-            _AdvanceStateTo((cmd as ApianWrappedCoreMessage).CoreMsgTimeStamp);
+            _AdvanceStateTo((cmd as ApianWrappedMessage).PayloadTimeStamp);
             base.ApplyStashedApianCommand(cmd);
         }
 

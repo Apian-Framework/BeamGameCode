@@ -79,9 +79,9 @@ namespace BeamGameCode
             apian = ap as BeamApian;
         }
 
-        public override ApianCoreMessage DeserializeCoreMessage(ApianWrappedCoreMessage aMsg)
+        public override ApianCoreMessage DeserializeCoreMessage(ApianWrappedMessage aMsg)
         {
-            return coreMsgDeser.FromJSON(aMsg.CoreMsgType, aMsg.SerializedCoreMsg);
+            return coreMsgDeser.FromJSON(aMsg.PayloadMsgType, aMsg.SerializedPayload);
         }
 
         public override bool CommandIsValid(ApianCoreMessage cmdMsg)
