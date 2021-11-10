@@ -65,7 +65,7 @@ namespace BeamGameCode
             }
         }
 
-        public BeamMessage(string t, long ts) : base(t,ts) {}
+        public BeamMessage(string t, long ts) : base(ApianCoreMessage.kAppCore,t,ts) {}
         public BeamMessage() : base() {}
     }
 
