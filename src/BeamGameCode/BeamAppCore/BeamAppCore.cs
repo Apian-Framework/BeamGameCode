@@ -68,7 +68,7 @@ namespace BeamGameCode
                 [BeamMessage.kPlaceClaimMsg] = (msg, seqNum) => this.OnPlaceClaimCmd(msg as PlaceClaimMsg, seqNum),
                 [BeamMessage.kPlaceHitMsg] = (msg, seqNum) => this.OnPlaceHitCmd(msg as PlaceHitMsg, seqNum),
                 [BeamMessage.kPlaceRemovedMsg] = (msg, seqNum) => this.OnPlaceRemovedCmd(msg as PlaceRemovedMsg, seqNum),
-                [GroupManagerMessage.CheckpointRequest] = (msg, seqNum) => this.OnCheckpointCommand(msg as CheckpointRequestMsg, seqNum),
+                [GroupCoreMessage.CheckpointRequest] = (msg, seqNum) => this.OnCheckpointCommand(msg as CheckpointRequestMsg, seqNum),
             };
         }
 
