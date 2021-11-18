@@ -17,5 +17,15 @@ namespace BeamGameCode
 
             GroupMgr = new CreatorSezGroupManager(this);
         }
+
+        public override (bool, string) CheckQuorum()
+        {
+            BeamGameInfo bgi = GroupInfo as BeamGameInfo;
+
+            if ( GroupMgr.GetMember(bgi.GroupCreatorId) == null)
+                return (false, $"Creator Peer {bgi.GroupCreatorId} not present");
+
+            return (true, "");
+        }
     }
 }

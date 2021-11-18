@@ -14,5 +14,10 @@ namespace BeamGameCode
             ApianClock = new CoopApianClock(this); // TODO: This is wasteful. Needs a trivial single peer clock.
             GroupMgr = new SinglePeerGroupManager(this);
         }
+
+        public override (bool, string) CheckQuorum()
+        {
+            return (true, ""); // always true
+        }
     }
 }

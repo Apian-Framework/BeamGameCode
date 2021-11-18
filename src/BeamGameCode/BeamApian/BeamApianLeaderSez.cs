@@ -17,5 +17,16 @@ namespace BeamGameCode
 
             GroupMgr = new LeaderSezGroupManager(this);
         }
+
+        public override (bool, string) CheckQuorum()
+        {
+            BeamGameInfo bgi = GroupInfo as BeamGameInfo;
+
+            if ( GroupMgr.GetMember(bgi.GroupCreatorId ) == null) // this is wrong. But leaderSez doesn't work anyway
+                return (false, $"Creator Peer {bgi.GroupCreatorId} not present");
+
+            return (true, "");
+        }
+
     }
 }
