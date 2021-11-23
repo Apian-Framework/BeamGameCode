@@ -68,7 +68,6 @@ namespace BeamGameCode
                 [BeamMessage.kPlaceClaimMsg] = (msg, seqNum) => this.OnPlaceClaimCmd(msg as PlaceClaimMsg, seqNum),
                 [BeamMessage.kPlaceHitMsg] = (msg, seqNum) => this.OnPlaceHitCmd(msg as PlaceHitMsg, seqNum),
                 [BeamMessage.kPlaceRemovedMsg] = (msg, seqNum) => this.OnPlaceRemovedCmd(msg as PlaceRemovedMsg, seqNum),
-                [GroupCoreMessage.CheckpointRequest] = (msg, seqNum) => this.OnCheckpointCommand(msg as CheckpointRequestMsg, seqNum),
             };
         }
 
@@ -90,11 +89,14 @@ namespace BeamGameCode
         }
         public override void OnApianCommand(long cmdSeqNum, ApianCoreMessage coreMsg)
         {
-            logger.Debug($"OnApianCommand() Seq#: {cmdSeqNum} Cmd: {coreMsg.MsgType}");
+            logger.Debug($"OnApianCommand() Seq#: {cmdSeqNum} Cmd: {coreMsg?.MsgType ?? "null"}");
             CoreState.UpdateCommandSequenceNumber(cmdSeqNum);
-            CoreState.ResetRemovalSideEffects();
-            ClientMsgCommandHandlers[coreMsg.MsgType](coreMsg, cmdSeqNum);
-            CoreState.DoRemovals();
+            if (coreMsg != null)
+            {
+                CoreState.ResetRemovalSideEffects();
+                ClientMsgCommandHandlers[coreMsg.MsgType](coreMsg, cmdSeqNum);
+                CoreState.DoRemovals();
+            }
         }
 
         // what effect does the previous msg have on the testMsg?
@@ -103,12 +105,14 @@ namespace BeamGameCode
             return BeamMessageValidity.ValidateObservations( prevMsg as BeamMessage, testMsg as BeamMessage);
         }
 
-        public override void OnCheckpointCommand(CheckpointRequestMsg msg, long seqNum)
+        public override string DoCheckpointCoreState(long seqNum, long checkPointTime)
         {
-            logger.Info($"OnCheckpointCommand() seqNum: {seqNum}, timestamp: {msg.TimeStamp}, Now: {FrameApianTime}");
-            string stateJson = CoreState.ApianSerialized(new BeamCoreState.SerialArgs(seqNum, msg.TimeStamp));
+            // TODO: Is imestamp necessary?
+            logger.Info($"CoreStateCheckpoint() seqNum: {seqNum}, timestamp: {checkPointTime}, Now: {FrameApianTime}");
+            string stateJson = CoreState.ApianSerialized(new BeamCoreState.SerialArgs(seqNum,checkPointTime));
             logger.Debug($"**** Checkpoint:\n{stateJson}\n************\n");
-            apian.SendCheckpointState(FrameApianTime, seqNum, stateJson);
+            //apian.SendCheckpointState(FrameApianTime, seqNum, stateJson);
+            return stateJson;
 
             // BeamGameState newState =  BeamGameState.FromApianSerialized(GameData, seqNum,  timeStamp,  "blahblah", stateJson);
         }
