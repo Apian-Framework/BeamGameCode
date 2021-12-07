@@ -108,7 +108,7 @@ namespace BeamGameCode
         public override string DoCheckpointCoreState(long seqNum, long checkPointTime)
         {
             // TODO: Is imestamp necessary?
-            logger.Info($"CoreStateCheckpoint() seqNum: {seqNum}, timestamp: {checkPointTime}, Now: {FrameApianTime}");
+            logger.Info($"DoCheckpointCoreState() seqNum: {seqNum}, timestamp: {checkPointTime}, Now: {FrameApianTime}");
             string stateJson = CoreState.ApianSerialized(new BeamCoreState.SerialArgs(seqNum,checkPointTime));
             logger.Debug($"**** Checkpoint:\n{stateJson}\n************\n");
             //apian.SendCheckpointState(FrameApianTime, seqNum, stateJson);
