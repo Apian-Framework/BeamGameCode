@@ -7,6 +7,7 @@ using UnityEngine;
 using ModalApplication;
 using UniLog;
 using static UniLog.UniLogger; // for SID()
+using P2pNet; // just for PeerClockSuncInfo. Kind alame.
 using GameNet;
 using Apian;
 
@@ -174,7 +175,7 @@ namespace BeamGameCode
         public void SetGameNetInstance(IGameNet iGameNetInstance) {} // Stubbed.
         // FIXME: Does GameNet.SetGameNetInstance() even make sense anymore?
 
-        public void OnPeerSync(string channel, string p2pId, long clockOffsetMs, long netLagMs) {} // stubbed
+        public void OnPeerSync(string channel, string p2pId, PeerClockSyncInfo syncInfo) {} // stubbed
         // TODO: Be nice to be able to default-stub this somewhere.
 
         public void OnGroupAnnounce(ApianGroupInfo groupInfo)

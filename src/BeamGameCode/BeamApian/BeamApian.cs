@@ -142,7 +142,7 @@ namespace BeamGameCode
                     SendNewPlayerObs(ApianClock.CurrentTime, BeamPlayer.FromApianJson(peer.AppDataJson));
                 }
                 break;
-            case ApianGroupMember.Status.Syncing:
+            case ApianGroupMember.Status.SyncingState:
                 if (peer.CurStatus == ApianGroupMember.Status.Active)
                 {
                     // Most common situation
