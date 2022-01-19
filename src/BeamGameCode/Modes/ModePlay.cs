@@ -98,7 +98,12 @@ namespace BeamGameCode
             {
             case kStartingUp:
                 logger.Verbose($"{(ModeName())}: SetState: kStartingUp");
+
+#if !SINGLE_THREADED
                 _AsyncStartup();
+#else
+    #warning Need single threaded version!
+#endif
                 break;
             case kPlaying:
                 logger.Verbose($"{(ModeName())}: SetState: kPlaying");
@@ -140,49 +145,6 @@ namespace BeamGameCode
         }
 
         // utils
-
-        private async void _AsyncStartup()
-        {
-            try {
-                appl.ConnectToNetwork(settings.p2pConnectionString); // should be async? GameNet.Connect() currently is not
-                GameNet.PeerJoinedNetworkData netJoinData = await appl.JoinBeamNetAsync(settings.apianNetworkName);
-
-                Dictionary<string, BeamGameAnnounceData> gamesAvail = await appl.GetExistingGamesAsync((int)(kListenForGamesSecs*1000));
-                GameSelectedEventArgs selection = await appl.SelectGameAsync(gamesAvail);
-
-                // OnGameSelected( selection )
-                if (selection.result == GameSelectedEventArgs.ReturnCode.kCancel)
-                    throw new ArgumentException($"_AsyncStartup() No Game Selected.");
-
-                BeamGameInfo gameInfo = selection.gameInfo;
-
-                _SetupCorePair(gameInfo);
-
-                bool targetGameExisted = (gameInfo.GameName != null) && gamesAvail.ContainsKey(gameInfo.GameName);
-                LocalPeerJoinedGameData gameJoinData = null;
-
-                if (selection.result == GameSelectedEventArgs.ReturnCode.kCreate)
-                {
-                    // Create and join
-                    if (targetGameExisted)
-                        throw new ArgumentException($"Cannot create.  Beam Game \"{gameInfo.GameName}\" already exists");
-                    gameJoinData = await appl.CreateAndJoinGameAsync(gameInfo, appCore);
-
-                } else {
-                    // Join existing
-                    if (!targetGameExisted)
-                        throw new ArgumentException($"Cannot Join.  Beam Game \"{gameInfo.GameName}\" not found");
-                    gameJoinData = await appl.JoinExistingGameAsync(gameInfo, appCore);
-                }
-
-                // Now we are waiting for the AppCore to report that the local player has joined the CoreGame
-                // AppCore.PlayerJoinedEvt
-
-            } catch (Exception ex) {
-                _SetState(kFailed, ex.Message);
-                return;
-            }
-        }
 
         private void _SetupCorePair(BeamGameInfo gameInfo)
         {
@@ -263,7 +225,54 @@ namespace BeamGameCode
             return null;
         }
 
+#if !SINGLE_THREADED
 
+        // MultiThreaded code
+        private async void _AsyncStartup()
+        {
+            try {
+                appl.ConnectToNetwork(settings.p2pConnectionString); // should be async? GameNet.Connect() currently is not
+                GameNet.PeerJoinedNetworkData netJoinData = await appl.JoinBeamNetAsync(settings.apianNetworkName);
+
+                Dictionary<string, BeamGameAnnounceData> gamesAvail = await appl.GetExistingGamesAsync((int)(kListenForGamesSecs*1000));
+                GameSelectedEventArgs selection = await appl.SelectGameAsync(gamesAvail);
+
+                // OnGameSelected( selection )
+                if (selection.result == GameSelectedEventArgs.ReturnCode.kCancel)
+                    throw new ArgumentException($"_AsyncStartup() No Game Selected.");
+
+                BeamGameInfo gameInfo = selection.gameInfo;
+
+                _SetupCorePair(gameInfo);
+
+                bool targetGameExisted = (gameInfo.GameName != null) && gamesAvail.ContainsKey(gameInfo.GameName);
+                LocalPeerJoinedGameData gameJoinData = null;
+
+                if (selection.result == GameSelectedEventArgs.ReturnCode.kCreate)
+                {
+                    // Create and join
+                    if (targetGameExisted)
+                        throw new ArgumentException($"Cannot create.  Beam Game \"{gameInfo.GameName}\" already exists");
+                    gameJoinData = await appl.CreateAndJoinGameAsync(gameInfo, appCore);
+
+                } else {
+                    // Join existing
+                    if (!targetGameExisted)
+                        throw new ArgumentException($"Cannot Join.  Beam Game \"{gameInfo.GameName}\" not found");
+                    gameJoinData = await appl.JoinExistingGameAsync(gameInfo, appCore);
+                }
+
+                // Now we are waiting for the AppCore to report that the local player has joined the CoreGame
+                // AppCore.PlayerJoinedEvt
+
+            } catch (Exception ex) {
+                _SetState(kFailed, ex.Message);
+                return;
+            }
+        }
+#else
+
+#endif
 
     }
 }

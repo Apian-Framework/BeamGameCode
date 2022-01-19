@@ -1,5 +1,4 @@
 using System;
-using System.Threading.Tasks;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using UnityEngine;
@@ -8,6 +7,10 @@ using P2pNet;
 using Apian;
 using UniLog;
 using static UniLog.UniLogger; // for SID()
+
+#if !SINGLE_THREADEDxxx
+using System.Threading.Tasks;
+#endif
 
 namespace BeamGameCode
 {

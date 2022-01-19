@@ -19,11 +19,18 @@ namespace BeamGameCode
         {
             base.Start();
             appl.AddAppCore(null); // TODO: THis is beam only. Need better way. ClearGameInstances()? Init()?
+
+#if !SINGLE_THREADED
             DoAsyncSetupAndStartJoin();
+#else
+    #warning Need single threaded version!
+#endif
+
             appl.frontend?.OnStartMode(BeamModeFactory.kPractice, null);
 
         }
 
+#if !SINGLE_THREADED
         protected async void DoAsyncSetupAndStartJoin()
         {
             // Setup/connect fake network
@@ -41,6 +48,9 @@ namespace BeamGameCode
             appl.CreateAndJoinGame(gameInfo, appCore);
             // waiting for OnGroupJoined()
         }
+#else
+
+#endif
 
         protected void DoGameSetup()
         {

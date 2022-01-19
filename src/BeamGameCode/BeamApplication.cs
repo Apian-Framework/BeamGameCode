@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using Newtonsoft.Json;
 using UnityEngine;
 using ModalApplication;
@@ -10,6 +9,11 @@ using static UniLog.UniLogger; // for SID()
 using P2pNet; // just for PeerClockSuncInfo. Kind alame.
 using GameNet;
 using Apian;
+
+#if !SINGLE_THREADED
+using System.Threading.Tasks;
+#endif
+
 
 namespace BeamGameCode
 {
@@ -50,17 +54,11 @@ namespace BeamGameCode
               beamGameNet.Connect(netConnectionStr);
         }
 
+#if !SINGLE_THREADED
         public async Task<PeerJoinedNetworkData> JoinBeamNetAsync(string networkName)
         {
             _CreateLocalPeer(); // reads stuff from settings  and p2p instance
             return await beamGameNet.JoinBeamNetAsync(networkName, LocalPeer);
-        }
-
-        public void OnPeerJoinedNetwork(PeerJoinedNetworkData peerData)
-        {
-            BeamNetworkPeer peer = JsonConvert.DeserializeObject<BeamNetworkPeer>(peerData.HelloData);
-            Logger.Info($"OnPeerJoinedNetwork() {((peerData.PeerId == LocalPeer.PeerId)?"Local":"Remote")} name: {peer.Name}");
-            PeerJoinedEvt?.Invoke(this, new PeerJoinedEventArgs(peerData.NetId, peer));
         }
 
         public async Task<Dictionary<string, BeamGameAnnounceData>> GetExistingGamesAsync(int waitMs)
@@ -80,6 +78,34 @@ namespace BeamGameCode
             return selection;
         }
 
+        public async Task<LocalPeerJoinedGameData> CreateAndJoinGameAsync(BeamGameInfo gameInfo, BeamAppCore appCore)
+        {
+            PeerJoinedGroupData joinData = await beamGameNet.CreateAndJoinGameAsync(gameInfo, appCore?.apian, MakeBeamPlayer().ApianSerialized() );
+            return new LocalPeerJoinedGameData(joinData.Success, joinData.GroupInfo.GroupId, joinData.Message);
+        }
+
+        public async Task<LocalPeerJoinedGameData> JoinExistingGameAsync(BeamGameInfo gameInfo, BeamAppCore appCore)
+        {
+            PeerJoinedGroupData joinData = await beamGameNet.JoinExistingGameAsync(gameInfo, appCore?.apian, MakeBeamPlayer().ApianSerialized() );
+            return new LocalPeerJoinedGameData(joinData.Success, joinData.GroupInfo.GroupId, joinData.Message);
+        }
+
+#endif
+        // Synchronous versions
+        public void JoinBeamNet(string networkName)
+        {
+            _CreateLocalPeer();
+
+            beamGameNet.JoinBeamNet(networkName, LocalPeer);
+        }
+
+        public void OnPeerJoinedNetwork(PeerJoinedNetworkData peerData)
+        {
+            BeamNetworkPeer peer = JsonConvert.DeserializeObject<BeamNetworkPeer>(peerData.HelloData);
+            Logger.Info($"OnPeerJoinedNetwork() {((peerData.PeerId == LocalPeer.PeerId)?"Local":"Remote")} name: {peer.Name}");
+            PeerJoinedEvt?.Invoke(this, new PeerJoinedEventArgs(peerData.NetId, peer));
+        }
+
         protected BeamPlayer MakeBeamPlayer() => new BeamPlayer(LocalPeer.PeerId, LocalPeer.Name);
         // FIXME: I think maybe it should go in BeamGameNet?
 
@@ -90,22 +116,13 @@ namespace BeamGameCode
             beamGameNet.CreateAndJoinGame(gameInfo, appCore?.apian, MakeBeamPlayer().ApianSerialized() );
         }
 
-        public async Task<LocalPeerJoinedGameData> CreateAndJoinGameAsync(BeamGameInfo gameInfo, BeamAppCore appCore)
-        {
-            PeerJoinedGroupData joinData = await beamGameNet.CreateAndJoinGameAsync(gameInfo, appCore?.apian, MakeBeamPlayer().ApianSerialized() );
-            return new LocalPeerJoinedGameData(joinData.Success, joinData.GroupInfo.GroupId, joinData.Message);
-        }
+
 
         // public void JoinExistingGame(BeamGameInfo gameInfo, BeamAppCore appCore)
         // {
         //     beamGameNet.JoinExistingGame(gameInfo, appCore.apian, MakeBeamPlayer().ApianSerialized() );
         // }
 
-        public async Task<LocalPeerJoinedGameData> JoinExistingGameAsync(BeamGameInfo gameInfo, BeamAppCore appCore)
-        {
-            PeerJoinedGroupData joinData = await beamGameNet.JoinExistingGameAsync(gameInfo, appCore?.apian, MakeBeamPlayer().ApianSerialized() );
-            return new LocalPeerJoinedGameData(joinData.Success, joinData.GroupInfo.GroupId, joinData.Message);
-        }
 
         public void LeaveGame(string gameId)
         {

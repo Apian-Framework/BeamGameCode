@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Apian;
+
+#if !SINGLE_THREADEDxxx
+using System.Threading.Tasks;
+#endif
 
 namespace BeamGameCode
 {
