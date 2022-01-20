@@ -7,9 +7,9 @@ namespace BeamGameCode
 {
     public class ModeSplash : BeamGameMode
     {
+        public event EventHandler<StringEventArgs> FeTargetCameraEvt; // param is bike ID
         static public readonly string NetworkName = "LocalSplashNet";
         static public readonly string ApianGroupName = "LocalSplashGroup";
-        static public readonly int kCmdTargetCamera = 1;
 	    static public readonly int kSplashBikeCount = 12;
         protected const float kRespawnCheckInterval = 1.3f;
         protected const float kCamTargetInterval = 10.0f;
@@ -45,7 +45,7 @@ namespace BeamGameCode
             _DoStartup(null, param);
 #endif
 
-            appl.frontend?.OnStartMode(BeamModeFactory.kSplash);
+            appl.frontend?.OnStartMode(this);
         }
 
 
@@ -84,7 +84,7 @@ namespace BeamGameCode
                     if (_camTargetSecsLeft <= 0)
                     {
                         logger.Verbose($"Loop(): Targetting new bike: {SID(bikeId)}");
-                        appl.frontend?.DispatchModeCmd(appl.modeMgr.CurrentModeId(), kCmdTargetCamera, new TargetIdParams(){targetId=bikeId} );
+                        FeTargetCameraEvt?.Invoke(this, new StringEventArgs(bikeId));
                         logger.Verbose($"Loop(): Done Targetting new bike");
                         _camTargetSecsLeft = kCamTargetInterval;
                     }
@@ -101,7 +101,7 @@ namespace BeamGameCode
 #endif
             appCore.PlayerJoinedEvt -= _OnPlayerJoinedEvt;
             appCore.NewBikeEvt -= _OnNewBikeEvt;
-            appl.frontend?.OnEndMode(appl.modeMgr.CurrentModeId(), null);
+            appl.frontend?.OnEndMode(this);
             appCore.End();
             appl.beamGameNet.LeaveNetwork();
             appl.AddAppCore(null);

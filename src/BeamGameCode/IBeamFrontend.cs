@@ -12,13 +12,6 @@ namespace BeamGameCode
 
     public class TargetIdParams {public string targetId;}
 
-    public interface IFrontendModeHelper
-    {
-        void OnStartMode(int modeId, object param);
-        void OnEndMode(int modeId, object param);
-        void DispatchCmd(int modeId, int cmdId, object param);
-    }
-
     public interface IBeamFrontend
     {
         IBeamApplication beamAppl {get;}
@@ -37,9 +30,9 @@ namespace BeamGameCode
         // Event/message handlers
 
         // Game Modes
-        void OnStartMode(int modeId, object param = null);
-        void OnEndMode(int modeId, object param = null);
-        void DispatchModeCmd(int modeId, int cmdId, object param = null);
+        // Start and end subscibe/unsubscribe
+        void OnStartMode(BeamGameMode mode, object param = null);
+        void OnEndMode(BeamGameMode mode, object param = null);
 
         // Players
         void OnPeerJoinedGameEvt(object sender, PeerJoinedEventArgs pa);

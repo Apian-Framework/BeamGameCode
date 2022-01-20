@@ -26,7 +26,7 @@ namespace BeamGameCode
     #warning Need single threaded version!
 #endif
 
-            appl.frontend?.OnStartMode(BeamModeFactory.kPractice, null);
+            appl.frontend?.OnStartMode(this);
 
         }
 
@@ -87,7 +87,7 @@ namespace BeamGameCode
 		public override object End() {
             appCore.PlayerJoinedEvt -= _OnMemberJoinedGroupEvt;
             appCore.NewBikeEvt -= _OnNewBikeEvt;
-            appl.frontend?.OnEndMode(appl.modeMgr.CurrentModeId(), null);
+            appl.frontend?.OnEndMode(this);
             appCore.End();
             appl.beamGameNet.LeaveNetwork();
             appl.AddAppCore(null);

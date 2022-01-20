@@ -64,7 +64,7 @@ namespace BeamGameCode
             appl.PeerJoinedEvt += _OnPeerJoinedNetEvt;
             appl.AddAppCore(null);
             _SetState(kStartingUp); // was "connecting"
-            appl.frontend?.OnStartMode(ModeId(), null );
+            appl.frontend?.OnStartMode(this);
         }
 
 		public override void Loop(float frameSecs)
@@ -79,7 +79,7 @@ namespace BeamGameCode
             {
                 appCore.PlayerJoinedEvt -= _OnPlayerJoinedEvt;
                 appCore.NewBikeEvt -= _OnNewBikeEvt;
-                appl.frontend?.OnEndMode(appl.modeMgr.CurrentModeId(), null);
+                appl.frontend?.OnEndMode(this);
                 appCore.End();
                 appl.beamGameNet.LeaveNetwork();
             }
