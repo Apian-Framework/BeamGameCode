@@ -83,7 +83,9 @@ namespace BeamGameCode
                     _camTargetSecsLeft -= frameSecs;
                     if (_camTargetSecsLeft <= 0)
                     {
+                        logger.Verbose($"Loop(): Targetting new bike: {SID(bikeId)}");
                         appl.frontend?.DispatchModeCmd(appl.modeMgr.CurrentModeId(), kCmdTargetCamera, new TargetIdParams(){targetId=bikeId} );
+                        logger.Verbose($"Loop(): Done Targetting new bike");
                         _camTargetSecsLeft = kCamTargetInterval;
                     }
                 }
@@ -125,7 +127,7 @@ namespace BeamGameCode
             IBike newBike = newBikeArg?.ib;
             // If it's local we need to tell it to Go!
             bool isLocal = newBike.peerId == appl.LocalPeer.PeerId;
-            logger.Info($"{(ModeName())} - OnNewBikeEvt() - {(isLocal?"Local":"Remote")} Bike created, ID: {newBike.bikeId} Sending GO! command");
+            logger.Info($"{(ModeName())} - OnNewBikeEvt() - {(isLocal?"Local":"Remote")} Bike created, ID: {SID(newBike.bikeId)} Sending GO! command");
             if (isLocal)
             {
                 appl.beamGameNet.SendBikeCommandReq(appCore.ApianGroupId, newBike, BikeCommand.kGo);

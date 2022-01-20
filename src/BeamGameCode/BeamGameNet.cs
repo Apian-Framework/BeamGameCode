@@ -8,7 +8,7 @@ using Apian;
 using UniLog;
 using static UniLog.UniLogger; // for SID()
 
-#if !SINGLE_THREADEDxxx
+#if !SINGLE_THREADED
 using System.Threading.Tasks;
 #endif
 
@@ -18,19 +18,23 @@ namespace BeamGameCode
     {
         //void CreateBeamNet(BeamGameNet.BeamNetCreationData createData);
         void JoinBeamNet(string netName, BeamNetworkPeer localPeer);
-        Task<PeerJoinedNetworkData> JoinBeamNetAsync(string netName, BeamNetworkPeer localPeer);
         void LeaveBeamNet();
 
         BeamGameInfo CreateBeamGameInfo( string gameName, string apianGroupType);
         void CreateAndJoinGame(BeamGameInfo gameInfo, BeamApian apian, string localData);
-        Task<PeerJoinedGroupData> CreateAndJoinGameAsync(BeamGameInfo gameInfo, BeamApian apian, string localData);
         void JoinExistingGame(BeamGameInfo gameInfo, BeamApian apian, string localData );
-        Task<PeerJoinedGroupData> JoinExistingGameAsync(BeamGameInfo gameInfo, BeamApian apian, string localData );
         void LeaveGame(string gameId);
 
         void SendBikeCreateDataReq(string groupId, IBike ib);
         void SendBikeCommandReq(string groupId, IBike bike, BikeCommand cmd);
         void SendBikeTurnReq(string groupId, IBike bike, long gameTime, TurnDir dir, Vector2 nextPt);
+
+        // MultiThreaded - or at last uses System/Threading
+#if !SINGLE_THREADED
+        Task<PeerJoinedNetworkData> JoinBeamNetAsync(string netName, BeamNetworkPeer localPeer);
+        Task<PeerJoinedGroupData> CreateAndJoinGameAsync(BeamGameInfo gameInfo, BeamApian apian, string localData);
+        Task<PeerJoinedGroupData> JoinExistingGameAsync(BeamGameInfo gameInfo, BeamApian apian, string localData );
+#endif
 
     }
 
@@ -68,15 +72,6 @@ namespace BeamGameCode
             base.JoinNetwork(chan, beamNetworkHelloData);
         }
 
-        public async Task<PeerJoinedNetworkData> JoinBeamNetAsync(string netName, BeamNetworkPeer localPeer )
-        {
-            P2pNetChannelInfo chan = new P2pNetChannelInfo(beamChannelData[kBeamNetworkChannelInfo]);
-            chan.name = netName;
-            chan.id = netName;
-            string beamNetworkHelloData = JsonConvert.SerializeObject(localPeer);
-            return await JoinNetworkAsync(chan, beamNetworkHelloData);
-        }
-
         public void LeaveBeamNet() => LeaveNetwork();
 
         public BeamGameInfo CreateBeamGameInfo(string gameName, string apianGroupType)
@@ -110,11 +105,6 @@ namespace BeamGameCode
             base.JoinExistingGroup(gameInfo, apian, localData);
         }
 
-        public async Task<PeerJoinedGroupData> JoinExistingGameAsync(BeamGameInfo gameInfo, BeamApian apian, string localData )
-        {
-            return await base.JoinExistingGroupAsync(gameInfo, apian, localData);
-        }
-
         public void CreateAndJoinGame(BeamGameInfo gameInfo, BeamApian apian, string localData)
         {
             string netName = p2p.GetMainChannel()?.Name;
@@ -125,14 +115,28 @@ namespace BeamGameCode
             }
 
             base.CreateAndJoinGroup(gameInfo, apian, localData);
+        }
 
+#if !SINGLE_THREADED
+        public async Task<PeerJoinedNetworkData> JoinBeamNetAsync(string netName, BeamNetworkPeer localPeer )
+        {
+            P2pNetChannelInfo chan = new P2pNetChannelInfo(beamChannelData[kBeamNetworkChannelInfo]);
+            chan.name = netName;
+            chan.id = netName;
+            string beamNetworkHelloData = JsonConvert.SerializeObject(localPeer);
+            return await JoinNetworkAsync(chan, beamNetworkHelloData);
+        }
+
+        public async Task<PeerJoinedGroupData> JoinExistingGameAsync(BeamGameInfo gameInfo, BeamApian apian, string localData )
+        {
+            return await base.JoinExistingGroupAsync(gameInfo, apian, localData);
         }
 
         public async Task<PeerJoinedGroupData> CreateAndJoinGameAsync(BeamGameInfo gameInfo, BeamApian apian, string localData)
         {
             return await base.CreateAndJoinGroupAsync(gameInfo, apian, localData);
         }
-
+#endif
 
         public void LeaveGame(string gameId) => LeaveGroup(gameId); // ApianGameNet.LeaveGroup()
 

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Apian;
 
-#if !SINGLE_THREADEDxxx
+#if !SINGLE_THREADED
 using System.Threading.Tasks;
 #endif
 
@@ -31,8 +31,9 @@ namespace BeamGameCode
         void DisplayMessage(MessageSeverity level, string msgText);
 
         //void SelectGame(IDictionary<string, BeamGameInfo> existingGames);
+#if !SINGLE_THREADED
         Task<GameSelectedEventArgs> SelectGameAsync(IDictionary<string, BeamGameAnnounceData> existingGames);
-
+#endif
         // Event/message handlers
 
         // Game Modes
