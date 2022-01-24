@@ -49,8 +49,8 @@ namespace BeamGameCode
     }
 
     public class GameAnnounceEventArgs : EventArgs {
-        public BeamGameInfo gameInfo;
-        public GameAnnounceEventArgs( BeamGameInfo gi) { gameInfo = gi; }
+        public BeamGameAnnounceData gameData;
+        public GameAnnounceEventArgs( BeamGameAnnounceData gd) { gameData = gd; }
     }
 
     public class LocalPeerJoinedGameData {
@@ -70,6 +70,8 @@ namespace BeamGameCode
         IBeamGameNet beamGameNet {get;}
 
         void ExitApplication(); // relatively controlled exit via modeMgr
+
+        void OnGameSelected(BeamGameInfo gameInfo, GameSelectedEventArgs.ReturnCode result);
 
         // Events
         event EventHandler<PeerJoinedEventArgs> PeerJoinedEvt;

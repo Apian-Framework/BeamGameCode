@@ -1,3 +1,4 @@
+//#define SINGLE_THREADED
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,32 +36,39 @@ namespace BeamGameCode
         protected CreateMode gameCreateMode = CreateMode.CreateIfNeeded;
         public BeamUserSettings settings;
 
-        protected Dictionary<string, BeamGameInfo> announcedGames;
 
         protected float _secsToNextRespawnCheck = kRespawnCheckInterval;
         protected int _curState;
         protected float _curStateSecs;
         protected delegate void LoopFunc(float f);
         protected LoopFunc _loopFunc;
-          protected BaseBike playerBike;
+        protected BaseBike playerBike;
 
         // mode substates
-
         protected const int kStartingUp = 0;
-
+#if SINGLE_THREADED
+        protected const int kJoiningNet = 2;
+        protected const int kCheckingForGames = 3;
+        protected const int kSelectingGame = 4;
+        protected const int kJoiningExistingGame = 5;
+        protected const int kCreatingAndJoiningGame = 6;
+        protected const int kWaitingForMembers = 7;
+#endif
         protected const int kPlaying = 8;
         protected const int kFailed = 9;
 
         protected const float kRespawnCheckInterval = 1.3f;
         protected const float kListenForGamesSecs = 2.0f; // TODO: belongs here?
 
+#if SINGLE_THREADED
+        protected Dictionary<string, BeamGameAnnounceData> announcedGames;
+#endif
+
+
 		public override void Start(object param = null)
         {
             base.Start();
-            announcedGames = new Dictionary<string, BeamGameInfo>();
-
             settings = appl.frontend.GetUserSettings();
-
             appl.PeerJoinedEvt += _OnPeerJoinedNetEvt;
             appl.AddAppCore(null);
             _SetState(kStartingUp); // was "connecting"
@@ -96,15 +104,47 @@ namespace BeamGameCode
             _loopFunc = _DoNothingLoop; // default
             switch (newState)
             {
+#if !SINGLE_THREADED
             case kStartingUp:
                 logger.Verbose($"{(ModeName())}: SetState: kStartingUp");
-
-#if !SINGLE_THREADED
                 _AsyncStartup();
-#else
-    #warning Need single threaded version!
-#endif
                 break;
+#else
+      case kStartingUp:
+                logger.Verbose($"{(ModeName())}: SetState: kStartingUp");
+                try {
+                    appl.ConnectToNetwork(settings.p2pConnectionString);
+                } catch (Exception ex) {
+                    _SetState(kFailed, ex.Message);
+                    return;
+                }
+                _SetState(kJoiningNet);
+                break;
+            case kJoiningNet:
+                logger.Verbose($"{(ModeName())}: SetState: kJoiningNet");
+                _JoinNetwork();
+                break;
+            case kCheckingForGames:
+                logger.Verbose($"{(ModeName())}: SetState: kCheckingForGames");
+                _CheckForGames();
+                _loopFunc = _CheckingForGamesLoop;
+                break;
+            case kSelectingGame:
+                logger.Verbose($"{(ModeName())}: SetState: kSelectingGame");  // waiting for UI to return
+                _SelectGame();
+                break;
+            case kJoiningExistingGame:
+                logger.Verbose($"{(ModeName())}: SetState: kJoiningExistingGame");
+                _JoinExistingGame(startParam as BeamGameInfo);
+                break;
+            case kCreatingAndJoiningGame:
+                logger.Verbose($"{(ModeName())}: SetState: kCreatingAndJoiningGame");
+                _CreateAndJoinGame(startParam as BeamGameInfo);
+                break;
+            case kWaitingForMembers:
+                logger.Verbose($"{(ModeName())}: SetState: kWaitingForMembers");
+                break;
+#endif
             case kPlaying:
                 logger.Verbose($"{(ModeName())}: SetState: kPlaying");
                 SpawnPlayerBike();
@@ -144,7 +184,7 @@ namespace BeamGameCode
             //if (_curStateSecs > 5)
         }
 
-        // utils
+         // utils
 
         private void _SetupCorePair(BeamGameInfo gameInfo)
         {
@@ -156,21 +196,30 @@ namespace BeamGameCode
             appCore.NewBikeEvt += _OnNewBikeEvt;
         }
 
-
         // Event handlers
 
         private void _OnPeerJoinedNetEvt(object sender, PeerJoinedEventArgs ga)
         {
             BeamNetworkPeer p = ga.peer;
             bool isLocal = p.PeerId == appl.LocalPeer.PeerId;
-            logger.Info($"{(ModeName())} - OnPeerJoinedNetEvt() - {(isLocal?"Local":"Remote")} Peer Joined: {p.Name}, ID: {SID(p.PeerId)}");
+            logger.Info($"{(ModeName())} - _OnPeerJoinedNetEvt() - {(isLocal?"Local":"Remote")} Peer Joined: {p.Name}, ID: {SID(p.PeerId)}");
+
+#if SINGLE_THREADED
+           if (isLocal)
+            {
+                if (_curState == kJoiningNet)
+                {
+                    // This used to create the AppCore and apian instance. Now we wait until after a game is selected
+                    // so what we create can depend on what was selected
+                    _SetState(kCheckingForGames, null);
+                }
+                else
+                    logger.Error($"{(ModeName())} - OnNetJoinedEvt() - Wrong state: {_curState}");
+            }
+#endif
         }
 
-        public void OnGameAnnounceEvt(object sender, BeamGameInfo gameInfo)
-        {
-            logger.Verbose($"{(ModeName())} - OnGameAnnounceEvt(): {gameInfo.GameName}");
-            announcedGames[gameInfo.GameName] = gameInfo;
-        }
+
 
         private void _OnPlayerJoinedEvt(object sender, PlayerJoinedEventArgs ga)
         {
@@ -226,7 +275,6 @@ namespace BeamGameCode
         }
 
 #if !SINGLE_THREADED
-
         // MultiThreaded code
         private async void _AsyncStartup()
         {
@@ -271,6 +319,87 @@ namespace BeamGameCode
             }
         }
 #else
+        private void _JoinNetwork()
+        {
+            appl.JoinBeamNet(settings.apianNetworkName);
+            // Wait for OnNetJoinedEvt()
+        }
+
+        private void _CheckForGames()
+        {
+            announcedGames = new Dictionary<string, BeamGameAnnounceData>();
+            appl.GameAnnounceEvt += OnGameAnnounceEvt;
+            appl.ListenForGames();
+        }
+
+        protected void _CheckingForGamesLoop(float frameSecs)
+        {
+            if (_curStateSecs > kListenForGamesSecs)
+            {
+                // Stop listening for games and ask the FE to choose one
+                appl.GameAnnounceEvt -= OnGameAnnounceEvt; // stop listening
+                _SetState(kSelectingGame); // ends with OnGameSelected()
+            }
+        }
+
+        public void OnGameAnnounceEvt(object sender, GameAnnounceEventArgs gaArgs)
+        {
+            BeamGameAnnounceData gameData = gaArgs.gameData;
+            logger.Verbose($"{(ModeName())} - OnGameAnnounceEvt(): {gameData.GameInfo.GameName}");
+            announcedGames[gameData.GameInfo.GameName] = gameData;
+        }
+
+        protected void _SelectGame()
+        {
+            appl.GameSelectedEvent += OnGameSelectedEvt;
+            appl.SelectGame(announcedGames);
+        }
+
+      public void OnGameSelectedEvt(object sender, GameSelectedEventArgs selection)
+        {
+            appl.GameSelectedEvent -= OnGameSelectedEvt; // stop listening
+            logger.Info($"{(ModeName())} - OnGameSelectedEvt(): {selection.gameInfo.GameName}, result: {selection.result}");
+            DispatchGameSelection(selection);
+        }
+
+        private void DispatchGameSelection(GameSelectedEventArgs selection)
+        {
+            if (selection.result == GameSelectedEventArgs.ReturnCode.kCancel)
+            {
+                _SetState(kFailed,$"DispatchGameSelection() No Game Selected.");
+                return;
+            }
+
+            BeamGameInfo gameInfo = selection.gameInfo;
+            _SetupCorePair(gameInfo);
+
+            bool targetGameExisted = (gameInfo.GameName != null) && announcedGames.ContainsKey(gameInfo.GameName);
+
+            if (selection.result == GameSelectedEventArgs.ReturnCode.kCreate) // Createa and join
+            {
+                if (targetGameExisted)
+                    _SetState(kFailed,$"Cannot create.  Beam Game \"{gameInfo.GameName}\" already exists");
+                else
+                    _SetState(kCreatingAndJoiningGame, gameInfo);
+
+            } else {
+                    // Join existing
+                if (!targetGameExisted)
+                    _SetState(kFailed,$"Cannot Join.  Beam Game \"{gameInfo.GameName}\" not found");
+                else
+                    _SetState(kJoiningExistingGame, gameInfo);
+            }
+        }
+
+        private void _CreateAndJoinGame(BeamGameInfo info)
+        {
+            appl.CreateAndJoinGame(info, appCore); // now waiting for OnPlayerJoined for the local player
+        }
+
+        private void _JoinExistingGame(BeamGameInfo gameInfo)
+        {
+            appl.JoinExistingGame(gameInfo, appCore); // now waiting for OnPlayerJoined for the local player
+        }
 
 #endif
 

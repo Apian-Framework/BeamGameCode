@@ -1,3 +1,4 @@
+//#define SINGLE_THREADED
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,6 +23,7 @@ namespace BeamGameCode
         public event EventHandler<PeerJoinedEventArgs> PeerJoinedEvt;
         public event EventHandler<PeerLeftEventArgs> PeerLeftEvt;
         public event EventHandler<GameAnnounceEventArgs> GameAnnounceEvt;
+        public event EventHandler<GameSelectedEventArgs> GameSelectedEvent;
         public LoopModeManager modeMgr {get; private set;}
         public  IBeamGameNet beamGameNet {get; private set;}
         public IBeamFrontend frontend {get; private set;}
@@ -53,6 +55,9 @@ namespace BeamGameCode
             // Connect is (for now) synchronous
               beamGameNet.Connect(netConnectionStr);
         }
+
+        protected BeamPlayer MakeBeamPlayer() => new BeamPlayer(LocalPeer.PeerId, LocalPeer.Name);
+        // FIXME: I think maybe it should go in BeamGameNet?
 
 #if !SINGLE_THREADED
         public async Task<PeerJoinedNetworkData> JoinBeamNetAsync(string networkName)
@@ -89,15 +94,26 @@ namespace BeamGameCode
             PeerJoinedGroupData joinData = await beamGameNet.JoinExistingGameAsync(gameInfo, appCore?.apian, MakeBeamPlayer().ApianSerialized() );
             return new LocalPeerJoinedGameData(joinData.Success, joinData.GroupInfo.GroupId, joinData.Message);
         }
-
 #endif
         // Synchronous versions
         public void JoinBeamNet(string networkName)
         {
             _CreateLocalPeer();
-
             beamGameNet.JoinBeamNet(networkName, LocalPeer);
         }
+
+        public void ListenForGames()
+        {
+            beamGameNet.RequestGroups(); // Group announcements come back in OnGroupAnnounce()
+        }
+
+        public void OnGroupAnnounce(GroupAnnounceResult groupAnn)
+        {
+            Logger.Info($"OnGroupAnnounce({groupAnn.GroupInfo.GroupName})");
+            BeamGameAnnounceData gd = new BeamGameAnnounceData(groupAnn);
+            GameAnnounceEvt?.Invoke(this, new GameAnnounceEventArgs(gd));
+        }
+
 
         public void OnPeerJoinedNetwork(PeerJoinedNetworkData peerData)
         {
@@ -106,22 +122,20 @@ namespace BeamGameCode
             PeerJoinedEvt?.Invoke(this, new PeerJoinedEventArgs(peerData.NetId, peer));
         }
 
-        protected BeamPlayer MakeBeamPlayer() => new BeamPlayer(LocalPeer.PeerId, LocalPeer.Name);
-        // FIXME: I think maybe it should go in BeamGameNet?
-
+       public void  SelectGame(IDictionary<string, BeamGameAnnounceData> existingGames)
+        {
+            frontend.SelectGame(existingGames); // Starts UI, or just immediately calls this.OnGameSelected()
+        }
 
         public void CreateAndJoinGame(BeamGameInfo gameInfo, BeamAppCore appCore)
         {
-            // Splash and Practice use this
             beamGameNet.CreateAndJoinGame(gameInfo, appCore?.apian, MakeBeamPlayer().ApianSerialized() );
         }
 
-
-
-        // public void JoinExistingGame(BeamGameInfo gameInfo, BeamAppCore appCore)
-        // {
-        //     beamGameNet.JoinExistingGame(gameInfo, appCore.apian, MakeBeamPlayer().ApianSerialized() );
-        // }
+        public void JoinExistingGame(BeamGameInfo gameInfo, BeamAppCore appCore)
+        {
+            beamGameNet.JoinExistingGame(gameInfo, appCore.apian, MakeBeamPlayer().ApianSerialized() );
+        }
 
 
         public void LeaveGame(string gameId)
@@ -195,12 +209,6 @@ namespace BeamGameCode
         public void OnPeerSync(string channel, string p2pId, PeerClockSyncInfo syncInfo) {} // stubbed
         // TODO: Be nice to be able to default-stub this somewhere.
 
-        public void OnGroupAnnounce(ApianGroupInfo groupInfo)
-        {
-            Logger.Info($"OnGroupAnnounce({groupInfo.GroupName})");
-            BeamGameInfo bgi = new BeamGameInfo(groupInfo);
-            GameAnnounceEvt?.Invoke(this, new GameAnnounceEventArgs(bgi));
-        }
 
         public void OnPeerJoinedGroup(PeerJoinedGroupData data)
         {
@@ -210,6 +218,12 @@ namespace BeamGameCode
         public void OnGroupMemberStatus(string groupId, string peerId, ApianGroupMember.Status newStatus, ApianGroupMember.Status prevStatus)
         {
             Logger.Info($"OnGroupMemberStatus() Grp: {groupId}, Peer: {UniLogger.SID(peerId)}, Status: {newStatus}, Prev: {prevStatus}");
+        }
+
+       public void OnGameSelected(BeamGameInfo gameInfo, GameSelectedEventArgs.ReturnCode result)
+        {
+            Logger.Info($"OnGameSelected({gameInfo.GameName})");
+            GameSelectedEvent?.Invoke(this, new GameSelectedEventArgs(gameInfo, result));
         }
 
         // Utility methods

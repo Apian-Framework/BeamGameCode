@@ -1,3 +1,4 @@
+//#define SINGLE_THREADED
 using System;
 using System.Linq;
 using Apian;
@@ -12,11 +13,10 @@ namespace BeamGameCode
         static public readonly string ApianGroupName = "LocalSplashGroup";
 	    static public readonly int kSplashBikeCount = 12;
         protected const float kRespawnCheckInterval = 1.3f;
-        protected const float kCamTargetInterval = 10.0f;
         protected float _secsToNextRespawnCheck = kRespawnCheckInterval;
         protected bool bGameJoined;
         protected bool bGameSetup;
-
+        protected const float kCamTargetInterval = 10.0f;
         protected float _camTargetSecsLeft; // assign as soon as there's a bike
 
 #if SINGLE_THREADED
@@ -37,18 +37,15 @@ namespace BeamGameCode
         {
             logger.Info("Starting Splash");
             base.Start(param);
-            appl.AddAppCore(null); // TODO: THis is beam only. Need better way. ClearGameInstances()? Init()?
+            appl.AddAppCore(null);
 
 #if !SINGLE_THREADED
             DoAsyncSetupAndStartJoin();
 #else
             _DoStartup(null, param);
 #endif
-
             appl.frontend?.OnStartMode(this);
         }
-
-
 
         protected void DoGameSetup()
         {
@@ -65,12 +62,11 @@ namespace BeamGameCode
             if (bGameJoined)
             {
                 if (!bGameSetup)
-                    DoGameSetup(); // synchronous
+                    DoGameSetup();
 
                 _secsToNextRespawnCheck -= frameSecs;
                 if (_secsToNextRespawnCheck <= 0)
                 {
-                    // TODO: respawn with prev names/teams?
                     if (appCore.CoreState.Bikes.Count < kSplashBikeCount)
                         CreateADemoBike();
                     _secsToNextRespawnCheck = kRespawnCheckInterval;

@@ -1,3 +1,4 @@
+//#define SINGLE_THREADED
 using System;
 using Apian;
 using static UniLog.UniLogger; // for SID()
@@ -6,51 +7,41 @@ namespace BeamGameCode
 {
     public class ModePractice : BeamGameMode
     {
-        static public readonly string networkName = "LocalPracticeGame";
+        static public readonly string NetworkName = "LocalPracticeGame";
         static public readonly string ApianGroupName = "LocalPracticeGroup";
         public readonly int kMaxAiBikes = 11;
-         protected BaseBike playerBike;
         protected const float kRespawnCheckInterval = 1.3f;
         protected float _secsToNextRespawnCheck = kRespawnCheckInterval;
         protected bool bGameJoined;
         protected bool bGameSetup;
+        protected BaseBike playerBike;
+
+#if SINGLE_THREADED
+        protected enum ModeState {
+            None = 0,
+            JoiningNet,
+            JoiningGroup,
+            Playing
+        }
+
+        protected ModeState _CurrentState;
+        protected bool bikesCreated;
+        protected bool localPlayerJoined;
+#endif
 
 		public override void Start(object param = null)
         {
+            logger.Info("Starting Practice");
             base.Start();
-            appl.AddAppCore(null); // TODO: THis is beam only. Need better way. ClearGameInstances()? Init()?
+            appl.AddAppCore(null);
 
 #if !SINGLE_THREADED
             DoAsyncSetupAndStartJoin();
 #else
-    #warning Need single threaded version!
+            _DoStartup(null, param);
 #endif
-
             appl.frontend?.OnStartMode(this);
-
         }
-
-#if !SINGLE_THREADED
-        protected async void DoAsyncSetupAndStartJoin()
-        {
-            // Setup/connect fake network
-            appl.ConnectToNetwork("p2ploopback");
-
-            await appl.JoinBeamNetAsync(networkName);
-
-            logger.Info("practice network joined");
-            BeamGameInfo gameInfo = appl.beamGameNet.CreateBeamGameInfo(ApianGroupName, SinglePeerGroupManager.kGroupType);
-            CreateCorePair(gameInfo);
-            appCore.PlayerJoinedEvt += _OnMemberJoinedGroupEvt;
-            appCore.NewBikeEvt += _OnNewBikeEvt;
-
-            // Dont need to check for groups in splash
-            appl.CreateAndJoinGame(gameInfo, appCore);
-            // waiting for OnGroupJoined()
-        }
-#else
-
-#endif
 
         protected void DoGameSetup()
         {
@@ -84,8 +75,13 @@ namespace BeamGameCode
             }
         }
 
-		public override object End() {
-            appCore.PlayerJoinedEvt -= _OnMemberJoinedGroupEvt;
+		public override object End() { return _DoCleanup(); }
+        private object _DoCleanup()
+        {
+#if SINGLE_THREADED
+            appl.PeerJoinedEvt -= _OnPeerJoinedNetEvt;
+#endif
+            appCore.PlayerJoinedEvt -= _OnPlayerJoinedEvt;
             appCore.NewBikeEvt -= _OnNewBikeEvt;
             appl.frontend?.OnEndMode(this);
             appCore.End();
@@ -129,6 +125,12 @@ namespace BeamGameCode
             // will catch and deal with. Maybe it'll point a camera at the new bike or whatever.
         }
 
+        private void _OnPlayerJoinedEvt(object sender, PlayerJoinedEventArgs ga)
+        {
+            bGameJoined = true;
+            logger.Info("Player joined!!!");
+        }
+
         private void _OnNewBikeEvt(object sender, BikeEventArgs newBikeArg)
         {
             IBike newBike = newBikeArg?.ib;
@@ -141,12 +143,74 @@ namespace BeamGameCode
             }
         }
 
+        //
+        // Multi-threaded
+        //
 
-        private void _OnMemberJoinedGroupEvt(object sender, PlayerJoinedEventArgs ga)
+#if !SINGLE_THREADED
+        protected async void DoAsyncSetupAndStartJoin()
         {
-            appCore.RespawnPlayerEvt += _OnRespawnPlayerEvt;
-            bGameJoined = true;
+            // Setup/connect fake network
+            appl.ConnectToNetwork("p2ploopback");
+            await appl.JoinBeamNetAsync(NetworkName);
+
+            logger.Info("Practice network joined");
+            BeamGameInfo gameInfo = appl.beamGameNet.CreateBeamGameInfo(ApianGroupName, SinglePeerGroupManager.kGroupType);
+            CreateCorePair(gameInfo);
+            appCore.PlayerJoinedEvt += _OnPlayerJoinedEvt;
+            appCore.NewBikeEvt += _OnNewBikeEvt;
+
+            appl.CreateAndJoinGame(gameInfo, appCore);
+            // waiting for OnPlayerJoined()
         }
+#else
+        // Single threaded (for WebGL, for instance)
+		protected void _DoStartup(string prevModeName, object param = null)
+        {
+            _secsToNextRespawnCheck = kRespawnCheckInterval;
+            appCore = null;
+            bikesCreated = false;
+            localPlayerJoined = false;
+
+
+            appl.PeerJoinedEvt += _OnPeerJoinedNetEvt;
+            appl.AddAppCore(null); // TODO: THis is beam only. Need better way. ClearGameInstances()? Init()?
+
+            // Setup/connect fake network
+            _CurrentState = ModeState.JoiningNet;
+            appl.ConnectToNetwork("p2ploopback");
+            appl.JoinBeamNet(NetworkName);
+            // Now wait for OnPeerJoinedNet()
+        }
+
+        protected void _OnPeerJoinedNetEvt(object sender, PeerJoinedEventArgs ga)
+        {
+            logger.Debug($"_OnPeerJoinedNetEvt():  Peer: {ga.peer.PeerId}, Local Peer: {appl.LocalPeer.PeerId}, ModeState: {_CurrentState}");
+            bool isLocal = ga.peer.PeerId == appl.LocalPeer.PeerId;
+            if (isLocal && _CurrentState == ModeState.JoiningNet)
+            {
+                logger.Info("Practice network joined");
+                // Create gameInstance and associated Apian
+                BeamGameInfo gameInfo = appl.beamGameNet.CreateBeamGameInfo(ApianGroupName, SinglePeerGroupManager.kGroupType);
+                // Create gameInstance and associated Apian
+                CreateCorePair(gameInfo);
+
+                appCore.PlayerJoinedEvt += _OnPlayerJoinedEvt;
+                appCore.NewBikeEvt += _OnNewBikeEvt;
+
+                appl.CreateAndJoinGame(gameInfo, appCore);
+                _CurrentState = ModeState.JoiningGroup;
+                // waiting for OnPlayerJoined(localplayer)
+            } else {
+                logger.Warn($"_OnPeerJoinedNetEvt() - bad juju");
+            }
+        }
+
+
+
+#endif
+
+
     }
 }
 
