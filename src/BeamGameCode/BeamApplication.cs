@@ -222,7 +222,7 @@ namespace BeamGameCode
 
        public void OnGameSelected(BeamGameInfo gameInfo, GameSelectedEventArgs.ReturnCode result)
         {
-            Logger.Info($"OnGameSelected({gameInfo.GameName})");
+            Logger.Info($"OnGameSelected({gameInfo?.GameName})");
             GameSelectedEvent?.Invoke(this, new GameSelectedEventArgs(gameInfo, result));
         }
 

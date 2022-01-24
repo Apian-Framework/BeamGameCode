@@ -358,7 +358,7 @@ namespace BeamGameCode
       public void OnGameSelectedEvt(object sender, GameSelectedEventArgs selection)
         {
             appl.GameSelectedEvent -= OnGameSelectedEvt; // stop listening
-            logger.Info($"{(ModeName())} - OnGameSelectedEvt(): {selection.gameInfo.GameName}, result: {selection.result}");
+            logger.Info($"{(ModeName())} - OnGameSelectedEvt(): {selection.gameInfo?.GameName}, result: {selection.result}");
             DispatchGameSelection(selection);
         }
 
