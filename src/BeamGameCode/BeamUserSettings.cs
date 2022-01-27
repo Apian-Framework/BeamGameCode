@@ -5,6 +5,9 @@ using System.Collections.Generic;
 using Newtonsoft.Json;
 using UnityEngine;
 using UniLog;
+#if UNITY_WEBGL && !UNITY_EDITOR
+using System.Runtime.InteropServices;
+#endif
 
 namespace BeamGameCode
 {
@@ -16,6 +19,11 @@ namespace BeamGameCode
         public static string fileBaseName;
         public static string path =  GetPath(subFolder);
 
+#if UNITY_WEBGL && !UNITY_EDITOR
+        [DllImport("__Internal")]
+        private static extern void SyncFiles();
+#endif
+
         public static BeamUserSettings Load(string baseName = defaultBaseName)
         {
             fileBaseName = baseName;
@@ -23,14 +31,16 @@ namespace BeamGameCode
             string filePath = path + Path.DirectorySeparatorChar + fileBaseName + ".json";
             try {
                 settings = JsonConvert.DeserializeObject<BeamUserSettings>(File.ReadAllText(filePath));
+                UniLogger.GetLogger("UserSettings").Info($"Loaded settings from: {filePath}.");
             } catch(Exception) {
+                UniLogger.GetLogger("UserSettings").Info($"Old settings not found. Creating Defaults.");
                 settings =  BeamUserSettings.CreateDefault();
             }
 
             // TODO: in real life this should do at least 1 version's worth of updating.
             if (settings.version != currentVersion)
             //  settings =  BeamUserSettings.CreateDefault();
-                throw( new Exception($"Invalid settings version: {settings.version}"));
+                throw( new Exception($"Invalid settings version: {settings.version}. Expected: {currentVersion}"));
 
             return settings;
         }
@@ -41,7 +51,11 @@ namespace BeamGameCode
             string filePath = path + Path.DirectorySeparatorChar + fileBaseName + ".json";
             BeamUserSettings saveSettings = new BeamUserSettings(settings);
             saveSettings.tempSettings = new Dictionary<string, string>(); // Don't persist temp settings
+            UniLogger.GetLogger("UserSettings").Info($"Saving settings to {filePath}.");
             File.WriteAllText(filePath, JsonConvert.SerializeObject(saveSettings, Formatting.Indented));
+#if UNITY_WEBGL && !UNITY_EDITOR
+            SyncFiles(); // browser FS is async - need to wait for write to complete
+#endif
         }
 
         public static string GetPath(string leafFolder)

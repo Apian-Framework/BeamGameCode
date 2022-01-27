@@ -129,6 +129,7 @@ namespace BeamGameCode
         {
             bGameJoined = true;
             logger.Info("Player joined!!!");
+            appCore.RespawnPlayerEvt += _OnRespawnPlayerEvt; // TODO: seems like the wrong place
         }
 
         private void _OnNewBikeEvt(object sender, BikeEventArgs newBikeArg)
