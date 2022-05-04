@@ -159,6 +159,12 @@ namespace BeamGameCode
                 case "p2pmqtt":
                     ip2p = new P2pMqtt(this, parts[1]);
                     break;
+#if true //UNITY_WEBGL && !UNITY_EDITOR
+                // Currently only available in Unity WEBGL
+                case "p2plibp2p":
+                    ip2p = new P2pLibp2p(this, parts[1]);
+                    break;
+#endif
                 // case "p2pactivemq":
                 //     p2p = new P2pActiveMq(this, parts[1]);
                 //     break;

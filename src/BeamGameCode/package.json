@@ -13,6 +13,7 @@
   "type": "library",
   "dependencies": {
     "com.apian-framework.apian": "1.0.4",
-    "com.apian-framework.p2pnet.redis": "1.0.0"
+    "com.apian-framework.p2pnet.redis": "1.0.0",
+    "com.apian-framework.p2pnet.libp2p": "1.0.0"
   }
 }
