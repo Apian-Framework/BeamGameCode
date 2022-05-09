@@ -23,6 +23,8 @@ namespace BeamGameCode
 
         void DisplayMessage(MessageSeverity level, string msgText);
 
+        void OnJoiningNetwork(string networkName);
+
 #if !SINGLE_THREADED
         Task<GameSelectedEventArgs> SelectGameAsync(IDictionary<string, BeamGameAnnounceData> existingGames);
 #endif
@@ -34,9 +36,11 @@ namespace BeamGameCode
         void OnStartMode(BeamGameMode mode, object param = null);
         void OnEndMode(BeamGameMode mode, object param = null);
 
+        // Network peers
+        void OnPeerJoinedNetEvt(object sender, PeerJoinedEventArgs pa);
+        void OnPeerLeftNetEvt(object sender, PeerLeftEventArgs pa);
+
         // Players
-        void OnPeerJoinedGameEvt(object sender, PeerJoinedEventArgs pa);
-        void OnPeerLeftGameEvt(object sender, PeerLeftEventArgs pa);
         void OnPlayersClearedEvt(object sender, EventArgs e);
         // Bikes
         void OnNewBikeEvt(object sender, BikeEventArgs ib);
