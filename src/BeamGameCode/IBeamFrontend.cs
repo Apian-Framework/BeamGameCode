@@ -23,12 +23,14 @@ namespace BeamGameCode
 
         void DisplayMessage(MessageSeverity level, string msgText);
 
-        void OnJoiningNetwork(string networkName);
+
 
 #if !SINGLE_THREADED
         Task<GameSelectedEventArgs> SelectGameAsync(IDictionary<string, BeamGameAnnounceData> existingGames);
 #endif
         void SelectGame(IDictionary<string, BeamGameAnnounceData> existingGames);
+
+
         // Event/message handlers
 
         // Game Modes
