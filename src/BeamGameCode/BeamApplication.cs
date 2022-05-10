@@ -43,6 +43,11 @@ namespace BeamGameCode
             frontend.SetBeamApplication(this);
         }
 
+        public void Start(string initialModeName)
+        {
+            Start( modeMgr.ModeIdForName(initialModeName));
+        }
+
         public void AddAppCore(IApianAppCore gi)
         {
             // Beam only supports 1 game instance
@@ -170,11 +175,12 @@ namespace BeamGameCode
         }
 
         //
-        // IGameInstance
+        // ILoopingApp Instance
         //
-        public void Start(int initialMode)
+
+        public void Start(int initialMode) // required by loopingapp
         {
-            modeMgr.Start(initialMode);
+          modeMgr.Start(initialMode);
         }
 
         public void End() {}

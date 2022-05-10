@@ -11,6 +11,12 @@ namespace BeamGameCode
         public const int kPractice = 2;
         public const int kNetPlay = 3;
 
+        public const string SplashModeName = "splash";
+        public const string NetworkModeName = "network";
+        public const string PracticeModeName = "practice";
+        public const string NetPlayModeName = "net";
+
+
 
         public BeamModeFactory()
         {
@@ -22,10 +28,10 @@ namespace BeamGameCode
             };
 
             AppModeNames = new Dictionary<int, string> {
-                { kSplash, "Splash" },
-                { kNetwork, "Network"},
-                { kPractice, "Practice"},
-                { kNetPlay, "NetPlay" },
+                { kSplash, SplashModeName },
+                { kNetwork, NetworkModeName },
+                { kPractice, PracticeModeName },
+                { kNetPlay, NetPlayModeName },
             };
         }
     }

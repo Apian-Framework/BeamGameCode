@@ -13,7 +13,7 @@ namespace BeamGameCode
 {
     public static class UserSettingsMgr
     {
-        public const string currentVersion = "102";
+        public const string currentVersion = "103";
         public const string subFolder = ".beam";
         public const string defaultBaseName= "beamsettings";
         public static string fileBaseName;
@@ -38,8 +38,9 @@ namespace BeamGameCode
             }
 
             // TODO: in real life this should do at least 1 version's worth of updating.
+            // FIXME: Actually, this can't work at all using class-template-based serialization
+            //  Need to decide if we REALLY want to support updating.
             if (settings.version != currentVersion)
-            //  settings =  BeamUserSettings.CreateDefault();
                 throw( new Exception($"Invalid settings version: {settings.version}. Expected: {currentVersion}"));
 
             return settings;
@@ -79,7 +80,7 @@ namespace BeamGameCode
     public class BeamUserSettings
     {
         public string version = UserSettingsMgr.currentVersion;
-        public int startMode;
+        public string startMode;
         public string screenName;
         public string p2pConnectionString;
         public string apianNetworkName;
@@ -126,7 +127,7 @@ namespace BeamGameCode
         {
             return new BeamUserSettings() {
                 version = UserSettingsMgr.currentVersion,
-                startMode = BeamModeFactory.kNetwork,
+                startMode = BeamModeFactory.NetworkModeName,
                 screenName = "Fred Sanford",
                 p2pConnectionString = "p2predis::newsweasel.com,password=O98nfRVWYYHg7rXpygBCBZWl+znRATaRXTC469SafZU",
                 apianNetworkName = "BeamNet1",
@@ -149,4 +150,5 @@ namespace BeamGameCode
             };
         }
     }
+
 }
