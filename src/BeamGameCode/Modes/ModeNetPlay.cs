@@ -6,8 +6,14 @@ using static UniLog.UniLogger; // for SID()
 
 namespace BeamGameCode
 {
+    public enum CreateMode
+    {
+        JoinOnly = 0,
+        CreateIfNeeded = 1,
+        MustCreate = 2
+    }
 
-    public class ModePlay : BeamGameMode
+    public class ModeNetPlay : BeamGameMode
     {
 
         // Here's how I want this to work:
@@ -398,8 +404,6 @@ namespace BeamGameCode
 #endif
 
     }
-
-
 }
 
 

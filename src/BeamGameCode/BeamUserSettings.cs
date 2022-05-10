@@ -126,7 +126,7 @@ namespace BeamGameCode
         {
             return new BeamUserSettings() {
                 version = UserSettingsMgr.currentVersion,
-                startMode = BeamModeFactory.kPlay,
+                startMode = BeamModeFactory.kNetwork,
                 screenName = "Fred Sanford",
                 p2pConnectionString = "p2predis::newsweasel.com,password=O98nfRVWYYHg7rXpygBCBZWl+znRATaRXTC469SafZU",
                 apianNetworkName = "BeamNet1",
