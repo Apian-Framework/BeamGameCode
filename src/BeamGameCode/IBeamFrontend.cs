@@ -24,12 +24,10 @@ namespace BeamGameCode
         void DisplayMessage(MessageSeverity level, string msgText);
 
 
-
 #if !SINGLE_THREADED
         Task<GameSelectedEventArgs> SelectGameAsync(IDictionary<string, BeamGameAnnounceData> existingGames);
 #endif
         void SelectGame(IDictionary<string, BeamGameAnnounceData> existingGames);
-
 
         // Event/message handlers
 
@@ -37,6 +35,10 @@ namespace BeamGameCode
         // Start and end subscibe/unsubscribe
         void OnStartMode(BeamGameMode mode, object param = null);
         void OnEndMode(BeamGameMode mode, object param = null);
+
+        // Network join/status
+
+
 
         // Network peers
         void OnPeerJoinedNetEvt(object sender, PeerJoinedEventArgs pa);

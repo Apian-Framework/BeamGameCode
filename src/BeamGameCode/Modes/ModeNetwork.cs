@@ -38,18 +38,18 @@ namespace BeamGameCode
 #endif
         protected const int kConnectedAndReady = 4;
         protected const int kFailed = 9;
-        protected const float kListenForGamesSecs = 2.0f; // TODO: belongs here?
-
-#if SINGLE_THREADED
-        protected Dictionary<string, BeamGameAnnounceData> announcedGames;
-#endif
+        protected Dictionary<string, BeamGameAnnounceData> announcedGames; // TODO:
 
 		public override void Start(object param = null)
         {
             base.Start();
             settings = appl.frontend.GetUserSettings();
             appl.PeerJoinedEvt += _OnPeerJoinedNetEvt;
+            appl.PeerLeftEvt += _OnPeerLeftNetEvt;
+            appl.GameAnnounceEvt += OnGameAnnounceEvt;
+
             appl.AddAppCore(null); // reset
+
             _SetState(kStartingUp);
             appl.frontend?.OnStartMode(this);
         }
@@ -62,6 +62,8 @@ namespace BeamGameCode
 
 		public override object End() {
             appl.PeerJoinedEvt -= _OnPeerJoinedNetEvt;
+            appl.PeerLeftEvt -= _OnPeerLeftNetEvt;
+            appl.GameAnnounceEvt -= OnGameAnnounceEvt;
             appl.beamGameNet.LeaveNetwork();
             appl.AddAppCore(null); // This is almost certainly unnecessary
             appl.frontend?.OnEndMode(this);
@@ -138,19 +140,18 @@ namespace BeamGameCode
             bool isLocal = p.PeerId == appl.LocalPeer.PeerId;
             logger.Info($"{(ModeName())} - _OnPeerJoinedNetEvt() - {(isLocal?"Local":"Remote")} Peer Joined: {p.Name}, ID: {SID(p.PeerId)}");
 
-#if SINGLE_THREADED
-           if (isLocal)
-            {
-                if (_curState == kJoiningNet)
-                {
-                    // This used to create the AppCore and apian instance. Now we wait until after a game is selected
-                    // so what we create can depend on what was selected
-                    _SetState(kCheckingForGames, null);
-                }
-                else
-                    logger.Error($"{(ModeName())} - OnNetJoinedEvt() - Wrong state: {_curState}");
-            }
-#endif
+        }
+
+        private void _OnPeerLeftNetEvt(object sender, PeerLeftEventArgs ga)
+        {
+            logger.Info($"{(ModeName())} - _OnPeerLeftNetEvt() - Peer {SID(ga.p2pId)} left");
+        }
+
+        public void OnGameAnnounceEvt(object sender, GameAnnounceEventArgs gaArgs)
+        {
+            BeamGameAnnounceData gameData = gaArgs.gameData;
+            logger.Verbose($"{(ModeName())} - OnGameAnnounceEvt(): {gameData.GameInfo.GameName}");
+            announcedGames[gameData.GameInfo.GameName] = gameData;
         }
 
 
@@ -162,8 +163,6 @@ namespace BeamGameCode
             try {
                 appl.ConnectToNetwork(settings.p2pConnectionString); // should be async? GameNet.Connect() currently is not
                 GameNet.PeerJoinedNetworkData netJoinData = await appl.JoinBeamNetAsync(settings.apianNetworkName);
-
-                Dictionary<string, BeamGameAnnounceData> gamesAvail = await appl.GetExistingGamesAsync((int)(kListenForGamesSecs*1000));
 
                 _SetState(kConnectedAndReady);
 
@@ -180,6 +179,7 @@ namespace BeamGameCode
             // Wait for OnNetJoinedEvt()
         }
 
+        // TODO: Even if multi-threaded use this (unless, of course, it all ends up available from ApianGamenet)
         private void _CheckForGames()
         {
             announcedGames = new Dictionary<string, BeamGameAnnounceData>();
