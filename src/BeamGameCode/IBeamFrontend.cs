@@ -25,10 +25,10 @@ namespace BeamGameCode
 
         void UpdateNetworkInfo(); // THere has been a change to BeamApplication.NetInfo
 
-        void SignalWhenNetworkReady();  // App is asking the frontend to emit a NetworkReadyEvent
-                                        // when it thinks it is ready. This usually means dusplaying a prompt to
-                                        // the user "Proceed/Cancel" or "Join/Create Game" and "Cancel"
-                                        // Or a non-interactive FE can just wait a bit than then fire the event.
+        void OnNetworkReady();  // App is telling the FE that the net is ready.
+                                // This usually means dusplaying a prompt to the user to "Join/Create Game" and "Cancel"
+                                // which reulsts in a moed change.
+                                // Or a non-interactive FE can just wait a bit than then push ModeNetPlay
 
 #if !SINGLE_THREADED
         Task<GameSelectedEventArgs> SelectGameAsync(IDictionary<string, BeamGameAnnounceData> existingGames);

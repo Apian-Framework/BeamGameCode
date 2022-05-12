@@ -24,7 +24,7 @@ namespace BeamGameCode
         public event EventHandler<PeerLeftEventArgs> PeerLeftEvt;
         public event EventHandler<GameAnnounceEventArgs> GameAnnounceEvt;
         public event EventHandler<GameSelectedEventArgs> GameSelectedEvent;
-        public event EventHandler<NetworkReadyEventArgs> NetworkReadyEvent;
+
         public LoopModeManager modeMgr {get; private set;}
         public IBeamFrontend frontend {get; private set;}
         public BeamNetworkPeer LocalPeer { get; private set; }
@@ -98,11 +98,11 @@ namespace BeamGameCode
         // ...or async/await
         public async Task<Dictionary<string, BeamGameAnnounceData>> GetExistingGamesAsync(int waitMs)
         {
-            Dictionary<string, GroupAnnounceResult> groupsDict = await beamGameNet.RequestGroupsAsync(waitMs);
-            Dictionary<string, BeamGameAnnounceData> gameDict = groupsDict.Values
-                .Select((gar) => new BeamGameAnnounceData(gar))
-                .ToDictionary(bgd => bgd.GameInfo.GameName, bgd => bgd);
-            return gameDict;
+            // Does NOT overwrite existing NetInfo
+            Dictionary<string, GroupAnnounceResult> _ = await beamGameNet.RequestGroupsAsync(waitMs);
+
+            // also, we need the dict keyed by game name
+            return NetInfo.BeamGames.Values.ToDictionary(bgd => bgd.GameInfo.GameName, bgd => bgd);
         }
 #endif
 
@@ -114,18 +114,11 @@ namespace BeamGameCode
         // weirder for the frontend to be involved, it turns out that in practice to a user there's a real
         // difference between joining the net and joining a game.
 
-        public void WaitForNetworkReady()
-        {
-            frontend.SignalWhenNetworkReady();
-        }
+        // ACTUALLY, BeamApplication has nothing to do with this. The GameMoe just calls FE.OnNetworkReady()
+        // and the FE changes modes (maybe after waiting a bit...)
+        public void OnNetworkReady() => frontend.OnNetworkReady();
 
-        public void OnNetworkReady(bool proceed)
-        {
-            Logger.Info($"OnNetworkReady({proceed})");
-            NetworkReadyEvent?.Invoke(this, new NetworkReadyEventArgs(proceed));
-        }
-
-
+        // Select/join game
 
         // Ask the frontend to either select a game from the given list,
         // ...Or provide the data to create a new one

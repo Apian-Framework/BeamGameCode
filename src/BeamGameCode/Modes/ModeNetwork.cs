@@ -102,7 +102,7 @@ namespace BeamGameCode
             case kConnectedAndReady:
                logger.Verbose($"{(ModeName())}: SetState: kConnectedAndReady");
                 _CheckForGames();
-                appl.WaitForNetworkReady();
+                appl.OnNetworkReady(); // appl will tell the FE, which will do something
                 _loopFunc = _ConnectedLoop;
                 break;
 
@@ -158,6 +158,8 @@ namespace BeamGameCode
             BeamGameAnnounceData gameData = gaArgs.gameData;
             logger.Verbose($"{(ModeName())} - OnGameAnnounceEvt(): {gameData.GameInfo.GameName}");
         }
+
+        // util code
 
        private void _CheckForGames()
         {
