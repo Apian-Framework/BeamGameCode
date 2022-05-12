@@ -67,7 +67,7 @@ namespace BeamGameCode
         {
             P2pNetChannelInfo chan = new P2pNetChannelInfo(beamChannelData[kBeamNetworkChannelInfo]);
             chan.name = netName;
-            chan.id = netName;
+            chan.id = netName; // TODO: ID and name should be different
             string beamNetworkHelloData = JsonConvert.SerializeObject(localPeer);
             base.JoinNetwork(chan, beamNetworkHelloData);
         }
@@ -85,7 +85,7 @@ namespace BeamGameCode
 
             P2pNetChannelInfo groupChanInfo = new P2pNetChannelInfo(beamChannelData[kBeamGameChannelInfo]);
             groupChanInfo.name = gameName;
-            groupChanInfo.id = $"{netName}/{gameName}";
+            groupChanInfo.id = $"{netName}/{gameName}";  // FIXME: use IDs instead of names
 
             ApianGroupInfo groupInfo = new ApianGroupInfo(apianGroupType, groupChanInfo, LocalP2pId(), gameName);
 
