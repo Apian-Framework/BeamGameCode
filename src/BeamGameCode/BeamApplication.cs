@@ -24,9 +24,12 @@ namespace BeamGameCode
         public event EventHandler<PeerLeftEventArgs> PeerLeftEvt;
         public event EventHandler<GameAnnounceEventArgs> GameAnnounceEvt;
         public event EventHandler<GameSelectedEventArgs> GameSelectedEvent;
+        public event EventHandler<NetworkReadyEventArgs> NetworkReadyEvent;
         public LoopModeManager modeMgr {get; private set;}
         public IBeamFrontend frontend {get; private set;}
         public BeamNetworkPeer LocalPeer { get; private set; }
+
+        public BeamNetInfo NetInfo { get; private set;}  // BeamApplication keeps this updated as best as possible
 
         public UniLogger Logger;
         public BeamAppCore mainAppCore {get; private set;}
@@ -37,6 +40,7 @@ namespace BeamGameCode
             beamGameNet.AddClient(this);
             frontend = fe;
             Logger = UniLogger.GetLogger("BeamApplication");
+            NetInfo = new BeamNetInfo();
             modeMgr = new LoopModeManager(new BeamModeFactory(), this);
 
             frontend.SetBeamApplication(this);
@@ -78,7 +82,7 @@ namespace BeamGameCode
         public async Task<PeerJoinedNetworkData> JoinBeamNetAsync(string networkName)
         {
             _CreateLocalPeer(); // reads stuff from settings  and p2p instance
-            return await beamGameNet.JoinBeamNetAsync(networkName, LocalPeer);
+            return await beamGameNet.JoinBeamNetAsync(networkName, LocalPeer); // this ends up calling OnPeerJoinedNetwork, too.
         }
 #endif
 
@@ -110,7 +114,16 @@ namespace BeamGameCode
         // weirder for the frontend to be involved, it turns out that in practice to a user there's a real
         // difference between joining the net and joining a game.
 
-        // TODO: Put FE-called DisconnectNetwork() and ProceedToNetPlay() here/
+        public void WaitForNetworkReady()
+        {
+            frontend.SignalWhenNetworkReady();
+        }
+
+        public void OnNetworkReady(bool proceed)
+        {
+            Logger.Info($"OnNetworkReady({proceed})");
+            NetworkReadyEvent?.Invoke(this, new NetworkReadyEventArgs(proceed));
+        }
 
 
 
@@ -217,6 +230,7 @@ namespace BeamGameCode
         {
             Logger.Info($"OnGroupAnnounce({groupAnn.GroupInfo.GroupName})");
             BeamGameAnnounceData gd = new BeamGameAnnounceData(groupAnn);
+            NetInfo?.AddGame(gd);
             GameAnnounceEvt?.Invoke(this, new GameAnnounceEventArgs(gd));
         }
         public void OnGroupMemberStatus(string groupId, string peerId, ApianGroupMember.Status newStatus, ApianGroupMember.Status prevStatus)
@@ -231,13 +245,20 @@ namespace BeamGameCode
         public void OnPeerJoinedNetwork(PeerJoinedNetworkData peerData)
         {
             BeamNetworkPeer peer = JsonConvert.DeserializeObject<BeamNetworkPeer>(peerData.HelloData);
-            Logger.Info($"OnPeerJoinedNetwork() {((peerData.PeerId == LocalPeer.PeerId)?"Local":"Remote")} name: {peer.Name}");
+            bool isLocalPeer = peerData.PeerId == LocalPeer.PeerId;
+
+            if (isLocalPeer)
+                NetInfo = new BeamNetInfo(beamGameNet.CurrentNetworkChannel());
+            NetInfo.AddPeer(peer);
+
+            Logger.Info($"OnPeerJoinedNetwork() {(isLocalPeer ? "Local" : "Remote")} name: {peer.Name}");
             PeerJoinedEvt?.Invoke(this, new PeerJoinedEventArgs(peerData.NetId, peer));
         }
 
         public void OnPeerLeftNetwork(string p2pId, string netId)
         {
             Logger.Info($"OnPeerLeftGame({SID(p2pId)})");
+            NetInfo?.RemovePeer(p2pId);
             PeerLeftEvt?.Invoke(this, new PeerLeftEventArgs(netId, p2pId)); // Event instance might be gone
         }
         // Apian handles these at the game level. Not sure what would be useful here.

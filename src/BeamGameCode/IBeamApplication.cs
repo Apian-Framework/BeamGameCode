@@ -53,6 +53,11 @@ namespace BeamGameCode
         public GameAnnounceEventArgs( BeamGameAnnounceData gd) { gameData = gd; }
     }
 
+    public class NetworkReadyEventArgs : EventArgs {
+        public bool proceed; // otherwise cancel
+        public NetworkReadyEventArgs(bool doProceed) {proceed = doProceed; }
+    }
+
     public class LocalPeerJoinedGameData {
         public bool success;
         public string groupId;
@@ -68,8 +73,13 @@ namespace BeamGameCode
     public interface IBeamApplication : IApianApplication
     {
         IBeamGameNet beamGameNet {get;}
+        BeamNetInfo NetInfo {get;}
+        BeamNetworkPeer LocalPeer { get;}
 
         void ExitApplication(); // relatively controlled exit via modeMgr
+
+        void WaitForNetworkReady(); // game code calls this to ask the FE to let it know
+        void OnNetworkReady(bool proceed); // Response to BeamFrontend.SignalWhenNetworkReady(),  false means shutdown and exit.
 
         void OnGameSelected(BeamGameInfo gameInfo, GameSelectedEventArgs.ReturnCode result);
 
@@ -77,6 +87,8 @@ namespace BeamGameCode
         event EventHandler<PeerJoinedEventArgs> PeerJoinedEvt;
         event EventHandler<PeerLeftEventArgs> PeerLeftEvt;
         event EventHandler<GameAnnounceEventArgs> GameAnnounceEvt;
+        event EventHandler<NetworkReadyEventArgs> NetworkReadyEvent;
+
     }
 
 }

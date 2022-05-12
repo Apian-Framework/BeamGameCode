@@ -34,11 +34,9 @@ namespace BeamGameCode
         protected const int kStartingUp = 0;
 #if SINGLE_THREADED
         protected const int kJoiningNet = 2;
-        protected const int kCheckingForGames = 3;
 #endif
         protected const int kConnectedAndReady = 4;
         protected const int kFailed = 9;
-        protected Dictionary<string, BeamGameAnnounceData> announcedGames; // TODO:
 
 		public override void Start(object param = null)
         {
@@ -46,12 +44,13 @@ namespace BeamGameCode
             settings = appl.frontend.GetUserSettings();
             appl.PeerJoinedEvt += _OnPeerJoinedNetEvt;
             appl.PeerLeftEvt += _OnPeerLeftNetEvt;
-            appl.GameAnnounceEvt += OnGameAnnounceEvt;
+            appl.GameAnnounceEvt += _OnGameAnnounceEvt;
 
             appl.AddAppCore(null); // reset
 
-            _SetState(kStartingUp);
             appl.frontend?.OnStartMode(this);
+
+            _SetState(kStartingUp);
         }
 
 		public override void Loop(float frameSecs)
@@ -63,7 +62,7 @@ namespace BeamGameCode
 		public override object End() {
             appl.PeerJoinedEvt -= _OnPeerJoinedNetEvt;
             appl.PeerLeftEvt -= _OnPeerLeftNetEvt;
-            appl.GameAnnounceEvt -= OnGameAnnounceEvt;
+            appl.GameAnnounceEvt -= _OnGameAnnounceEvt;
             appl.beamGameNet.LeaveNetwork();
             appl.AddAppCore(null); // This is almost certainly unnecessary
             appl.frontend?.OnEndMode(this);
@@ -99,13 +98,11 @@ namespace BeamGameCode
                 logger.Verbose($"{(ModeName())}: SetState: kJoiningNet");
                 _JoinNetwork();
                 break;
-            case kCheckingForGames:
-                logger.Verbose($"{(ModeName())}: SetState: kCheckingForGames");
-                _CheckForGames();
-                _loopFunc = _CheckingForGamesLoop;
-                break;
 #endif
             case kConnectedAndReady:
+               logger.Verbose($"{(ModeName())}: SetState: kConnectedAndReady");
+                _CheckForGames();
+                appl.WaitForNetworkReady();
                 _loopFunc = _ConnectedLoop;
                 break;
 
@@ -132,6 +129,8 @@ namespace BeamGameCode
             //if (_curStateSecs > 5)
         }
 
+
+
         // Event handlers
 
         private void _OnPeerJoinedNetEvt(object sender, PeerJoinedEventArgs ga)
@@ -140,6 +139,13 @@ namespace BeamGameCode
             bool isLocal = p.PeerId == appl.LocalPeer.PeerId;
             logger.Info($"{(ModeName())} - _OnPeerJoinedNetEvt() - {(isLocal?"Local":"Remote")} Peer Joined: {p.Name}, ID: {SID(p.PeerId)}");
 
+#if SINGLE_THREADED
+            // Async startup already calls _setState(kConnectedAndReady)
+            if (isLocal)
+            {
+                _SetState(kConnectedAndReady);
+            }
+#endif
         }
 
         private void _OnPeerLeftNetEvt(object sender, PeerLeftEventArgs ga)
@@ -147,14 +153,18 @@ namespace BeamGameCode
             logger.Info($"{(ModeName())} - _OnPeerLeftNetEvt() - Peer {SID(ga.p2pId)} left");
         }
 
-        public void OnGameAnnounceEvt(object sender, GameAnnounceEventArgs gaArgs)
+        private void _OnGameAnnounceEvt(object sender, GameAnnounceEventArgs gaArgs)
         {
             BeamGameAnnounceData gameData = gaArgs.gameData;
             logger.Verbose($"{(ModeName())} - OnGameAnnounceEvt(): {gameData.GameInfo.GameName}");
-            announcedGames[gameData.GameInfo.GameName] = gameData;
         }
 
-
+       private void _CheckForGames()
+        {
+            logger.Info($"{(ModeName())} - _CheckForGames() - checking...");
+            appl.GameAnnounceEvt += _OnGameAnnounceEvt;
+            appl.ListenForGames();
+        }
 
 #if !SINGLE_THREADED
         // MultiThreaded code
@@ -176,34 +186,8 @@ namespace BeamGameCode
         private void _JoinNetwork()
         {
             appl.JoinBeamNet(settings.apianNetworkName);
-            // Wait for OnNetJoinedEvt()
+            // Wait for _OnPeerJoinedNetEvt()
         }
-
-        // TODO: Even if multi-threaded use this (unless, of course, it all ends up available from ApianGamenet)
-        private void _CheckForGames()
-        {
-            announcedGames = new Dictionary<string, BeamGameAnnounceData>();
-            appl.GameAnnounceEvt += OnGameAnnounceEvt;
-            appl.ListenForGames();
-        }
-
-        protected void _CheckingForGamesLoop(float frameSecs)
-        {
-            if (_curStateSecs > kListenForGamesSecs)
-            {
-                // Stop listening for games and ask the FE to choose one
-                appl.GameAnnounceEvt -= OnGameAnnounceEvt; // stop listening
-                _SetState(kSelectingGame); // ends with OnGameSelected()
-            }
-        }
-
-        public void OnGameAnnounceEvt(object sender, GameAnnounceEventArgs gaArgs)
-        {
-            BeamGameAnnounceData gameData = gaArgs.gameData;
-            logger.Verbose($"{(ModeName())} - OnGameAnnounceEvt(): {gameData.GameInfo.GameName}");
-            announcedGames[gameData.GameInfo.GameName] = gameData;
-        }
-
 #endif
 
     }
