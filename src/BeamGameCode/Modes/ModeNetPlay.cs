@@ -15,22 +15,9 @@ namespace BeamGameCode
 
     public class ModeNetPlay : BeamGameMode
     {
-
-        // Here's how I want this to work:
-
-        // Mode begins with no AppCore, no Apian, not connection, nothing...
-        // It has: net connection string and the name of the desired ApianNetwork to join.
-
-        // - Connect to Gamenet
-        // - Join the ApianNet. Wait for
-        //     -> OnPeerJoinedNetwork()
-        // - Get a list of available games
-        // - Ask FE for a game to create/join. Wait for:
-        //     -> OnGameSelected()
-        // - Create/Join game. Wait for:
-        //     -> OnPlayerJoinedEvt()
-        // - Start playing  (could wait for others to join...)
-
+        // Network is assumed to be up and running and stable
+        // It's also assumed that a request has already been made for a list of available games
+        // and at lest *some* wait has happened for responses.
 
         protected CreateMode gameCreateMode = CreateMode.CreateIfNeeded;
         public BeamUserSettings settings;
@@ -45,7 +32,6 @@ namespace BeamGameCode
         // mode substates
         protected const int kStartingUp = 0;
 #if SINGLE_THREADED
-        protected const int kCheckingForGames = 3;
         protected const int kSelectingGame = 4;
         protected const int kJoiningExistingGame = 5;
         protected const int kCreatingAndJoiningGame = 6;
@@ -55,8 +41,6 @@ namespace BeamGameCode
         protected const int kFailed = 9;
 
         protected const float kRespawnCheckInterval = 1.3f;
-        protected const float kListenForGamesSecs = 5.0f; // TODO: belongs here?
-
 
 		public override void Start(object param = null)
         {
@@ -104,12 +88,7 @@ namespace BeamGameCode
 #else
       case kStartingUp:
                 logger.Verbose($"{(ModeName())}: SetState: kStartingUp");
-                _SetState(kCheckingForGames);
-                break;
-            case kCheckingForGames:
-                logger.Verbose($"{(ModeName())}: SetState: kCheckingForGames");
-                _CheckForGames();
-                _loopFunc = _CheckingForGamesLoop;
+                _SetState(kSelectingGame);
                 break;
             case kSelectingGame:
                 logger.Verbose($"{(ModeName())}: SetState: kSelectingGame");  // waiting for UI to return
@@ -252,8 +231,6 @@ namespace BeamGameCode
         private async void _AsyncStartup()
         {
             try {
-                // adds to whats already in NetINfo
-                Dictionary<string, BeamGameAnnounceData> _ = await appl.GetExistingGamesAsync((int)(kListenForGamesSecs*1000f));
 
                 Dictionary<string, BeamGameAnnounceData> gamesAvail = appl.NetInfo.BeamGames.Values.ToDictionary(bgd => bgd.GameInfo.GameName, bgd => bgd);
 
@@ -294,19 +271,6 @@ namespace BeamGameCode
         }
 #else
 
-        private void _CheckForGames()
-        {
-            appl.ListenForGames();
-        }
-
-        protected void _CheckingForGamesLoop(float frameSecs)
-        {
-            if (_curStateSecs > kListenForGamesSecs)
-            {
-                // Stop listening for games and ask the FE to choose one
-                 _SetState(kSelectingGame); // ends with OnGameSelected()
-            }
-        }
 
         protected void _SelectGame(Dictionary<string, BeamGameAnnounceData> gamesAvail)
         {

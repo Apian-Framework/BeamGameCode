@@ -30,10 +30,13 @@ namespace BeamGameCode
         protected delegate void LoopFunc(float f);
         protected LoopFunc _loopFunc;
 
+        protected float kListenForGamesSecs = 5.0f;
+
         // mode substates
         protected const int kStartingUp = 0;
 #if SINGLE_THREADED
         protected const int kJoiningNet = 2;
+        protected const int kCheckingForGames = 3;
 #endif
         protected const int kConnectedAndReady = 4;
         protected const int kFailed = 9;
@@ -98,10 +101,16 @@ namespace BeamGameCode
                 logger.Verbose($"{(ModeName())}: SetState: kJoiningNet");
                 _JoinNetwork();
                 break;
+
+            case kCheckingForGames:
+                logger.Verbose($"{(ModeName())}: SetState: kCheckingForGames");
+                _CheckForGames();
+                _loopFunc = _CheckingForGamesLoop;
+                break;
+
 #endif
             case kConnectedAndReady:
                logger.Verbose($"{(ModeName())}: SetState: kConnectedAndReady");
-                _CheckForGames();
                 appl.OnNetworkReady(); // appl will tell the FE, which will do something
                 _loopFunc = _ConnectedLoop;
                 break;
@@ -119,6 +128,7 @@ namespace BeamGameCode
 
         private void _DoNothingLoop(float frameSecs) {}
 
+
         private void _ConnectedLoop(float frameSecs)
         {
 
@@ -129,7 +139,17 @@ namespace BeamGameCode
             //if (_curStateSecs > 5)
         }
 
-
+#if SINGLE_THREADED
+        protected void _CheckingForGamesLoop(float frameSecs)
+        {
+            if (_curStateSecs > kListenForGamesSecs)
+            {
+                // Stop listening for games and ask the FE to choose one
+                appl.GameAnnounceEvt += _OnGameAnnounceEvt;
+                _SetState(kConnectedAndReady);
+            }
+        }
+#endif
 
         // Event handlers
 
@@ -161,13 +181,6 @@ namespace BeamGameCode
 
         // util code
 
-       private void _CheckForGames()
-        {
-            logger.Info($"{(ModeName())} - _CheckForGames() - checking...");
-            appl.GameAnnounceEvt += _OnGameAnnounceEvt;
-            appl.ListenForGames();
-        }
-
 #if !SINGLE_THREADED
         // MultiThreaded code
         private async void _AsyncStartup()
@@ -175,6 +188,8 @@ namespace BeamGameCode
             try {
                 appl.ConnectToNetwork(settings.p2pConnectionString); // should be async? GameNet.Connect() currently is not
                 GameNet.PeerJoinedNetworkData netJoinData = await appl.JoinBeamNetAsync(settings.apianNetworkName);
+
+                await appl.GetExistingGamesAsync( (int)(kListenForGamesSecs * 1000f));
 
                 _SetState(kConnectedAndReady);
 
@@ -189,6 +204,14 @@ namespace BeamGameCode
         {
             appl.JoinBeamNet(settings.apianNetworkName);
             // Wait for _OnPeerJoinedNetEvt()
+        }
+
+
+       private void _CheckForGames()
+        {
+            logger.Info($"{(ModeName())} - _CheckForGames() - checking...");
+            appl.GameAnnounceEvt += _OnGameAnnounceEvt;
+            appl.ListenForGames();
         }
 #endif
 
