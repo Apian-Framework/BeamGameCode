@@ -234,6 +234,8 @@ namespace BeamGameCode
 
                 Dictionary<string, BeamGameAnnounceData> gamesAvail = appl.NetInfo.BeamGames.Values.ToDictionary(bgd => bgd.GameInfo.GameName, bgd => bgd);
 
+                logger.Info($"{this.ModeName()}: _AsyncStartup() - # gamesAvail={gamesAvail.Values.Count}");
+
                 GameSelectedEventArgs selection = await appl.SelectGameAsync(gamesAvail);
 
                 // OnGameSelected( selection )
