@@ -68,6 +68,7 @@ namespace BeamGameCode
                 appCore.End();
             }
             appl.AddAppCore(null);
+            appl.LeaveGame();
             return null;
         }
 

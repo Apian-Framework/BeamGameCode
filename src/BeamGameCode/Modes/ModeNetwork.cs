@@ -66,7 +66,10 @@ namespace BeamGameCode
             appl.PeerJoinedEvt -= _OnPeerJoinedNetEvt;
             appl.PeerLeftEvt -= _OnPeerLeftNetEvt;
             appl.GameAnnounceEvt -= _OnGameAnnounceEvt;
-            appl.beamGameNet.LeaveNetwork();
+
+            appl.LeaveNetwork();
+            appl.TearDownNetwork();
+
             appl.AddAppCore(null); // This is almost certainly unnecessary
             appl.frontend?.OnEndMode(this);
             return null;

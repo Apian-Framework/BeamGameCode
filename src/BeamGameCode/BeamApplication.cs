@@ -29,6 +29,7 @@ namespace BeamGameCode
         public IBeamFrontend frontend {get; private set;}
         public BeamNetworkPeer LocalPeer { get; private set; }
         public BeamNetInfo NetInfo { get; private set;}  // BeamApplication keeps this updated as best as possible
+        public BeamGameInfo CurrentGame { get; private set; }
 
         public UniLogger Logger;
         public BeamAppCore mainAppCore {get; private set;}
@@ -86,6 +87,19 @@ namespace BeamGameCode
             return await beamGameNet.JoinBeamNetAsync(networkName, LocalPeer); // this ends up calling OnPeerJoinedNetwork, too.
         }
 #endif
+
+        public void LeaveNetwork()
+        {
+            // Leave a joined BeamNet
+            beamGameNet.LeaveNetwork();
+            _ResetJoinNetData();
+        }
+        public void TearDownNetwork()
+        {
+            // Tear down the whole P2pNet thing (opposite of Setup)
+            beamGameNet.TearDownConnection();
+        }
+
 
         // Get a list of active/available Beam game instances on the net
         public void ListenForGames()
@@ -179,19 +193,14 @@ namespace BeamGameCode
         }
 #endif
 
-        public void LeaveGame(string gameId)
+        public void LeaveGame()
         {
-            beamGameNet.LeaveGame(gameId);
-        }
+            if (CurrentGame != null)
+            {
+                beamGameNet.LeaveGame(CurrentGame.GroupId);
+                CurrentGame = null;
+            }
 
-        public void LeaveNetwork()
-        {
-            beamGameNet.LeaveNetwork();
-            _ResetJoinNetData();
-        }
-        public void TearDownNetwork()
-        {
-            beamGameNet.TearDownConnection();
         }
 
         // Game mode  control
@@ -243,7 +252,13 @@ namespace BeamGameCode
         {
             Logger.Info($"OnGroupMemberStatus() Grp: {groupId}, Peer: {UniLogger.SID(peerId)}, Status: {newStatus}, Prev: {prevStatus}");
         }
-        public void OnPeerJoinedGroup(PeerJoinedGroupData data)  {  }
+        public void OnPeerJoinedGroup(PeerJoinedGroupData data)
+        {
+            bool isLocalPeer = data?.PeerId == LocalPeer.PeerId;
+            if (isLocalPeer) {
+                CurrentGame = data.GroupInfo as BeamGameInfo;
+            }
+        }
 
         //
         // IGameNetClient

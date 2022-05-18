@@ -85,7 +85,11 @@ namespace BeamGameCode
             appCore.NewBikeEvt -= _OnNewBikeEvt;
             appl.frontend?.OnEndMode(this);
             appCore.End();
-            appl.beamGameNet.LeaveNetwork();
+
+            appl.LeaveGame();
+            appl.LeaveNetwork();
+            appl.TearDownNetwork();
+
             appl.AddAppCore(null);
             return null;
         }

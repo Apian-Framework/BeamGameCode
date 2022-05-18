@@ -1,4 +1,4 @@
-//#define SINGLE_THREADED
+#define SINGLE_THREADED
 using System;
 using System.Linq;
 using Apian;
@@ -99,7 +99,11 @@ namespace BeamGameCode
             appCore.NewBikeEvt -= _OnNewBikeEvt;
             appl.frontend?.OnEndMode(this);
             appCore.End();
-            appl.beamGameNet.LeaveNetwork();
+
+            appl.LeaveGame();
+            appl.LeaveNetwork();
+            appl.TearDownNetwork();
+
             appl.AddAppCore(null);
             return null;
         }
@@ -165,7 +169,7 @@ namespace BeamGameCode
 
             // Setup/connect fake network
             _CurrentState = ModeState.JoiningNet;
-            appl.ConnectToNetwork("p2ploopback");
+            appl.SetupNetwork("p2ploopback");
             appl.JoinBeamNet(NetworkName);
             // Now wait for OnPeerJoinedNet()
         }
