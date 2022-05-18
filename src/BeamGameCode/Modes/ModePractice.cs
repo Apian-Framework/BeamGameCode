@@ -152,7 +152,7 @@ namespace BeamGameCode
         protected async void DoAsyncSetupAndStartJoin()
         {
             // Setup/connect fake network
-            appl.ConnectToNetwork("p2ploopback");
+            appl.SetupNetwork("p2ploopback");
             await appl.JoinBeamNetAsync(NetworkName);
 
             logger.Info("Practice network joined");
