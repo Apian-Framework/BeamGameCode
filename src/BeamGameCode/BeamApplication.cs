@@ -28,7 +28,6 @@ namespace BeamGameCode
         public LoopModeManager modeMgr {get; private set;}
         public IBeamFrontend frontend {get; private set;}
         public BeamNetworkPeer LocalPeer { get; private set; }
-
         public BeamNetInfo NetInfo { get; private set;}  // BeamApplication keeps this updated as best as possible
 
         public UniLogger Logger;
@@ -72,6 +71,7 @@ namespace BeamGameCode
         // Ask to join a Beam network
         public void JoinBeamNet(string networkName)
         {
+            _ResetJoinNetData();
             _CreateLocalPeer();
             beamGameNet.JoinBeamNet(networkName, LocalPeer);
             // Returns via OnPeerJoinedNetwork()
@@ -81,7 +81,8 @@ namespace BeamGameCode
         // Or use the async/await version
         public async Task<PeerJoinedNetworkData> JoinBeamNetAsync(string networkName)
         {
-            _CreateLocalPeer(); // reads stuff from settings  and p2p instance
+            _ResetJoinNetData();
+            _CreateLocalPeer();  // reads stuff from settings  and p2p instance
             return await beamGameNet.JoinBeamNetAsync(networkName, LocalPeer); // this ends up calling OnPeerJoinedNetwork, too.
         }
 #endif
@@ -183,6 +184,16 @@ namespace BeamGameCode
             beamGameNet.LeaveGame(gameId);
         }
 
+        public void LeaveNetwork()
+        {
+            beamGameNet.LeaveNetwork();
+            _ResetJoinNetData();
+        }
+        public void TearDownNetwork()
+        {
+            beamGameNet.TearDownConnection();
+        }
+
         // Game mode  control
 
         public void OnSwitchModeReq(int newModeId, object modeParam)
@@ -267,10 +278,16 @@ namespace BeamGameCode
         private void _CreateLocalPeer()
         {
             BeamUserSettings settings = frontend.GetUserSettings();
-            LocalPeer = new BeamNetworkPeer(beamGameNet.LocalP2pId(), settings.screenName);
+            LocalPeer = new BeamNetworkPeer(beamGameNet.LocalP2pId(), settings.screenName); // must have called
             if (LocalPeer.PeerId == null)
                 throw new ArgumentNullException("LocalPeer.PeerId"); // ConnectToNetwork() not called/failed?
 
+        }
+
+        private void _ResetJoinNetData()
+        {
+            NetInfo = new BeamNetInfo(); // clear it all.
+            LocalPeer = null;
         }
 
         protected BeamPlayer MakeBeamPlayer() => new BeamPlayer(LocalPeer.PeerId, LocalPeer.Name);
