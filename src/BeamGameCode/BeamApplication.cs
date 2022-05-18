@@ -62,11 +62,11 @@ namespace BeamGameCode
         //
 
         // Connect / Join network
-        public void ConnectToNetwork(string netConnectionStr)
+        public void SetupNetwork(string netConnectionStr)
         {
             // This is NOT *joining* a network. Just setting up the connection
             // Connect is (for now) synchronous
-              beamGameNet.Connect(netConnectionStr);
+              beamGameNet.SetupConnection(netConnectionStr);
         }
 
         // Ask to join a Beam network
@@ -135,6 +135,8 @@ namespace BeamGameCode
             Logger.Info($"OnGameSelected({gameInfo?.GameName})");
             GameSelectedEvent?.Invoke(this, new GameSelectedEventArgs(gameInfo, result));
         }
+
+
 
 #if !SINGLE_THREADED
         public async Task<GameSelectedEventArgs> SelectGameAsync(IDictionary<string, BeamGameAnnounceData> existingGames)
@@ -217,7 +219,7 @@ namespace BeamGameCode
         {
             // Beam only supports 1 game instance
             mainAppCore = gi as BeamAppCore;
-            frontend.SetAppCore(gi as IBeamAppCore); /// TODO: this is just a hack.
+            frontend.SetAppCore(gi as IBeamAppCore); // HACK
         }
         public void OnGroupAnnounce(GroupAnnounceResult groupAnn)
         {
@@ -266,6 +268,9 @@ namespace BeamGameCode
         {
             BeamUserSettings settings = frontend.GetUserSettings();
             LocalPeer = new BeamNetworkPeer(beamGameNet.LocalP2pId(), settings.screenName);
+            if (LocalPeer.PeerId == null)
+                throw new ArgumentNullException("LocalPeer.PeerId"); // ConnectToNetwork() not called/failed?
+
         }
 
         protected BeamPlayer MakeBeamPlayer() => new BeamPlayer(LocalPeer.PeerId, LocalPeer.Name);
