@@ -16,7 +16,6 @@ namespace BeamGameCode
 {
     public interface IBeamGameNet : IApianGameNet
     {
-        //void CreateBeamNet(BeamGameNet.BeamNetCreationData createData);
         void JoinBeamNet(string netName, BeamNetworkPeer localPeer);
         void LeaveBeamNet();
 
@@ -35,7 +34,6 @@ namespace BeamGameCode
         Task<PeerJoinedGroupData> CreateAndJoinGameAsync(BeamGameInfo gameInfo, BeamApian apian, string localData);
         Task<PeerJoinedGroupData> JoinExistingGameAsync(BeamGameInfo gameInfo, BeamApian apian, string localData );
 #endif
-
     }
 
     public class BeamGameNet : ApianGameNetBase, IBeamGameNet
@@ -54,14 +52,8 @@ namespace BeamGameCode
 
         public BeamGameNet() : base()
         {
-           // _MsgHandlers[BeamMessage.kBikeDataQuery] = (f,t,s,m) => this._HandleBikeDataQuery(f,t,s,m);
         }
 
-        // Game P2pNetwork stuff
-        // public void CreateBeamNet(BeamNetCreationData createData)
-        // {
-        //     base.CreateNetwork(createData);
-        // }
 
         public void JoinBeamNet(string netName, BeamNetworkPeer localPeer )
         {
