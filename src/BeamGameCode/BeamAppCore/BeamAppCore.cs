@@ -412,7 +412,7 @@ namespace BeamGameCode
             logger.Debug($"_AddPlayer(). Name: {p.Name} ID: {SID(p.PeerId)}");
             if  ( CoreState.Players.ContainsKey(p.PeerId))
             {
-                logger.Warn($"_AddPlayer(). Player already exists!!!!");
+                logger.Warn($"_AddPlayer(). Player {SID(p.PeerId)} already exists!!!!");
                 return false;
             }
 

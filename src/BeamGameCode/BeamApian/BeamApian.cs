@@ -52,9 +52,7 @@ namespace BeamGameCode
         {
             GroupMgr?.Update();
             ApianClock?.Update();
-
             ((BeamAppCore)AppCore)?.Loop();
-
         }
 
         protected void AddApianPeer(string p2pId, string peerHelloData)

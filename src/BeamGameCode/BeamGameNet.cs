@@ -169,7 +169,7 @@ namespace BeamGameCode
 
         public void SendBikeCreateDataReq(string groupId, IBike ib)
         {
-            logger.Info($"PostBikeCreateData(): {SID(ib.bikeId)}");
+            logger.Info($"SendBikeCreateDataReq(): {SID(ib.bikeId)}");
             BeamApian apian = ApianInstances[groupId] as BeamApian;
             apian.SendBikeCreateReq(apian.CurrentRunningApianTime(), ib);
         }
