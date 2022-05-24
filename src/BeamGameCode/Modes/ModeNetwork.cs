@@ -56,10 +56,21 @@ namespace BeamGameCode
             _SetState(kStartingUp);
         }
 
+        public override void Pause()
+        {
+            appl.frontend?.OnPauseMode(this);
+        }
+
 		public override void Loop(float frameSecs)
         {
             _loopFunc(frameSecs);
             _curStateSecs += frameSecs;
+        }
+
+        public override void  Resume(string prevModeName, object param = null)
+        {
+            appl.frontend?.OnResumeMode(this);
+            appl.ListenForGames();
         }
 
 		public override object End() {

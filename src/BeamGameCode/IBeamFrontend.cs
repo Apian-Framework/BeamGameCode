@@ -41,10 +41,10 @@ namespace BeamGameCode
         // Start and end subscibe/unsubscribe
         void OnStartMode(BeamGameMode mode, object param = null);
         void OnEndMode(BeamGameMode mode, object param = null);
+        void OnPauseMode(BeamGameMode mode, object param = null);
+        void OnResumeMode(BeamGameMode mode, object param = null);
 
         // Network join/status
-
-
 
         // Network peers
         void OnPeerJoinedNetEvt(object sender, PeerJoinedEventArgs pa);

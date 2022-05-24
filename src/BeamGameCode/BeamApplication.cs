@@ -197,6 +197,7 @@ namespace BeamGameCode
         {
             if (CurrentGame != null)
             {
+                Logger.Info($"LeaveGame() - leaving game {CurrentGame.GroupId}");
                 beamGameNet.LeaveGame(CurrentGame.GroupId);
                 CurrentGame = null;
             }
@@ -204,6 +205,8 @@ namespace BeamGameCode
         }
 
         // Game mode  control
+
+        public int CurrentGameModeId() => modeMgr.CurrentModeId();
 
         public void OnSwitchModeReq(int newModeId, object modeParam)
         {

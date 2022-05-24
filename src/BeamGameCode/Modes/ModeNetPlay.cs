@@ -48,8 +48,9 @@ namespace BeamGameCode
             settings = appl.frontend.GetUserSettings();
             appl.PeerJoinedEvt += _OnPeerJoinedNetEvt; // We have already joined
             appl.AddAppCore(null);
-            _SetState(kStartingUp); // was "connecting"
             appl.frontend?.OnStartMode(this);
+            _SetState(kStartingUp); // was "connecting"
+
         }
 
 		public override void Loop(float frameSecs)
@@ -58,17 +59,27 @@ namespace BeamGameCode
             _curStateSecs += frameSecs;
         }
 
-		public override object End() {
-            appl.PeerJoinedEvt -= _OnPeerJoinedNetEvt;
-            if (appCore != null)
+        private void _UnsubscribeFromAppCoreEvents()
+        {
+           if (appCore != null)
             {
                 appCore.PlayerJoinedEvt -= _OnPlayerJoinedEvt;
                 appCore.NewBikeEvt -= _OnNewBikeEvt;
-                appl.frontend?.OnEndMode(this);
-                appCore.End();
+                appCore.RespawnPlayerEvt -= _OnRespawnPlayerEvt;
             }
-            appl.AddAppCore(null);
+        }
+		public override object End() => _DoCleanup();
+
+
+
+        private object _DoCleanup()
+        {
+            appl.PeerJoinedEvt -= _OnPeerJoinedNetEvt;
+            _UnsubscribeFromAppCoreEvents();
+            appl.frontend?.OnEndMode(this);
+            appCore?.End();
             appl.LeaveGame();
+            appl.AddAppCore(null); // nulls FE.appCore, too
             return null;
         }
 
@@ -158,6 +169,7 @@ namespace BeamGameCode
             CreateCorePair(gameInfo);
             appCore.PlayerJoinedEvt += _OnPlayerJoinedEvt;  // Wait for AppCore to report local player has joined
             appCore.NewBikeEvt += _OnNewBikeEvt;
+            appCore.RespawnPlayerEvt += _OnRespawnPlayerEvt;
         }
 
         // Event handlers
@@ -181,7 +193,6 @@ namespace BeamGameCode
             logger.Info($"{(ModeName())} - OnPlayerJoinedEvt() - {(isLocal?"Local":"Remote")} Member Joined: {ga.player.Name}, ID: {SID(ga.player.PeerId)}");
             if (ga.player.PeerId == appl.LocalPeer.PeerId)
             {
-                appCore.RespawnPlayerEvt += _OnRespawnPlayerEvt;  // FIXME: why does this happen here?  &&&&
                 _SetState(kPlaying);
             }
         }
@@ -241,7 +252,12 @@ namespace BeamGameCode
 
                 // OnGameSelected( selection )
                 if (selection.result == GameSelectedEventArgs.ReturnCode.kCancel)
-                    throw new ArgumentException($"_AsyncStartup() No Game Selected.");
+                {
+                    //throw new ArgumentException($"_AsyncStartup() No Game Selected.");
+                    appl.OnPopModeReq(null);
+                    return;
+                }
+
 
                 BeamGameInfo gameInfo = selection.gameInfo;
 
@@ -292,7 +308,8 @@ namespace BeamGameCode
         {
             if (selection.result == GameSelectedEventArgs.ReturnCode.kCancel)
             {
-                _SetState(kFailed,$"DispatchGameSelection() No Game Selected.");
+                appl.OnPopModeReq(null);
+                //_SetState(kFailed,$"DispatchGameSelection() No Game Selected.");
                 return;
             }
 

@@ -73,6 +73,7 @@ namespace BeamGameCode
         BeamNetworkPeer LocalPeer { get;}
 
         void ExitApplication(); // relatively controlled exit via modeMgr
+        int CurrentGameModeId();
         void OnSwitchModeReq(int newModeId, object modeParam);
         void OnPushModeReq(int newModeId, object modeParam);
         void OnPopModeReq(object resultParam);
