@@ -14,7 +14,7 @@ namespace BeamGameCode
         public const string SplashModeName = "splash";
         public const string NetworkModeName = "network";
         public const string PracticeModeName = "practice";
-        public const string NetPlayModeName = "net";
+        public const string NetPlayModeName = "netplay";
 
 
 
