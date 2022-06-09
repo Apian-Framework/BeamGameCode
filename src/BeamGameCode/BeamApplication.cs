@@ -254,6 +254,7 @@ namespace BeamGameCode
         public void OnGroupMemberStatus(string groupId, string peerId, ApianGroupMember.Status newStatus, ApianGroupMember.Status prevStatus)
         {
             Logger.Info($"OnGroupMemberStatus() Grp: {groupId}, Peer: {UniLogger.SID(peerId)}, Status: {newStatus}, Prev: {prevStatus}");
+            frontend.OnGroupMemberStatus(groupId, peerId, newStatus, prevStatus);
         }
         public void OnPeerJoinedGroup(PeerJoinedGroupData data)
         {

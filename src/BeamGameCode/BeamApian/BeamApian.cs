@@ -109,6 +109,7 @@ namespace BeamGameCode
                 }
                 break;
             case ApianGroupMember.Status.SyncingState:
+            case ApianGroupMember.Status.SyncingClock:
                 if (peer.CurStatus == ApianGroupMember.Status.Active)
                 {
                     // Most common situation
