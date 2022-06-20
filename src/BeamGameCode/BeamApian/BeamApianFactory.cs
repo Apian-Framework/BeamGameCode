@@ -15,7 +15,7 @@ namespace BeamGameCode
         {
             SinglePeerGroupManager.kGroupType,
             CreatorSezGroupManager.kGroupType,
-            //LeaderSezGroupManager.kGroupType
+            LeaderSezGroupManager.kGroupType
         };
 
         public static BeamApian Create(string apianGroupType, IBeamGameNet beamGameNet, BeamAppCore appCore)
@@ -29,9 +29,9 @@ namespace BeamGameCode
             case CreatorSezGroupManager.kGroupType:
                 result =  new BeamApianCreatorSez(beamGameNet, appCore);
                 break;
-            //case LeaderSezGroupManager.kGroupType:
-            //    result =  new BeamApianLeaderSez(beamGameNet, appCore);
-            //    break;
+            case LeaderSezGroupManager.kGroupType:
+                result =  new BeamApianLeaderSez(beamGameNet, appCore);
+                break;
             default:
                 UniLogger.GetLogger("Apian").Warn($"BeamApianFactory.Create() Unknown GroupType: {apianGroupType}");
                 result = null;

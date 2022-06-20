@@ -264,6 +264,12 @@ namespace BeamGameCode
             }
         }
 
+        public void OnGroupLeaderChange(string newLeaderId, ApianGroupMember leaderData)
+        {
+            string lname = leaderData != null ?  BeamPlayer.FromApianJson(leaderData.AppDataJson).Name : null;
+            frontend.DisplayMessage( MessageSeverity.Info, $"Group Leader: { ((lname != null) ? "Id: " + lname : "")} {newLeaderId}");
+        }
+
         //
         // IGameNetClient
         //
