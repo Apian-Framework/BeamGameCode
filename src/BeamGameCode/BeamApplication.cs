@@ -180,15 +180,15 @@ namespace BeamGameCode
         }
 
 #if !SINGLE_THREADED
-        public async Task<LocalPeerJoinedGameData> CreateAndJoinGameAsync(BeamGameInfo gameInfo, BeamAppCore appCore)
+        public async Task<LocalPeerJoinedGameData> CreateAndJoinGameAsync(BeamGameInfo gameInfo, BeamAppCore appCore, int timeoutMs)
         {
-            PeerJoinedGroupData joinData = await beamGameNet.CreateAndJoinGameAsync(gameInfo, appCore?.apian, MakeBeamPlayer().ApianSerialized() );
+            PeerJoinedGroupData joinData = await beamGameNet.CreateAndJoinGameAsync(gameInfo, appCore?.apian, MakeBeamPlayer().ApianSerialized(), timeoutMs);
             return new LocalPeerJoinedGameData(joinData.Success, joinData.GroupInfo.GroupId, joinData.Message);
         }
 
-        public async Task<LocalPeerJoinedGameData> JoinExistingGameAsync(BeamGameInfo gameInfo, BeamAppCore appCore)
+        public async Task<LocalPeerJoinedGameData> JoinExistingGameAsync(BeamGameInfo gameInfo, BeamAppCore appCore, int timeoutMs)
         {
-            PeerJoinedGroupData joinData = await beamGameNet.JoinExistingGameAsync(gameInfo, appCore?.apian, MakeBeamPlayer().ApianSerialized() );
+            PeerJoinedGroupData joinData = await beamGameNet.JoinExistingGameAsync(gameInfo, appCore?.apian, MakeBeamPlayer().ApianSerialized(), timeoutMs);
             return new LocalPeerJoinedGameData(joinData.Success, joinData.GroupInfo.GroupId, joinData.Message);
         }
 #endif
@@ -264,10 +264,12 @@ namespace BeamGameCode
             }
         }
 
-        public void OnGroupLeaderChange(string newLeaderId, ApianGroupMember leaderData)
+        public void OnGroupLeaderChange(string groupId, string newLeaderId, ApianGroupMember leaderData)
         {
             string lname = leaderData != null ?  BeamPlayer.FromApianJson(leaderData.AppDataJson).Name : null;
-            frontend.DisplayMessage( MessageSeverity.Info, $"Group Leader: { ((lname != null) ? "Id: " + lname : "")} {newLeaderId}");
+
+            frontend.OnGroupLeaderChanged(groupId, newLeaderId, lname);
+
         }
 
         //

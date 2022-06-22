@@ -31,8 +31,8 @@ namespace BeamGameCode
         // MultiThreaded - or at last uses System/Threading
 #if !SINGLE_THREADED
         Task<PeerJoinedNetworkData> JoinBeamNetAsync(string netName, BeamNetworkPeer localPeer);
-        Task<PeerJoinedGroupData> CreateAndJoinGameAsync(BeamGameInfo gameInfo, BeamApian apian, string localData);
-        Task<PeerJoinedGroupData> JoinExistingGameAsync(BeamGameInfo gameInfo, BeamApian apian, string localData );
+        Task<PeerJoinedGroupData> CreateAndJoinGameAsync(BeamGameInfo gameInfo, BeamApian apian, string localData, int timeoutMs);
+        Task<PeerJoinedGroupData> JoinExistingGameAsync(BeamGameInfo gameInfo, BeamApian apian, string localData, int timeoutMs);
 #endif
     }
 
@@ -119,14 +119,14 @@ namespace BeamGameCode
             return await JoinNetworkAsync(chan, beamNetworkHelloData);
         }
 
-        public async Task<PeerJoinedGroupData> JoinExistingGameAsync(BeamGameInfo gameInfo, BeamApian apian, string localData )
+        public async Task<PeerJoinedGroupData> JoinExistingGameAsync(BeamGameInfo gameInfo, BeamApian apian, string localData, int timeoutMs)
         {
-            return await base.JoinExistingGroupAsync(gameInfo, apian, localData);
+            return await base.JoinExistingGroupAsync(gameInfo, apian, localData, timeoutMs);
         }
 
-        public async Task<PeerJoinedGroupData> CreateAndJoinGameAsync(BeamGameInfo gameInfo, BeamApian apian, string localData)
+        public async Task<PeerJoinedGroupData> CreateAndJoinGameAsync(BeamGameInfo gameInfo, BeamApian apian, string localData, int timeoutMs)
         {
-            return await base.CreateAndJoinGroupAsync(gameInfo, apian, localData);
+            return await base.CreateAndJoinGroupAsync(gameInfo, apian, localData, timeoutMs);
         }
 #endif
 

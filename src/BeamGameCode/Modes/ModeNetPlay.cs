@@ -42,6 +42,8 @@ namespace BeamGameCode
 
         protected const float kRespawnCheckInterval = 1.3f;
 
+        protected const int kJoinGameTimeoutMs = 5000;
+
 		public override void Start(object param = null)
         {
             base.Start();
@@ -111,10 +113,12 @@ namespace BeamGameCode
             case kJoiningExistingGame:
                 logger.Verbose($"{(ModeName())}: SetState: kJoiningExistingGame");
                 _JoinExistingGame(startParam as BeamGameInfo);
+                loopFunc = _JoinGameLoop;
                 break;
             case kCreatingAndJoiningGame:
                 logger.Verbose($"{(ModeName())}: SetState: kCreatingAndJoiningGame");
                 _CreateAndJoinGame(startParam as BeamGameInfo);
+                loopFunc = _JoinGameLoop;
                 break;
             case kWaitingForMembers:
                 logger.Verbose($"{(ModeName())}: SetState: kWaitingForMembers");
@@ -154,9 +158,18 @@ namespace BeamGameCode
             }
         }
 
+       private void _JoinGameLoop(float frameSecs)
+        {
+            if (_curStateSecs > kJoinGameTimeoutMs / 1000.0)
+            {
+                _SetState(kFailed, "Join Game failed: Timeout");
+            }
+       }
+
+
         private void _FailedLoop(float frameSecs)
         {
-            //if (_curStateSecs > 5)
+
         }
 
          // utils
@@ -271,13 +284,13 @@ namespace BeamGameCode
                     // Create and join
                     if (targetGameExisted)
                         throw new ArgumentException($"Cannot create.  Beam Game \"{gameInfo.GameName}\" already exists");
-                    gameJoinData = await appl.CreateAndJoinGameAsync(gameInfo, appCore);
+                    gameJoinData = await appl.CreateAndJoinGameAsync(gameInfo, appCore, kJoinGameTimeoutMs);
 
                 } else {
                     // Join existing
                     if (!targetGameExisted)
                         throw new ArgumentException($"Cannot Join.  Beam Game \"{gameInfo.GameName}\" not found");
-                    gameJoinData = await appl.JoinExistingGameAsync(gameInfo, appCore);
+                    gameJoinData = await appl.JoinExistingGameAsync(gameInfo, appCore, kJoinGameTimeoutMs);
 
                     if (!gameJoinData.success)
                         throw new Exception($"Failed to join game: {gameJoinData.failureReason}");
