@@ -113,12 +113,12 @@ namespace BeamGameCode
             case kJoiningExistingGame:
                 logger.Verbose($"{(ModeName())}: SetState: kJoiningExistingGame");
                 _JoinExistingGame(startParam as BeamGameInfo);
-                loopFunc = _JoinGameLoop;
+                _loopFunc = _JoinGameLoop;
                 break;
             case kCreatingAndJoiningGame:
                 logger.Verbose($"{(ModeName())}: SetState: kCreatingAndJoiningGame");
                 _CreateAndJoinGame(startParam as BeamGameInfo);
-                loopFunc = _JoinGameLoop;
+                _loopFunc = _JoinGameLoop;
                 break;
             case kWaitingForMembers:
                 logger.Verbose($"{(ModeName())}: SetState: kWaitingForMembers");

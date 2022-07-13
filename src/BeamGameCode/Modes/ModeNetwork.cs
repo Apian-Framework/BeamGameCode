@@ -104,7 +104,7 @@ namespace BeamGameCode
             case kStartingUp:
                 logger.Verbose($"{(ModeName())}: SetState: kStartingUp");
                 try {
-                    appl.ConnectToNetwork(settings.p2pConnectionString);
+                    appl.SetupNetwork(settings.p2pConnectionString);
                 } catch (Exception ex) {
                     _SetState(kFailed, ex.Message);
                     return;

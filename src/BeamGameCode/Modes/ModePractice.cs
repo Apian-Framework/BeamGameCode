@@ -183,7 +183,7 @@ namespace BeamGameCode
 
             // Setup/connect fake network
             _CurrentState = ModeState.JoiningNet;
-            appl.ConnectToNetwork("p2ploopback");
+            appl.SetupNetwork("p2ploopback");
             appl.JoinBeamNet(NetworkName);
             // Now wait for OnPeerJoinedNet()
         }
