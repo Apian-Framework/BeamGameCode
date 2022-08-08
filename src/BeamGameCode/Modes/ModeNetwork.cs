@@ -174,10 +174,10 @@ namespace BeamGameCode
             logger.Info($"{(ModeName())} - _OnPeerJoinedNetEvt() - {(isLocal?"Local":"Remote")} Peer Joined: {p.Name}, ID: {SID(p.PeerId)}");
 
 #if SINGLE_THREADED
-            // Async startup already calls _setState(kConnectedAndReady)
+            // Async startup already calls getExistingGamesAsync() then goes to _setState(kConnectedAndReady)
             if (isLocal)
             {
-                _SetState(kConnectedAndReady);
+                _SetState(kCheckingForGames);
             }
 #endif
         }
