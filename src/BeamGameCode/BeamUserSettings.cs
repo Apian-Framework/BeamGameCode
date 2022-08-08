@@ -7,6 +7,7 @@ using UnityEngine;
 using UniLog;
 #if UNITY_WEBGL && !UNITY_EDITOR
 using System.Runtime.InteropServices;
+using AOT;
 #endif
 
 namespace BeamGameCode
@@ -22,6 +23,10 @@ namespace BeamGameCode
 #if UNITY_WEBGL && !UNITY_EDITOR
         [DllImport("__Internal")]
         private static extern void SyncFiles();
+
+        [DllImport("__Internal")]
+        public static extern string Get_WebGLDefaultSettings();
+
 #endif
 
         public static BeamUserSettings Load(string baseName = defaultBaseName)
@@ -125,6 +130,10 @@ namespace BeamGameCode
 
         public static BeamUserSettings CreateDefault()
         {
+#if UNITY_WEBGL && !UNITY_EDITOR
+
+            return JsonConvert.DeserializeObject<BeamUserSettings>(UserSettingsMgr.Get_WebGLDefaultSettings());
+#else
             return new BeamUserSettings() {
                 version = UserSettingsMgr.currentVersion,
                 startMode = BeamModeFactory.NetworkModeName,
@@ -148,6 +157,7 @@ namespace BeamGameCode
                 tempSettings = new Dictionary<string, string>(),
                 platformSettings = new Dictionary<string, string>()
             };
+#endif
         }
     }
 
