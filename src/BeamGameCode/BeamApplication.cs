@@ -290,7 +290,7 @@ namespace BeamGameCode
 
         public void OnPeerLeftNetwork(string p2pId, string netId)
         {
-            Logger.Info($"OnPeerLeftGame({SID(p2pId)})");
+            Logger.Info($"OnPeerLeftNetwork({SID(p2pId)})");
             NetInfo?.RemovePeer(p2pId);
             PeerLeftEvt?.Invoke(this, new PeerLeftEventArgs(netId, p2pId)); // Event instance might be gone
         }
