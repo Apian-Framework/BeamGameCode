@@ -86,6 +86,14 @@ namespace BeamGameCode
             }
         }
 
+        public override void OnGroupMemberLeft(ApianGroupMember member)
+        {
+            // Send to Apian group to get upgraded to a command
+            // Note that "Player" is an AppCore thing, GroupMember is an Apian/network thing
+            SendPlayerLeftObs(ApianClock.CurrentTime, member.PeerId);
+            base.OnGroupMemberLeft(member);
+        }
+
         public override void OnGroupMemberStatusChange(ApianGroupMember member, ApianGroupMember.Status prevStatus)
         {
             base.OnGroupMemberStatusChange(member, prevStatus);
@@ -118,11 +126,6 @@ namespace BeamGameCode
                 break;
             }
 
-            // No matter Wwhat state it was - it's gone now...
-            if (peer.CurStatus == ApianGroupMember.Status.Removed)
-            {
-                SendPlayerLeftObs(ApianClock.CurrentTime, peer.PeerId);
-            }
         }
 
 
