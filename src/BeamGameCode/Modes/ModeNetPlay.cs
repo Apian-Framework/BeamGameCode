@@ -160,8 +160,9 @@ namespace BeamGameCode
 
        private void _JoinGameLoop(float frameSecs)
         {
-            if (_curStateSecs > kJoinGameTimeoutMs / 1000.0)
+            if (_curStateSecs * 1000f > kJoinGameTimeoutMs )
             {
+                appl.LeaveGame(); // leaves/closes group
                 _SetState(kFailed, "Join Game failed: Timeout");
             }
        }
