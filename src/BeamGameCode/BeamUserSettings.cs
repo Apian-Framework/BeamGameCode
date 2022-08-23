@@ -1,6 +1,7 @@
 using System.Runtime.Serialization;
 using System;
 using System.IO;
+using System.Linq;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using UnityEngine;
@@ -53,12 +54,25 @@ namespace BeamGameCode
 
         public static void Save(BeamUserSettings settings)
         {
+            // TODO: UniLogger settings are handled inconsistently
             System.IO.Directory.CreateDirectory(path);
             string filePath = path + Path.DirectorySeparatorChar + fileBaseName + ".json";
             BeamUserSettings saveSettings = new BeamUserSettings(settings);
             saveSettings.tempSettings = new Dictionary<string, string>(); // Don't persist temp settings
+
+            // Update w/ current UniLogger settings. Update any levels that have been change, but don't get rid of any
+            // just because they aren't in CurrentLevels - (UniLog only creates a entry if the logger has been accessed)
+            foreach (KeyValuePair<string, string > entry  in  UniLogger.CurrentLoggerLevels())
+            {
+                settings.logLevels[entry.Key] = entry.Value;
+            }
+            // and grab/save the current default log level
+            saveSettings.defaultLogLevel = UniLogger.LevelNames[UniLogger.DefaultLevel];
+
             UniLogger.GetLogger("UserSettings").Info($"Saving settings to {filePath}.");
-            File.WriteAllText(filePath, JsonConvert.SerializeObject(saveSettings, Formatting.Indented));
+            string JsonSettings =  JsonConvert.SerializeObject(saveSettings, Formatting.Indented);
+            UniLogger.GetLogger("UserSettings").Debug($"Saved settings:\n{JsonSettings}.");
+            File.WriteAllText(filePath,JsonSettings);
 #if UNITY_WEBGL && !UNITY_EDITOR
             SyncFiles(); // browser FS is async - need to wait for write to complete
 #endif
@@ -138,7 +152,8 @@ namespace BeamGameCode
                 version = UserSettingsMgr.currentVersion,
                 startMode = BeamModeFactory.NetworkModeName,
                 screenName = "Fred Sanford",
-                p2pConnectionString = "p2predis::newsweasel.com,password=O98nfRVWYYHg7rXpygBCBZWl+znRATaRXTC469SafZU",
+                //p2pConnectionString = "p2predis::newsweasel.com,password=O98nfRVWYYHg7rXpygBCBZWl+znRATaRXTC469SafZU",
+                p2pConnectionString = "p2pmqtt::{\"server\":\"newsweasel.com\",\"user\":\"apian_mqtt\",\"pwd\":\"apian_mqtt_pwd\"}",
                 apianNetworkName = "BeamNet1",
                 //p2pConnectionString = "p2predis::192.168.1.195,password=sparky-redis79",
                 ethNodeUrl = "https://rinkeby.infura.io/v3/7653fb1ed226443c98ce85d402299735",
@@ -159,6 +174,7 @@ namespace BeamGameCode
             };
 #endif
         }
+
     }
 
 }
