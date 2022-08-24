@@ -64,7 +64,7 @@ namespace BeamGameCode
             // just because they aren't in CurrentLevels - (UniLog only creates a entry if the logger has been accessed)
             foreach (KeyValuePair<string, string > entry  in  UniLogger.CurrentLoggerLevels())
             {
-                settings.logLevels[entry.Key] = entry.Value;
+                saveSettings.logLevels[entry.Key] = entry.Value;
             }
             // and grab/save the current default log level
             saveSettings.defaultLogLevel = UniLogger.LevelNames[UniLogger.DefaultLevel];
