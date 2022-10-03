@@ -145,7 +145,7 @@ namespace BeamGameCode
         public static BeamUserSettings CreateDefault()
         {
 #if UNITY_WEBGL && !UNITY_EDITOR
-
+            // WebGL defaults are read from a static file.
             return JsonConvert.DeserializeObject<BeamUserSettings>(UserSettingsMgr.Get_WebGLDefaultSettings());
 #else
             return new BeamUserSettings() {
