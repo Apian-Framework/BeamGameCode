@@ -13,9 +13,14 @@ using AOT;
 
 namespace BeamGameCode
 {
+    public class UserSettingsException : Exception
+    {
+        public UserSettingsException(string message) : base(message) { }
+    }
+
     public static class UserSettingsMgr
     {
-        public const string currentVersion = "103";
+        public const string currentVersion = "105";
         public const string subFolder = ".beam";
         public const string defaultBaseName= "beamsettings";
         public static string fileBaseName;
@@ -47,7 +52,7 @@ namespace BeamGameCode
             // FIXME: Actually, this can't work at all using class-template-based serialization
             //  Need to decide if we REALLY want to support updating.
             if (settings.version != currentVersion)
-                throw( new Exception($"Invalid settings version: {settings.version}. Expected: {currentVersion}"));
+                throw( new UserSettingsException($"Invalid settings version: {settings.version}. Expected: {currentVersion}"));
 
             return settings;
         }
@@ -104,7 +109,7 @@ namespace BeamGameCode
         public string p2pConnectionString;
         public string apianNetworkName;
         public string ethNodeUrl;
-        public string ethAcct;
+        public string cryptoAcctJSON; // serialized encrypted keystore
         public string localPlayerCtrlType;
         public int aiBikeCount; // in addition to localPLayerBike, spawn this many AIs (and respawn to keep the number up)
         public bool regenerateAiBikes; // create new ones when old ones get blown up
@@ -126,13 +131,13 @@ namespace BeamGameCode
         public BeamUserSettings(BeamUserSettings source)
         {
             if (version != source.version)
-                throw( new Exception($"Invalid settings version: {source.version}"));
+                throw( new UserSettingsException($"Invalid source settings version: {source.version} Expected: {version}"));
             startMode = source.startMode;
             screenName = source.screenName;
             p2pConnectionString = source.p2pConnectionString;
             apianNetworkName = source.apianNetworkName;
             ethNodeUrl = source.ethNodeUrl;
-            ethAcct = source.ethAcct;
+            cryptoAcctJSON = source.cryptoAcctJSON;
             localPlayerCtrlType = source.localPlayerCtrlType;
             aiBikeCount = source.aiBikeCount;
             regenerateAiBikes = source.regenerateAiBikes;
@@ -157,7 +162,7 @@ namespace BeamGameCode
                 apianNetworkName = "BeamNet1",
                 //p2pConnectionString = "p2predis::192.168.1.195,password=sparky-redis79",
                 ethNodeUrl = "https://rinkeby.infura.io/v3/7653fb1ed226443c98ce85d402299735",
-                ethAcct = "0x2b42eBD222B5a1134e85D78613078740eE3Cc93D",
+                cryptoAcctJSON = "",
                 localPlayerCtrlType = BikeFactory.AiCtrl,
                 aiBikeCount = 2,
                 regenerateAiBikes = false,
