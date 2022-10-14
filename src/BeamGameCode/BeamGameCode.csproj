@@ -24,7 +24,7 @@
 
       <ProjectReference Include="..\..\..\P2pNet\src\P2pNet.ActiveMq\P2pNet.ActiveMq.csproj" />
 
-  <ProjectReference Include="..\..\..\CryptoForApian\src\EthForApian\EthForApian.csproj" />
+      <ProjectReference Include="..\..\..\ApianCrypto\src\EthForApian\EthForApian.csproj" />
 
   </ItemGroup>
 
