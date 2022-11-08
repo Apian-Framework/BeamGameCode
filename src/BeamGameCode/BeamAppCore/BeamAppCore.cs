@@ -94,7 +94,12 @@ namespace BeamGameCode
             if (coreMsg != null)
             {
                 CoreState.ResetRemovalSideEffects();
-                ClientMsgCommandHandlers[coreMsg.MsgType](coreMsg, cmdSeqNum);
+                try {
+                    ClientMsgCommandHandlers[coreMsg.MsgType](coreMsg, cmdSeqNum);
+                } catch (NullReferenceException ex) {
+                    logger.Error($"OnApianCommand(): No command handler for msg type: '{coreMsg.MsgType}'");
+                    throw(ex);
+                }
                 CoreState.DoRemovals();
             }
         }
