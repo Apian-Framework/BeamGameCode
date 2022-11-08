@@ -226,6 +226,13 @@ namespace BeamGameCode
              SendRequest(msg);
         }
 
+      public  void SendPauseReq(long timeStamp,string reason, string id)
+        {
+            // FIXME: STOOPID TEST!!!!
+            Logger.Verbose($"SendPauseReq) Reason: {reason}");
+            PauseAppCoreMsg msg = new PauseAppCoreMsg(timeStamp, reason, id);
+            SendRequest(msg);
+        }
 
     }
 
