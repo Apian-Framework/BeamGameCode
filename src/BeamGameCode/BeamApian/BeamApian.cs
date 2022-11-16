@@ -50,9 +50,9 @@ namespace BeamGameCode
 
         public override void Update()
         {
-            GroupMgr?.Update();
-            ApianClock?.Update();
-            ((BeamAppCore)AppCore)?.Loop();
+            base.Update();
+            if (!GroupMgr.AppCorePaused)
+                ((BeamAppCore)AppCore)?.Loop();
         }
 
         protected void AddApianPeer(string p2pId, string peerHelloData)
@@ -195,7 +195,7 @@ namespace BeamGameCode
         }
         public  void SendRemoveBikeObs(long timeStamp, string bikeId)
         {
-            Logger.Info($"SendRemoveBikeObs()");
+            Logger.Debug($"SendRemoveBikeObs()");
             RemoveBikeMsg msg = new RemoveBikeMsg(timeStamp, bikeId);
             SendObservation(msg);
         }
@@ -226,13 +226,7 @@ namespace BeamGameCode
              SendRequest(msg);
         }
 
-      public  void SendPauseReq(long timeStamp,string reason, string id)
-        {
-            // FIXME: STOOPID TEST!!!!
-            Logger.Verbose($"SendPauseReq) Reason: {reason}");
-            PauseAppCoreMsg msg = new PauseAppCoreMsg(timeStamp, reason, id);
-            SendRequest(msg);
-        }
+
 
     }
 
