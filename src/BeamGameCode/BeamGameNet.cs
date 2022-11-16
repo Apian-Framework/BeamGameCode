@@ -193,13 +193,17 @@ namespace BeamGameCode
             apian.SendBikeTurnReq(gameTime, bike, dir, nextPt);
         }
 
-        // FIXME: TEST!!!!!!!!
        public void SendPauseReq(string groupId, string reason, string pauseId)
         {
             BeamApian apian = ApianInstances[groupId] as BeamApian;
             apian.SendPauseReq(apian.CurrentRunningApianTime(), reason, pauseId);
         }
 
+       public void SendResumeReq(string groupId, string pauseId)
+        {
+            BeamApian apian = ApianInstances[groupId] as BeamApian;
+            apian.SendResumeReq(apian.CurrentRunningApianTime(), pauseId);
+        }
 
 
     }
