@@ -8,12 +8,12 @@ namespace BeamGameCode
 {
     public class BeamPlayer : IApianCoreData
     {
-        public string PeerId { get; private set;}
+        public string PeerAddr { get; private set;}
         public string Name { get; private set;}
 
-        public BeamPlayer(string peerId, string name)
+        public BeamPlayer(string peerAddr, string name)
         {
-            PeerId = peerId;
+            PeerAddr = peerAddr;
             Name = name;
         }
 
@@ -30,7 +30,7 @@ namespace BeamGameCode
         public string ApianSerialized(object args=null)
         {
             return  JsonConvert.SerializeObject(new object[]{
-                PeerId,
+                PeerAddr,
                 Name });
         }
 

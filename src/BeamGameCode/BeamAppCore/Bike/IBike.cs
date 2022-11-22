@@ -27,7 +27,7 @@ namespace BeamGameCode
     public interface IBike : IApianCoreData
     {
         string bikeId {get;}
-        string peerId {get;}
+        string peerAddr {get;}
         string name {get;}
         Team team { get;}
         string ctrlType {get;}

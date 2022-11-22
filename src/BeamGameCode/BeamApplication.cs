@@ -251,24 +251,24 @@ namespace BeamGameCode
             NetInfo?.AddGame(gd);
             GameAnnounceEvt?.Invoke(this, new GameAnnounceEventArgs(gd));
         }
-        public void OnGroupMemberStatus(string groupId, string peerId, ApianGroupMember.Status newStatus, ApianGroupMember.Status prevStatus)
+        public void OnGroupMemberStatus(string groupId, string peerAddr, ApianGroupMember.Status newStatus, ApianGroupMember.Status prevStatus)
         {
-            Logger.Info($"OnGroupMemberStatus() Grp: {groupId}, Peer: {UniLogger.SID(peerId)}, Status: {newStatus}, Prev: {prevStatus}");
-            frontend.OnGroupMemberStatus(groupId, peerId, newStatus, prevStatus);
+            Logger.Info($"OnGroupMemberStatus() Grp: {groupId}, Peer: {UniLogger.SID(peerAddr)}, Status: {newStatus}, Prev: {prevStatus}");
+            frontend.OnGroupMemberStatus(groupId, peerAddr, newStatus, prevStatus);
         }
         public void OnPeerJoinedGroup(PeerJoinedGroupData data)
         {
-            bool isLocalPeer = data?.PeerId == LocalPeer.PeerId;
+            bool isLocalPeer = data?.PeerAddr == LocalPeer.PeerAddr;
             if (isLocalPeer) {
                 CurrentGame = data.GroupInfo as BeamGameInfo;
             }
         }
 
-        public void OnGroupLeaderChange(string groupId, string newLeaderId, ApianGroupMember leaderData)
+        public void OnGroupLeaderChange(string groupId, string newLeaderAddr, ApianGroupMember leaderData)
         {
             string lname = leaderData != null ?  BeamPlayer.FromApianJson(leaderData.AppDataJson).Name : null;
 
-            frontend.OnGroupLeaderChanged(groupId, newLeaderId, lname);
+            frontend.OnGroupLeaderChanged(groupId, newLeaderAddr, lname);
 
         }
 
@@ -278,7 +278,7 @@ namespace BeamGameCode
         public void OnPeerJoinedNetwork(PeerJoinedNetworkData peerData)
         {
             BeamNetworkPeer peer = JsonConvert.DeserializeObject<BeamNetworkPeer>(peerData.HelloData);
-            bool isLocalPeer = peerData.PeerId == LocalPeer.PeerId;
+            bool isLocalPeer = peerData.PeerAddr == LocalPeer.PeerAddr;
 
             if (isLocalPeer)
                 NetInfo = new BeamNetInfo(beamGameNet.CurrentNetworkChannel());
@@ -288,16 +288,16 @@ namespace BeamGameCode
             PeerJoinedEvt?.Invoke(this, new PeerJoinedEventArgs(peerData.NetId, peer));
         }
 
-        public void OnPeerLeftNetwork(string p2pId, string netId)
+        public void OnPeerLeftNetwork(string peerAddr, string netId)
         {
-            Logger.Info($"OnPeerLeftNetwork({SID(p2pId)})");
-            NetInfo?.RemovePeer(p2pId);
-            PeerLeftEvt?.Invoke(this, new PeerLeftEventArgs(netId, p2pId)); // Event instance might be gone
+            Logger.Info($"OnPeerLeftNetwork({SID(peerAddr)})");
+            NetInfo?.RemovePeer(peerAddr);
+            PeerLeftEvt?.Invoke(this, new PeerLeftEventArgs(netId, peerAddr)); // Event instance might be gone
         }
         // Apian handles these at the game level. Not sure what would be useful here.
-        public void OnPeerMissing(string p2pId, string netId) { }
-        public void OnPeerReturned(string p2pId, string netId){ }
-        public void OnPeerSync(string channel, string p2pId, PeerClockSyncInfo syncInfo) {} // stubbed
+        public void OnPeerMissing(string peerAddr, string netId) { }
+        public void OnPeerReturned(string peerAddr, string netId){ }
+        public void OnPeerSync(string channel, string peerAddr, PeerClockSyncInfo syncInfo) {} // stubbed
         // TODO: Be nice to be able to default-stub this somewhere.
 
 
@@ -305,9 +305,9 @@ namespace BeamGameCode
         private void _CreateLocalPeer()
         {
             BeamUserSettings settings = frontend.GetUserSettings();
-            LocalPeer = new BeamNetworkPeer(beamGameNet.LocalP2pId(), settings.screenName); // must have called
-            if (LocalPeer.PeerId == null)
-                throw new ArgumentNullException("LocalPeer.PeerId"); // ConnectToNetwork() not called/failed?
+            LocalPeer = new BeamNetworkPeer(beamGameNet.LocalPeerAddr(), settings.screenName); // must have called
+            if (LocalPeer.PeerAddr == null)
+                throw new ArgumentNullException("LocalPeer.PeerAddr"); // ConnectToNetwork() not called/failed?
 
         }
 
@@ -317,15 +317,15 @@ namespace BeamGameCode
             LocalPeer = null;
         }
 
-        protected BeamPlayer MakeBeamPlayer() => new BeamPlayer(LocalPeer.PeerId, LocalPeer.Name);
+        protected BeamPlayer MakeBeamPlayer() => new BeamPlayer(LocalPeer.PeerAddr, LocalPeer.Name);
         // FIXME: I think maybe it should go in BeamGameNet?
 
-        public BaseBike CreateBaseBike(string ctrlType, string peerId, string name, Team t)
+        public BaseBike CreateBaseBike(string ctrlType, string peerAddr, string name, Team t)
         {
             Heading heading = BikeFactory.PickRandomHeading();
             Vector2 pos = BikeFactory.PositionForNewBike( mainAppCore.CoreState, mainAppCore.CurrentRunningGameTime, heading, Ground.zeroPos, Ground.gridSize * 10 );
             string bikeId = Guid.NewGuid().ToString();
-            return  new BaseBike(mainAppCore.CoreState, bikeId, peerId, name, t, ctrlType, mainAppCore.CurrentRunningGameTime, pos, heading);
+            return  new BaseBike(mainAppCore.CoreState, bikeId, peerAddr, name, t, ctrlType, mainAppCore.CurrentRunningGameTime, pos, heading);
         }
 
     }

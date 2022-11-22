@@ -86,8 +86,8 @@ namespace BeamGameCode
 
     public class PlayerLeftMsg : BeamMessage
     {
-        public string peerId;
-        public PlayerLeftMsg(long ts, string _peerId) : base(kPlayerLeft, ts) => peerId = _peerId;
+        public string peerAddr;
+        public PlayerLeftMsg(long ts, string _peerAddr) : base(kPlayerLeft, ts) => peerAddr = _peerAddr;
         public PlayerLeftMsg() : base() {}
 
         // No conflict detection
@@ -96,7 +96,7 @@ namespace BeamGameCode
     public class BikeCreateMsg : BeamMessage
     {
         public string bikeId;
-        public string peerId;
+        public string peerAddr;
         public string name;
         public Team team;
         public int score;
@@ -109,7 +109,7 @@ namespace BeamGameCode
         public BikeCreateMsg(long ts, IBike ib) : base(kBikeCreateData, ts)
         {
             bikeId = ib.bikeId;
-            peerId = ib.peerId;
+            peerAddr = ib.peerAddr;
             name = ib.name;
             team = ib.team;
             score = ib.score;
@@ -124,7 +124,7 @@ namespace BeamGameCode
 
         public BaseBike ToBike(BeamCoreState gd)
         {
-            return new BaseBike(gd, bikeId, peerId , name, team, ctrlType, timeAtPos, new Vector2(xPos, yPos), heading);
+            return new BaseBike(gd, bikeId, peerAddr , name, team, ctrlType, timeAtPos, new Vector2(xPos, yPos), heading);
         }
     }
 
@@ -152,7 +152,7 @@ namespace BeamGameCode
         public BikeTurnMsg(long ts, IBike ib, TurnDir _dir, Vector2 nextGridPt) : base(kBikeTurnMsg, ts)
         {
             bikeId = ib.bikeId;
-            ownerPeer = ib.peerId;
+            ownerPeer = ib.peerAddr;
             dir = _dir;
             entryHead = ib.baseHeading;
             nextPtX = nextGridPt.x;

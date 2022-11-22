@@ -131,7 +131,7 @@ namespace BeamGameCode
 
             foreach (BeamPlayer p in CoreState.Players.Values)
             {
-                if (p.PeerId == LocalPeerId )
+                if (p.PeerAddr == LocalPeerAddr )
                     LocalPlayer = p;
                 PlayerJoinedEvt.Invoke(this, new PlayerJoinedEventArgs(ApianGroupId, p));
             }
@@ -203,16 +203,16 @@ namespace BeamGameCode
         }
 
 
-        public void OnPlayerMissing(string groupId, string p2pId)
+        public void OnPlayerMissing(string groupId, string peerAddr)
         {
-            logger.Info($"Player: {SID(p2pId)} is missing!");
-            PlayerMissingEvt?.Invoke(this, new PlayerLeftEventArgs(groupId, p2pId));
+            logger.Info($"Player: {SID(peerAddr)} is missing!");
+            PlayerMissingEvt?.Invoke(this, new PlayerLeftEventArgs(groupId, peerAddr));
         }
 
-        public void OnPlayerReturned(string groupId, string p2pId)
+        public void OnPlayerReturned(string groupId, string peerAddr)
         {
-            logger.Info($"Player: {SID(p2pId)} has returned!");
-            PlayerReturnedEvt?.Invoke(this, new PlayerLeftEventArgs(groupId, p2pId));
+            logger.Info($"Player: {SID(peerAddr)} has returned!");
+            PlayerReturnedEvt?.Invoke(this, new PlayerLeftEventArgs(groupId, peerAddr));
         }
 
         //
@@ -222,14 +222,14 @@ namespace BeamGameCode
         public void OnNewPlayerCmd(NewPlayerMsg msg, long seqNum)
         {
             BeamPlayer newPlayer = msg.newPlayer;
-            logger.Info($"OnNewPlayerCmd(#{seqNum}) {((newPlayer.PeerId == LocalPeerId)?"Local":"Remote")} name: {newPlayer.Name}");
+            logger.Info($"OnNewPlayerCmd(#{seqNum}) {((newPlayer.PeerAddr == LocalPeerAddr)?"Local":"Remote")} name: {newPlayer.Name}");
             _AddPlayer(newPlayer);
         }
 
         public void OnPlayerLeftCmd(PlayerLeftMsg msg, long seqNum)
         {
-            logger.Info($"OnPlayerLeftCmd(#{seqNum}, {SID(msg.peerId) })");
-            _RemovePlayer(msg.peerId);
+            logger.Info($"OnPlayerLeftCmd(#{seqNum}, {SID(msg.peerAddr) })");
+            _RemovePlayer(msg.peerAddr);
         }
 
         public void OnCreateBikeCmd(BikeCreateMsg msg, long seqNum)
@@ -414,31 +414,31 @@ namespace BeamGameCode
         // Peer-related
         private bool _AddPlayer(BeamPlayer p)
         {
-            logger.Debug($"_AddPlayer(). Name: {p.Name} ID: {SID(p.PeerId)}");
-            if  ( CoreState.Players.ContainsKey(p.PeerId))
+            logger.Debug($"_AddPlayer(). Name: {p.Name} ID: {SID(p.PeerAddr)}");
+            if  ( CoreState.Players.ContainsKey(p.PeerAddr))
             {
-                logger.Warn($"_AddPlayer(). Player {SID(p.PeerId)} already exists!!!!");
+                logger.Warn($"_AddPlayer(). Player {SID(p.PeerAddr)} already exists!!!!");
                 return false;
             }
 
-            CoreState.Players[p.PeerId] = p;
-            if (p.PeerId == LocalPeerId )
+            CoreState.Players[p.PeerAddr] = p;
+            if (p.PeerAddr == LocalPeerAddr )
                 LocalPlayer = p;
             PlayerJoinedEvt.Invoke(this, new PlayerJoinedEventArgs(ApianGroupId, p));
             return true;
         }
 
-        private bool _RemovePlayer(string p2pId)
+        private bool _RemovePlayer(string peerAddr)
         {
-            if  (!CoreState.Players.ContainsKey(p2pId))
+            if  (!CoreState.Players.ContainsKey(peerAddr))
                 return false;
 
-            PlayerLeftEvt?.Invoke(this, new PlayerLeftEventArgs(ApianGroupId, p2pId));
+            PlayerLeftEvt?.Invoke(this, new PlayerLeftEventArgs(ApianGroupId, peerAddr));
 
-            foreach (IBike ib in CoreState.LocalBikes(p2pId))
+            foreach (IBike ib in CoreState.LocalBikes(peerAddr))
                 _RemoveBike(ib, true); // Blow em up just for yuks.
 
-            CoreState.PostPlayerRemoval(p2pId);
+            CoreState.PostPlayerRemoval(peerAddr);
             return true;
         }
 

@@ -45,7 +45,7 @@ namespace BeamGameCode
         void OnResumeMode(BeamGameMode mode, object param = null);
 
         // Network join/status
-        void OnGroupMemberStatus(string groupId, string peerId, ApianGroupMember.Status newStatus, ApianGroupMember.Status prevStatus);
+        void OnGroupMemberStatus(string groupId, string peerAddr, ApianGroupMember.Status newStatus, ApianGroupMember.Status prevStatus);
 
         // Network peers
         void OnPeerJoinedNetEvt(object sender, PeerJoinedEventArgs pa);

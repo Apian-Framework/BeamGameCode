@@ -37,8 +37,8 @@ namespace BeamGameCode
 
     public class PeerLeftEventArgs : EventArgs {
         public string channelId;
-        public string p2pId;
-        public PeerLeftEventArgs(string g, string p) {channelId=g; p2pId=p;}
+        public string peerAddr;
+        public PeerLeftEventArgs(string g, string p) {channelId=g; peerAddr=p;}
     }
 
     public class GameSelectedEventArgs : EventArgs {

@@ -170,8 +170,8 @@ namespace BeamGameCode
         private void _OnPeerJoinedNetEvt(object sender, PeerJoinedEventArgs ga)
         {
             BeamNetworkPeer p = ga.peer;
-            bool isLocal = p.PeerId == appl.LocalPeer.PeerId;
-            logger.Info($"{(ModeName())} - _OnPeerJoinedNetEvt() - {(isLocal?"Local":"Remote")} Peer Joined: {p.Name}, ID: {SID(p.PeerId)}");
+            bool isLocal = p.PeerAddr == appl.LocalPeer.PeerAddr;
+            logger.Info($"{(ModeName())} - _OnPeerJoinedNetEvt() - {(isLocal?"Local":"Remote")} Peer Joined: {p.Name}, ID: {SID(p.PeerAddr)}");
 
 #if SINGLE_THREADED
             // Async startup already calls getExistingGamesAsync() then goes to _setState(kConnectedAndReady)
@@ -184,7 +184,7 @@ namespace BeamGameCode
 
         private void _OnPeerLeftNetEvt(object sender, PeerLeftEventArgs ga)
         {
-            logger.Info($"{(ModeName())} - _OnPeerLeftNetEvt() - Peer {SID(ga.p2pId)} left");
+            logger.Info($"{(ModeName())} - _OnPeerLeftNetEvt() - Peer {SID(ga.peerAddr)} left");
         }
 
         private void _OnGameAnnounceEvt(object sender, GameAnnounceEventArgs gaArgs)

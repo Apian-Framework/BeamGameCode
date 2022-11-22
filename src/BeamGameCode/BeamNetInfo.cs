@@ -28,8 +28,8 @@ namespace BeamGameCode
             NetworkChannel = networkChannel;
         }
 
-        public void AddPeer(BeamNetworkPeer peer) => BeamPeers[peer.PeerId] = peer; // also use this to update
-        public void RemovePeer(string peerId) => BeamPeers.Remove(peerId);
+        public void AddPeer(BeamNetworkPeer peer) => BeamPeers[peer.PeerAddr] = peer; // also use this to update
+        public void RemovePeer(string peerAddr) => BeamPeers.Remove(peerAddr);
 
         public void AddGame(BeamGameAnnounceData game) => BeamGames[game.GameInfo.GroupId] = game; // As above, this can be used to update Status
         public void RemoveGame(string gameGroupId) => BeamGames.Remove(gameGroupId);

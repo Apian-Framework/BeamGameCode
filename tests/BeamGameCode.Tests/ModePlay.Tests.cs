@@ -44,13 +44,13 @@ namespace P2pNetBaseTests
         {
             string netName = "BeamNetName";
             string gameName = "BeamGameName";
-            string localP2pId = "localP2pId";
+            string localPeerAddr = "localPeerAddr";
             P2pNetChannelInfo groupChanInfo = new P2pNetChannelInfo(null, null, 10000, 3000, 5000,     0, 0 );// Main network channel (no clock sync)
 
             groupChanInfo.name = "BeamGameName";
             groupChanInfo.id = $"{netName}/{gameName}";
 
-            ApianGroupInfo groupInfo = new ApianGroupInfo(groupType, groupChanInfo, localP2pId, gameName);
+            ApianGroupInfo groupInfo = new ApianGroupInfo(groupType, groupChanInfo, localPeerAddr, gameName);
             return new BeamGameInfo(groupInfo);
         }
 

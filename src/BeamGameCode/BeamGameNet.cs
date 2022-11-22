@@ -79,7 +79,7 @@ namespace BeamGameCode
             groupChanInfo.name = gameName;
             groupChanInfo.id = $"{netName}/{gameName}";  // FIXME: use IDs instead of names
 
-            ApianGroupInfo groupInfo = new ApianGroupInfo(apianGroupType, groupChanInfo, LocalP2pId(), gameName);
+            ApianGroupInfo groupInfo = new ApianGroupInfo(apianGroupType, groupChanInfo, LocalPeerAddr(), gameName);
 
             groupInfo.GroupParams["MaxPlayers"] = "4";
 

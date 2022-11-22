@@ -17,7 +17,7 @@ namespace BeamGameCode
 
         // Constant for bike lifetime
         public string bikeId {get; private set;}
-        public string peerId {get; private set;}
+        public string peerAddr {get; private set;}
         public string name {get; private set;}
         public Team team {get; private set;}
         public string ctrlType {get; private set;}
@@ -50,11 +50,11 @@ namespace BeamGameCode
         public UniLogger logger;
 
 
-        public BaseBike( BeamCoreState gData, string _id, string _peerId, string _name, Team _team, string ctrl, long initialTime, Vector2 initialPos, Heading head)
+        public BaseBike( BeamCoreState gData, string _id, string _peerAddr, string _name, Team _team, string ctrl, long initialTime, Vector2 initialPos, Heading head)
         {
             gameData = gData;
             bikeId = _id;
-            peerId = _peerId;
+            peerAddr = _peerAddr;
             name = _name;
             team = _team;
             basePosition = initialPos;
@@ -95,7 +95,7 @@ namespace BeamGameCode
 
             return  JsonConvert.SerializeObject(new object[]{
                     bikeId,
-                    sArgs.peerIdxDict[peerId],
+                    sArgs.peerIdxDict[peerAddr],
                     name,
                     team.TeamID,
                     ctrlType,
@@ -109,7 +109,7 @@ namespace BeamGameCode
                  });
         }
 
-        public static BaseBike FromApianJson(string jsonData, BeamCoreState gData, List<string> peerIdList)
+        public static BaseBike FromApianJson(string jsonData, BeamCoreState gData, List<string> peerAddrList)
         {
             object[] data = JsonConvert.DeserializeObject<object[]>(jsonData);
 
@@ -126,7 +126,7 @@ namespace BeamGameCode
             BaseBike bb = new BaseBike(
                 gData,
                 (string)data[0], // bikeId
-                peerIdList[(int)(long)data[1]], // peerId
+                peerAddrList[(int)(long)data[1]], // peerAddr
                 (string)data[2], // _name
                 Team.teamData[(int)(long)data[3]], // Team
                 (string)data[4],  // ctrl,

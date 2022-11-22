@@ -142,14 +142,14 @@ namespace BeamGameCode
             SerialArgs sArgs = args as SerialArgs;
 
             // create array index lookups for peers, bikes to replace actual IDs (which are long) in serialized data
-            Dictionary<string,int> peerIndicesDict =  Players.Values.OrderBy(p => p.PeerId)
-                .Select((p,idx) => new {p.PeerId, idx}).ToDictionary( x =>x.PeerId, x=>x.idx);
+            Dictionary<string,int> peerIndicesDict =  Players.Values.OrderBy(p => p.PeerAddr)
+                .Select((p,idx) => new {p.PeerAddr, idx}).ToDictionary( x =>x.PeerAddr, x=>x.idx);
 
             Dictionary<string,int> bikeIndicesDict =  Bikes.Values.OrderBy(b => b.bikeId)
                 .Select((b,idx) => new {b.bikeId, idx}).ToDictionary( x =>x.bikeId, x=>x.idx);
 
             // State data
-            string[] peersData = Players.Values.OrderBy(p => p.PeerId)
+            string[] peersData = Players.Values.OrderBy(p => p.PeerAddr)
                 .Select(p => p.ApianSerialized()).ToArray();
             string[] bikesData = Bikes.Values.OrderBy(ib => ib.bikeId)
                 .Select(ib => ib.ApianSerialized(new BaseBike.SerialArgs(peerIndicesDict))).ToArray();
@@ -184,11 +184,11 @@ namespace BeamGameCode
 
             Dictionary<string, BeamPlayer> newPlayers = (sData[1] as JArray)
                 .Select( s => BeamPlayer.FromApianJson((string)s))
-                .ToDictionary(p => p.PeerId);
+                .ToDictionary(p => p.PeerAddr);
 
-            List<string> peerIds = newPlayers.Values.OrderBy(p => p.PeerId).Select((p) => p.PeerId).ToList(); // to replace array indices in bikes
+            List<string> peerAddrss = newPlayers.Values.OrderBy(p => p.PeerAddr).Select((p) => p.PeerAddr).ToList(); // to replace array indices in bikes
             Dictionary<string, IBike> newBikes = (sData[2] as JArray)
-                .Select( s => (IBike)BaseBike.FromApianJson((string)s, newState, peerIds))
+                .Select( s => (IBike)BaseBike.FromApianJson((string)s, newState, peerAddrss))
                 .ToDictionary(p => p.bikeId);
 
             List<string> bikeIds = newBikes.Values.OrderBy(p => p.bikeId).Select((p) => p.bikeId).ToList(); // to replace array indices in places
@@ -209,9 +209,9 @@ namespace BeamGameCode
         // Player stuff
         //
 
-        public BeamPlayer GetPlayer(string peerId)
+        public BeamPlayer GetPlayer(string peerAddr)
         {
-            try { return Players[peerId];} catch (KeyNotFoundException){ return null;}
+            try { return Players[peerAddr];} catch (KeyNotFoundException){ return null;}
         }
 
         // Bike stuff
@@ -235,9 +235,9 @@ namespace BeamGameCode
                     .OrderBy(b => Vector2.Distance(b.DynamicState(curTime).position, thisBikeState.position)).First();
         }
 
-        public List<IBike> LocalBikes(string peerId)
+        public List<IBike> LocalBikes(string peerAddr)
         {
-            return Bikes.Values.Where(ib => ib.peerId == peerId).ToList();
+            return Bikes.Values.Where(ib => ib.peerAddr == peerAddr).ToList();
         }
 
         public List<Vector2> CloseBikePositions(long curTime, IBike thisBike, int maxCnt)

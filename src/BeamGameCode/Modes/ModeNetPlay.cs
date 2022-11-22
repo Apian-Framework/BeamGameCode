@@ -151,7 +151,7 @@ namespace BeamGameCode
                 _secsToNextRespawnCheck -= frameSecs;
                 if (_secsToNextRespawnCheck <= 0)
                 {
-                    if (appCore.CoreState.LocalBikes(appCore.LocalPeerId).Where(ib => ib.ctrlType==BikeFactory.AiCtrl).Count() < settings.aiBikeCount)
+                    if (appCore.CoreState.LocalBikes(appCore.LocalPeerAddr).Where(ib => ib.ctrlType==BikeFactory.AiCtrl).Count() < settings.aiBikeCount)
                         SpawnAiBike();
                     _secsToNextRespawnCheck = kRespawnCheckInterval;
                 }
@@ -191,21 +191,21 @@ namespace BeamGameCode
         private void _OnPeerJoinedNetEvt(object sender, PeerJoinedEventArgs ga)
         {
             BeamNetworkPeer p = ga.peer;
-            bool isLocal = p.PeerId == appl.LocalPeer.PeerId;
-            logger.Info($"{(ModeName())} - _OnPeerJoinedNetEvt() - {(isLocal?"Local":"Remote")} Peer Joined: {p.Name}, ID: {SID(p.PeerId)}");
+            bool isLocal = p.PeerAddr == appl.LocalPeer.PeerAddr;
+            logger.Info($"{(ModeName())} - _OnPeerJoinedNetEvt() - {(isLocal?"Local":"Remote")} Peer Joined: {p.Name}, ID: {SID(p.PeerAddr)}");
 
 #if SINGLE_THREADED
            if (isLocal) // We have already joined
-               logger.Warn($"{(ModeName())} - OnNetJoinedEvt() - Local peer {SID(p.PeerId)} has already joind the net");
+               logger.Warn($"{(ModeName())} - OnNetJoinedEvt() - Local peer {SID(p.PeerAddr)} has already joind the net");
 #endif
         }
 
 
         private void _OnPlayerJoinedEvt(object sender, PlayerJoinedEventArgs ga)
         {
-            bool isLocal = ga.player.PeerId == appl.LocalPeer.PeerId;
-            logger.Info($"{(ModeName())} - OnPlayerJoinedEvt() - {(isLocal?"Local":"Remote")} Member Joined: {ga.player.Name}, ID: {SID(ga.player.PeerId)}");
-            if (ga.player.PeerId == appl.LocalPeer.PeerId)
+            bool isLocal = ga.player.PeerAddr == appl.LocalPeer.PeerAddr;
+            logger.Info($"{(ModeName())} - OnPlayerJoinedEvt() - {(isLocal?"Local":"Remote")} Member Joined: {ga.player.Name}, ID: {SID(ga.player.PeerAddr)}");
+            if (ga.player.PeerAddr == appl.LocalPeer.PeerAddr)
             {
                 _SetState(kPlaying);
             }
@@ -215,7 +215,7 @@ namespace BeamGameCode
         {
             IBike newBike = newBikeArgs?.ib;
             // If it's local we need to tell it to Go!
-            bool isLocal = newBike.peerId == appl.LocalPeer.PeerId;
+            bool isLocal = newBike.peerAddr == appl.LocalPeer.PeerAddr;
             logger.Info($"{(ModeName())} - OnNewBikeEvt() - {(isLocal?"Local":"Remote")} Bike created, ID: {SID(newBike.bikeId)}");
             if (isLocal)
             {
@@ -234,7 +234,7 @@ namespace BeamGameCode
 
         protected string SpawnAiBike()
         {
-            BaseBike bb =  appl.CreateBaseBike( BikeFactory.AiCtrl, appCore.LocalPeerId, BikeDemoData.RandomName(), BikeDemoData.RandomTeam());
+            BaseBike bb =  appl.CreateBaseBike( BikeFactory.AiCtrl, appCore.LocalPeerAddr, BikeDemoData.RandomName(), BikeDemoData.RandomTeam());
             appl.beamGameNet.SendBikeCreateDataReq(appCore.ApianGroupId, bb); // will result in OnBikeInfo()
             logger.Debug($"{this.ModeName()}: SpawnAiBike({ SID(bb.bikeId)})");
             return bb.bikeId;  // the bike hasn't been added yet, so this id is not valid yet.
@@ -244,7 +244,7 @@ namespace BeamGameCode
         {
             if (settings.localPlayerCtrlType != "none")
             {
-                BaseBike bb =  appl.CreateBaseBike( settings.localPlayerCtrlType, appCore.LocalPeerId, appCore.LocalPlayer.Name, BikeDemoData.RandomTeam());
+                BaseBike bb =  appl.CreateBaseBike( settings.localPlayerCtrlType, appCore.LocalPeerAddr, appCore.LocalPlayer.Name, BikeDemoData.RandomTeam());
                 appl.beamGameNet.SendBikeCreateDataReq(appCore.ApianGroupId, bb);
                 logger.Debug($"{this.ModeName()}: SpawnPlayerBike({SID(bb.bikeId)})");
                 return bb.bikeId;  // the bike hasn't been added yet, so this id is not valid yet.

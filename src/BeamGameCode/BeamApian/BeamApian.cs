@@ -11,7 +11,7 @@ namespace BeamGameCode
 {
     public class BeamApianPeer : ApianGroupMember
     {
-        public BeamApianPeer(string _p2pId, string _appHelloData) : base(_p2pId, _appHelloData) { }
+        public BeamApianPeer(string _peerAddr, string _appHelloData) : base(_peerAddr, _appHelloData) { }
     }
 
     public abstract class BeamApian : ApianBase
@@ -43,9 +43,9 @@ namespace BeamGameCode
             return ApianClock == null ? SystemTime : ApianClock.CurrentTime;
         }
 
-        public override ApianGroupMember CreateGroupMember(string peerId, string appMemberDataJson)
+        public override ApianGroupMember CreateGroupMember(string peerAddr, string appMemberDataJson)
         {
-            return new BeamApianPeer(peerId, appMemberDataJson);
+            return new BeamApianPeer(peerAddr, appMemberDataJson);
         }
 
         public override void Update()
@@ -55,22 +55,22 @@ namespace BeamGameCode
                 ((BeamAppCore)AppCore)?.Loop();
         }
 
-        protected void AddApianPeer(string p2pId, string peerHelloData)
+        protected void AddApianPeer(string peerAddr, string peerHelloData)
         {
-            BeamApianPeer p = new BeamApianPeer(p2pId, peerHelloData);
-            apianPeers[p2pId] = p;
+            BeamApianPeer p = new BeamApianPeer(peerAddr, peerHelloData);
+            apianPeers[peerAddr] = p;
         }
 
-        public override void OnPeerMissing(string channelId, string p2pId)
+        public override void OnPeerMissing(string channelId, string peerAddr)
         {
-            Logger.Warn($"Peer: {SID(p2pId)} is missing!");
-            appCore.OnPlayerMissing(channelId, p2pId);
+            Logger.Warn($"Peer: {SID(peerAddr)} is missing!");
+            appCore.OnPlayerMissing(channelId, peerAddr);
         }
 
-        public override void OnPeerReturned(string channelId, string p2pId)
+        public override void OnPeerReturned(string channelId, string peerAddr)
         {
-            Logger.Warn($"Peer: {SID(p2pId)} has returned!");
-            appCore.OnPlayerReturned(channelId, p2pId);
+            Logger.Warn($"Peer: {SID(peerAddr)} has returned!");
+            appCore.OnPlayerReturned(channelId, peerAddr);
         }
 
 
@@ -80,7 +80,7 @@ namespace BeamGameCode
             base.OnGroupMemberJoined(member);
 
             // Beam (appCore) only cares about local peer's group membership status
-            if (member.PeerId == GameNet.LocalP2pId())
+            if (member.PeerAddr == GameNet.LocalPeerAddr())
             {
                 appCore.OnGroupJoined(GroupMgr.GroupId);  // TODO: wait - appCore has OnGroupJoined? SHouldn't know about groups.
             }
@@ -90,7 +90,7 @@ namespace BeamGameCode
         {
             // Send to Apian group to get upgraded to a command
             // Note that "Player" is an AppCore thing, GroupMember is an Apian/network thing
-            SendPlayerLeftObs(ApianClock.CurrentTime, member.PeerId);
+            SendPlayerLeftObs(ApianClock.CurrentTime, member.PeerAddr);
             base.OnGroupMemberLeft(member);
         }
 
@@ -172,10 +172,10 @@ namespace BeamGameCode
             SendObservation( msg);
         }
 
-        public void SendPlayerLeftObs( long timeStamp, string peerId)
+        public void SendPlayerLeftObs( long timeStamp, string peerAddr)
         {
             Logger.Debug($"SendPlayerLeftObs()");
-            PlayerLeftMsg msg = new PlayerLeftMsg(timeStamp, peerId);
+            PlayerLeftMsg msg = new PlayerLeftMsg(timeStamp, peerAddr);
             SendObservation( msg);
         }
 
@@ -183,14 +183,14 @@ namespace BeamGameCode
             Heading entry, Heading exit, Dictionary<string,int> scoreUpdates)
         {
             Logger.Debug($"SendPlaceClaimObs()");
-            PlaceClaimMsg msg = new PlaceClaimMsg(timeStamp, bike.bikeId, bike.peerId, xIdx, zIdx, entry, exit, scoreUpdates);
+            PlaceClaimMsg msg = new PlaceClaimMsg(timeStamp, bike.bikeId, bike.peerAddr, xIdx, zIdx, entry, exit, scoreUpdates);
             SendObservation(msg);
         }
 
         public void SendPlaceHitObs(long timeStamp, IBike bike, int xIdx, int zIdx, Heading entry, Heading exit, Dictionary<string,int> scoreUpdates)
         {
             Logger.Debug($"SendPlaceHitObs()");
-            PlaceHitMsg msg = new PlaceHitMsg(timeStamp, bike.bikeId, bike.peerId, xIdx, zIdx, entry, exit, scoreUpdates);
+            PlaceHitMsg msg = new PlaceHitMsg(timeStamp, bike.bikeId, bike.peerAddr, xIdx, zIdx, entry, exit, scoreUpdates);
             SendObservation(msg);
         }
         public  void SendRemoveBikeObs(long timeStamp, string bikeId)
@@ -216,7 +216,7 @@ namespace BeamGameCode
         public  void SendBikeCommandReq(long timeStamp, IBike bike, BikeCommand cmd, Vector2 nextPt)
         {
             Logger.Debug($"BeamGameNet.SendBikeCommand() Bike: {SID(bike.bikeId)}");
-            BikeCommandMsg msg = new BikeCommandMsg(timeStamp, bike.bikeId, bike.peerId, cmd, nextPt);
+            BikeCommandMsg msg = new BikeCommandMsg(timeStamp, bike.bikeId, bike.peerAddr, cmd, nextPt);
             SendRequest(msg);
         }
         public  void SendBikeCreateReq(long timeStamp, IBike ib)

@@ -20,8 +20,8 @@ namespace BeamGameCode
         {
             BeamGameInfo bgi = GroupInfo as BeamGameInfo;
 
-            if ( GroupMgr.GetMember(bgi.GroupCreatorId) == null)
-                return (false, $"Creator Peer {bgi.GroupCreatorId} not present");
+            if ( GroupMgr.GetMember(bgi.GroupCreatorAddr) == null)
+                return (false, $"Creator Peer {bgi.GroupCreatorAddr} not present");
 
             return (true, "");
         }

@@ -100,7 +100,7 @@ namespace BeamGameCode
             // Create one the first time
             string scrName = appl.frontend.GetUserSettings().screenName;
 
-            BaseBike bb =  appl.CreateBaseBike( BikeFactory.LocalPlayerCtrl, appCore.LocalPeerId, scrName, BikeDemoData.RandomTeam());
+            BaseBike bb =  appl.CreateBaseBike( BikeFactory.LocalPlayerCtrl, appCore.LocalPeerAddr, scrName, BikeDemoData.RandomTeam());
             appl.beamGameNet.SendBikeCreateDataReq(appCore.ApianGroupId, bb); // will result in OnBikeInfo()
             logger.Debug($"{this.ModeName()}: SpawnAiBike({ bb.bikeId})");
             return bb.bikeId;  // the bike hasn't been added yet, so this id is not valid yet.
@@ -114,7 +114,7 @@ namespace BeamGameCode
             if (team == null)
                 team = BikeDemoData.RandomTeam();
 
-            BaseBike bb =  appl.CreateBaseBike( BikeFactory.AiCtrl, appCore.LocalPeerId, name, team);
+            BaseBike bb =  appl.CreateBaseBike( BikeFactory.AiCtrl, appCore.LocalPeerAddr, name, team);
             appl.beamGameNet.SendBikeCreateDataReq(appCore.ApianGroupId, bb);
             logger.Debug($"{this.ModeName()}: SpawnAiBike({ bb.bikeId})");
             return bb.bikeId;  // the bike hasn't been added yet, so this id is not valid yet.
@@ -140,7 +140,7 @@ namespace BeamGameCode
         {
             IBike newBike = newBikeArg?.ib;
             // If it's local we need to tell it to Go!
-            bool isLocal = newBike.peerId == appl.LocalPeer.PeerId;
+            bool isLocal = newBike.peerAddr == appl.LocalPeer.PeerAddr;
             logger.Info($"{(ModeName())} - OnNewBikeEvt() - {(isLocal?"Local":"Remote")} Bike created, ID: {SID(newBike.bikeId)} Sending GO! command");
             if (isLocal)
             {
@@ -190,8 +190,8 @@ namespace BeamGameCode
 
         protected void _OnPeerJoinedNetEvt(object sender, PeerJoinedEventArgs ga)
         {
-            logger.Debug($"_OnPeerJoinedNetEvt():  Peer: {ga.peer.PeerId}, Local Peer: {appl.LocalPeer.PeerId}, ModeState: {_CurrentState}");
-            bool isLocal = ga.peer.PeerId == appl.LocalPeer.PeerId;
+            logger.Debug($"_OnPeerJoinedNetEvt():  Peer: {ga.peer.PeerAddr}, Local Peer: {appl.LocalPeer.PeerAddr}, ModeState: {_CurrentState}");
+            bool isLocal = ga.peer.PeerAddr == appl.LocalPeer.PeerAddr;
             if (isLocal && _CurrentState == ModeState.JoiningNet)
             {
                 logger.Info("Practice network joined");
