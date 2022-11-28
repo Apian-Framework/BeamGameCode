@@ -203,9 +203,9 @@ namespace BeamGameCode
 
         private void _OnPlayerJoinedEvt(object sender, PlayerJoinedEventArgs ga)
         {
-            bool isLocal = ga.player.PeerAddr == appl.LocalPeer.PeerAddr;
-            logger.Info($"{(ModeName())} - OnPlayerJoinedEvt() - {(isLocal?"Local":"Remote")} Member Joined: {ga.player.Name}, ID: {SID(ga.player.PeerAddr)}");
-            if (ga.player.PeerAddr == appl.LocalPeer.PeerAddr)
+            bool isLocal = ga.player.PlayerAddr == appl.LocalPeer.PeerAddr;
+            logger.Info($"{(ModeName())} - OnPlayerJoinedEvt() - {(isLocal?"Local":"Remote")} Member Joined: {ga.player.Name}, ID: {SID(ga.player.PlayerAddr)}");
+            if (ga.player.PlayerAddr == appl.LocalPeer.PeerAddr)
             {
                 _SetState(kPlaying);
             }

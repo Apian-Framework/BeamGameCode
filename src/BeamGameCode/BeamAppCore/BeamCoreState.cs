@@ -141,18 +141,18 @@ namespace BeamGameCode
         {
             SerialArgs sArgs = args as SerialArgs;
 
-            // create array index lookups for peers, bikes to replace actual IDs (which are long) in serialized data
-            Dictionary<string,int> peerIndicesDict =  Players.Values.OrderBy(p => p.PeerAddr)
-                .Select((p,idx) => new {p.PeerAddr, idx}).ToDictionary( x =>x.PeerAddr, x=>x.idx);
+            // create array index lookups for players, bikes to replace actual IDs (which are long) in serialized data
+            Dictionary<string,int> playerIndicesDict =  Players.Values.OrderBy(p => p.PlayerAddr)
+                .Select((p,idx) => new {p.PlayerAddr, idx}).ToDictionary( x =>x.PlayerAddr, x=>x.idx);
 
             Dictionary<string,int> bikeIndicesDict =  Bikes.Values.OrderBy(b => b.bikeId)
                 .Select((b,idx) => new {b.bikeId, idx}).ToDictionary( x =>x.bikeId, x=>x.idx);
 
             // State data
-            string[] peersData = Players.Values.OrderBy(p => p.PeerAddr)
+            string[] playersData = Players.Values.OrderBy(p => p.PlayerAddr)
                 .Select(p => p.ApianSerialized()).ToArray();
             string[] bikesData = Bikes.Values.OrderBy(ib => ib.bikeId)
-                .Select(ib => ib.ApianSerialized(new BaseBike.SerialArgs(peerIndicesDict))).ToArray();
+                .Select(ib => ib.ApianSerialized(new BaseBike.SerialArgs(playerIndicesDict))).ToArray();
 
             // Note: it's possible for an expired place to still be on the local active list 'cause of timeslice differences
             // when the Checkpoint command is fielded (it would get expired during the next loop) so we want to explicitly
@@ -166,7 +166,7 @@ namespace BeamGameCode
 
             return  JsonConvert.SerializeObject(new object[]{
                 ApianSerializedBaseData(), // serialize all of the AppCoreBase data
-                peersData,
+                playersData,
                 bikesData,
                 placesData
             });
@@ -184,11 +184,11 @@ namespace BeamGameCode
 
             Dictionary<string, BeamPlayer> newPlayers = (sData[1] as JArray)
                 .Select( s => BeamPlayer.FromApianJson((string)s))
-                .ToDictionary(p => p.PeerAddr);
+                .ToDictionary(p => p.PlayerAddr);
 
-            List<string> peerAddrss = newPlayers.Values.OrderBy(p => p.PeerAddr).Select((p) => p.PeerAddr).ToList(); // to replace array indices in bikes
+            List<string> playerAddrs = newPlayers.Values.OrderBy(p => p.PlayerAddr).Select((p) => p.PlayerAddr).ToList(); // to replace array indices in bikes
             Dictionary<string, IBike> newBikes = (sData[2] as JArray)
-                .Select( s => (IBike)BaseBike.FromApianJson((string)s, newState, peerAddrss))
+                .Select( s => (IBike)BaseBike.FromApianJson((string)s, newState, playerAddrs))
                 .ToDictionary(p => p.bikeId);
 
             List<string> bikeIds = newBikes.Values.OrderBy(p => p.bikeId).Select((p) => p.bikeId).ToList(); // to replace array indices in places
@@ -209,9 +209,9 @@ namespace BeamGameCode
         // Player stuff
         //
 
-        public BeamPlayer GetPlayer(string peerAddr)
+        public BeamPlayer GetPlayer(string playerAddr)
         {
-            try { return Players[peerAddr];} catch (KeyNotFoundException){ return null;}
+            try { return Players[playerAddr];} catch (KeyNotFoundException){ return null;}
         }
 
         // Bike stuff
@@ -235,9 +235,9 @@ namespace BeamGameCode
                     .OrderBy(b => Vector2.Distance(b.DynamicState(curTime).position, thisBikeState.position)).First();
         }
 
-        public List<IBike> LocalBikes(string peerAddr)
+        public List<IBike> LocalBikes(string playerAddr)
         {
-            return Bikes.Values.Where(ib => ib.playerAddr == peerAddr).ToList();
+            return Bikes.Values.Where(ib => ib.playerAddr == playerAddr).ToList();
         }
 
         public List<Vector2> CloseBikePositions(long curTime, IBike thisBike, int maxCnt)
