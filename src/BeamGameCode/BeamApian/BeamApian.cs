@@ -183,14 +183,14 @@ namespace BeamGameCode
             Heading entry, Heading exit, Dictionary<string,int> scoreUpdates)
         {
             Logger.Debug($"SendPlaceClaimObs()");
-            PlaceClaimMsg msg = new PlaceClaimMsg(timeStamp, bike.bikeId, bike.peerAddr, xIdx, zIdx, entry, exit, scoreUpdates);
+            PlaceClaimMsg msg = new PlaceClaimMsg(timeStamp, bike.bikeId, bike.playerAddr, xIdx, zIdx, entry, exit, scoreUpdates);
             SendObservation(msg);
         }
 
         public void SendPlaceHitObs(long timeStamp, IBike bike, int xIdx, int zIdx, Heading entry, Heading exit, Dictionary<string,int> scoreUpdates)
         {
             Logger.Debug($"SendPlaceHitObs()");
-            PlaceHitMsg msg = new PlaceHitMsg(timeStamp, bike.bikeId, bike.peerAddr, xIdx, zIdx, entry, exit, scoreUpdates);
+            PlaceHitMsg msg = new PlaceHitMsg(timeStamp, bike.bikeId, bike.playerAddr, xIdx, zIdx, entry, exit, scoreUpdates);
             SendObservation(msg);
         }
         public  void SendRemoveBikeObs(long timeStamp, string bikeId)
@@ -216,7 +216,7 @@ namespace BeamGameCode
         public  void SendBikeCommandReq(long timeStamp, IBike bike, BikeCommand cmd, Vector2 nextPt)
         {
             Logger.Debug($"BeamGameNet.SendBikeCommand() Bike: {SID(bike.bikeId)}");
-            BikeCommandMsg msg = new BikeCommandMsg(timeStamp, bike.bikeId, bike.peerAddr, cmd, nextPt);
+            BikeCommandMsg msg = new BikeCommandMsg(timeStamp, bike.bikeId, bike.playerAddr, cmd, nextPt);
             SendRequest(msg);
         }
         public  void SendBikeCreateReq(long timeStamp, IBike ib)

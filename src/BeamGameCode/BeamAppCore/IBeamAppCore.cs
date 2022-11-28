@@ -20,8 +20,8 @@ namespace BeamGameCode
     }
     public class PlayerLeftEventArgs : EventArgs {
         public string groupChannel;
-        public string peerAddr;
-        public PlayerLeftEventArgs(string g, string p) {groupChannel=g; peerAddr=p;}
+        public string playerAddr;
+        public PlayerLeftEventArgs(string g, string p) {groupChannel=g; playerAddr=p;}
     }
 
     public class BikeEventArgs : EventArgs {
@@ -76,7 +76,7 @@ namespace BeamGameCode
         // Access
         Ground GetGround();
 
-        string LocalPeerAddr {get;}
+        string LocalPlayerAddr {get;}
         BeamCoreState CoreState {get;}
 
         string ApianNetId {get;}

@@ -50,7 +50,7 @@ namespace BeamGameCode
         // Network peers
         void OnPeerJoinedNetEvt(object sender, PeerJoinedEventArgs pa);
         void OnPeerLeftNetEvt(object sender, PeerLeftEventArgs pa);
-        void OnGroupLeaderChanged(string groupId, string leaderId, string leaderName);
+        void OnGroupLeaderChanged(string groupId, string leaderAddr, string leaderName);
 
         // Players
         void OnPlayersClearedEvt(object sender, EventArgs e);

@@ -110,7 +110,7 @@ namespace BeamGameCode
 
         protected string CreateADemoBike()
         {
-            BaseBike bb =  appl.CreateBaseBike( BikeFactory.AiCtrl, appCore.LocalPeerAddr, BikeDemoData.RandomName(), BikeDemoData.RandomTeam());
+            BaseBike bb =  appl.CreateBaseBike( BikeFactory.AiCtrl, appCore.LocalPlayerAddr, BikeDemoData.RandomName(), BikeDemoData.RandomTeam());
             appl.beamGameNet.SendBikeCreateDataReq(appCore.ApianGroupId, bb); // will result in OnBikeInfo()
             logger.Debug($"{this.ModeName()}: SpawnAiBike({SID(bb.bikeId)})");
             return bb.bikeId;  // the bike hasn't been added yet, so this id is not valid yet.
@@ -126,7 +126,7 @@ namespace BeamGameCode
         {
             IBike newBike = newBikeArg?.ib;
             // If it's local we need to tell it to Go!
-            bool isLocal = newBike.peerAddr == appl.LocalPeer.PeerAddr;
+            bool isLocal = newBike.playerAddr == appl.LocalPeer.PeerAddr;
             logger.Info($"{(ModeName())} - OnNewBikeEvt() - {(isLocal?"Local":"Remote")} Bike created, ID: {SID(newBike.bikeId)} Sending GO! command");
             if (isLocal)
             {

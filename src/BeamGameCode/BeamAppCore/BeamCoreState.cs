@@ -237,7 +237,7 @@ namespace BeamGameCode
 
         public List<IBike> LocalBikes(string peerAddr)
         {
-            return Bikes.Values.Where(ib => ib.peerAddr == peerAddr).ToList();
+            return Bikes.Values.Where(ib => ib.playerAddr == peerAddr).ToList();
         }
 
         public List<Vector2> CloseBikePositions(long curTime, IBike thisBike, int maxCnt)

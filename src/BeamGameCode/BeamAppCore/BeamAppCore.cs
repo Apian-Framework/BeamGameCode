@@ -131,7 +131,7 @@ namespace BeamGameCode
 
             foreach (BeamPlayer p in CoreState.Players.Values)
             {
-                if (p.PeerAddr == LocalPeerAddr )
+                if (p.PeerAddr == LocalPlayerAddr )
                     LocalPlayer = p;
                 PlayerJoinedEvt.Invoke(this, new PlayerJoinedEventArgs(ApianGroupId, p));
             }
@@ -222,7 +222,7 @@ namespace BeamGameCode
         public void OnNewPlayerCmd(NewPlayerMsg msg, long seqNum)
         {
             BeamPlayer newPlayer = msg.newPlayer;
-            logger.Info($"OnNewPlayerCmd(#{seqNum}) {((newPlayer.PeerAddr == LocalPeerAddr)?"Local":"Remote")} name: {newPlayer.Name}");
+            logger.Info($"OnNewPlayerCmd(#{seqNum}) {((newPlayer.PeerAddr == LocalPlayerAddr)?"Local":"Remote")} name: {newPlayer.Name}");
             _AddPlayer(newPlayer);
         }
 
@@ -422,7 +422,7 @@ namespace BeamGameCode
             }
 
             CoreState.Players[p.PeerAddr] = p;
-            if (p.PeerAddr == LocalPeerAddr )
+            if (p.PeerAddr == LocalPlayerAddr )
                 LocalPlayer = p;
             PlayerJoinedEvt.Invoke(this, new PlayerJoinedEventArgs(ApianGroupId, p));
             return true;

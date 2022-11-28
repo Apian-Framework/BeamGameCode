@@ -151,7 +151,7 @@ namespace BeamGameCode
                 _secsToNextRespawnCheck -= frameSecs;
                 if (_secsToNextRespawnCheck <= 0)
                 {
-                    if (appCore.CoreState.LocalBikes(appCore.LocalPeerAddr).Where(ib => ib.ctrlType==BikeFactory.AiCtrl).Count() < settings.aiBikeCount)
+                    if (appCore.CoreState.LocalBikes(appCore.LocalPlayerAddr).Where(ib => ib.ctrlType==BikeFactory.AiCtrl).Count() < settings.aiBikeCount)
                         SpawnAiBike();
                     _secsToNextRespawnCheck = kRespawnCheckInterval;
                 }
@@ -215,7 +215,7 @@ namespace BeamGameCode
         {
             IBike newBike = newBikeArgs?.ib;
             // If it's local we need to tell it to Go!
-            bool isLocal = newBike.peerAddr == appl.LocalPeer.PeerAddr;
+            bool isLocal = newBike.playerAddr == appl.LocalPeer.PeerAddr;
             logger.Info($"{(ModeName())} - OnNewBikeEvt() - {(isLocal?"Local":"Remote")} Bike created, ID: {SID(newBike.bikeId)}");
             if (isLocal)
             {
@@ -234,7 +234,7 @@ namespace BeamGameCode
 
         protected string SpawnAiBike()
         {
-            BaseBike bb =  appl.CreateBaseBike( BikeFactory.AiCtrl, appCore.LocalPeerAddr, BikeDemoData.RandomName(), BikeDemoData.RandomTeam());
+            BaseBike bb =  appl.CreateBaseBike( BikeFactory.AiCtrl, appCore.LocalPlayerAddr, BikeDemoData.RandomName(), BikeDemoData.RandomTeam());
             appl.beamGameNet.SendBikeCreateDataReq(appCore.ApianGroupId, bb); // will result in OnBikeInfo()
             logger.Debug($"{this.ModeName()}: SpawnAiBike({ SID(bb.bikeId)})");
             return bb.bikeId;  // the bike hasn't been added yet, so this id is not valid yet.
@@ -244,7 +244,7 @@ namespace BeamGameCode
         {
             if (settings.localPlayerCtrlType != "none")
             {
-                BaseBike bb =  appl.CreateBaseBike( settings.localPlayerCtrlType, appCore.LocalPeerAddr, appCore.LocalPlayer.Name, BikeDemoData.RandomTeam());
+                BaseBike bb =  appl.CreateBaseBike( settings.localPlayerCtrlType, appCore.LocalPlayerAddr, appCore.LocalPlayer.Name, BikeDemoData.RandomTeam());
                 appl.beamGameNet.SendBikeCreateDataReq(appCore.ApianGroupId, bb);
                 logger.Debug($"{this.ModeName()}: SpawnPlayerBike({SID(bb.bikeId)})");
                 return bb.bikeId;  // the bike hasn't been added yet, so this id is not valid yet.

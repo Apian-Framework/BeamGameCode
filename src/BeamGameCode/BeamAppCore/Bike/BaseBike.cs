@@ -17,7 +17,7 @@ namespace BeamGameCode
 
         // Constant for bike lifetime
         public string bikeId {get; private set;}
-        public string peerAddr {get; private set;}
+        public string playerAddr {get; private set;}
         public string name {get; private set;}
         public Team team {get; private set;}
         public string ctrlType {get; private set;}
@@ -50,11 +50,11 @@ namespace BeamGameCode
         public UniLogger logger;
 
 
-        public BaseBike( BeamCoreState gData, string _id, string _peerAddr, string _name, Team _team, string ctrl, long initialTime, Vector2 initialPos, Heading head)
+        public BaseBike( BeamCoreState gData, string _id, string _playerAddr, string _name, Team _team, string ctrl, long initialTime, Vector2 initialPos, Heading head)
         {
             gameData = gData;
             bikeId = _id;
-            peerAddr = _peerAddr;
+            playerAddr = _playerAddr;
             name = _name;
             team = _team;
             basePosition = initialPos;
@@ -67,8 +67,8 @@ namespace BeamGameCode
 
         public class SerialArgs
         {
-            public Dictionary<string,int> peerIdxDict;
-            public SerialArgs(Dictionary<string,int> pid ) {peerIdxDict=pid;}
+            public Dictionary<string,int> playerIdxDict;
+            public SerialArgs(Dictionary<string,int> pid ) {playerIdxDict=pid;}
         };
 
         private long _RoundToNearest(long interval, long inVal)
@@ -80,7 +80,7 @@ namespace BeamGameCode
         {
             SerialArgs sArgs = args as SerialArgs;
 
-            // args.peerIdxDict is a dictionary to map peerIds to array indices in the Json for the peers
+            // args.playerIdxDict is a dictionary to map playerIds to array indices in the Json for the players
             // It makes this Json a lot smaller
 
             // We can deal (mostly) with time differences from one machine to another by
@@ -95,7 +95,7 @@ namespace BeamGameCode
 
             return  JsonConvert.SerializeObject(new object[]{
                     bikeId,
-                    sArgs.peerIdxDict[peerAddr],
+                    sArgs.playerIdxDict[playerAddr],
                     name,
                     team.TeamID,
                     ctrlType,
@@ -109,7 +109,7 @@ namespace BeamGameCode
                  });
         }
 
-        public static BaseBike FromApianJson(string jsonData, BeamCoreState gData, List<string> peerAddrList)
+        public static BaseBike FromApianJson(string jsonData, BeamCoreState gData, List<string> playerAddrList)
         {
             object[] data = JsonConvert.DeserializeObject<object[]>(jsonData);
 
@@ -126,7 +126,7 @@ namespace BeamGameCode
             BaseBike bb = new BaseBike(
                 gData,
                 (string)data[0], // bikeId
-                peerAddrList[(int)(long)data[1]], // peerAddr
+                playerAddrList[(int)(long)data[1]], // playerAddr
                 (string)data[2], // _name
                 Team.teamData[(int)(long)data[3]], // Team
                 (string)data[4],  // ctrl,

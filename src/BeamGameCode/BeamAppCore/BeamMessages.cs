@@ -109,7 +109,7 @@ namespace BeamGameCode
         public BikeCreateMsg(long ts, IBike ib) : base(kBikeCreateData, ts)
         {
             bikeId = ib.bikeId;
-            peerAddr = ib.peerAddr;
+            peerAddr = ib.playerAddr;
             name = ib.name;
             team = ib.team;
             score = ib.score;
@@ -152,7 +152,7 @@ namespace BeamGameCode
         public BikeTurnMsg(long ts, IBike ib, TurnDir _dir, Vector2 nextGridPt) : base(kBikeTurnMsg, ts)
         {
             bikeId = ib.bikeId;
-            ownerPeer = ib.peerAddr;
+            ownerPeer = ib.playerAddr;
             dir = _dir;
             entryHead = ib.baseHeading;
             nextPtX = nextGridPt.x;
