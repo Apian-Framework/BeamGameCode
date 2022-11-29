@@ -1,12 +1,15 @@
 {
     "name": "BeamGameCode",
+    "rootNamespace": "",
     "references": [
         "ModalApplication",
         "P2pNet",
         "P2pRedis",
         "P2pMqtt",
         "Apian",
-        "UniLog"
+        "UniLog",
+        "ApianCrypto",
+        "EthForApian"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
