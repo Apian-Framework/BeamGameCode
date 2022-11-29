@@ -51,6 +51,12 @@ jobs:
         repository: Apian-Framework/ApianAppUtils
         path: ApianAppUtils
 
+    - name: Checkout framework dependency - ApianCrypto
+      uses: actions/checkout@v2
+      with:
+        repository: Apian-Framework/ApianCrypto
+        path: ApianCrypto
+
     - name: Checkout framework dependency - P2pNet
       uses: actions/checkout@v2
       with:
