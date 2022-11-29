@@ -203,6 +203,7 @@ namespace BeamGameCode
                 appl.SetupNetwork(settings.p2pConnectionString); // should be async? GameNet.Connect() currently is not
                 GameNet.PeerJoinedNetworkData netJoinData = await appl.JoinBeamNetAsync(settings.apianNetworkName);
 
+                logger.Info($"{this.ModeName()}: _AsyncStartup() - Waiting for game announcements.");
                 await appl.GetExistingGamesAsync( (int)(kListenForGamesSecs * 1000f));
 
                 _SetState(kConnectedAndReady);

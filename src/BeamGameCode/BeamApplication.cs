@@ -10,6 +10,7 @@ using static UniLog.UniLogger; // for SID()
 using P2pNet; // just for PeerClockSuncInfo. Kind alame.
 using GameNet;
 using Apian;
+using ApianCrypto;
 
 #if !SINGLE_THREADED
 using System.Threading.Tasks;
@@ -34,6 +35,8 @@ namespace BeamGameCode
         public UniLogger Logger;
         public BeamAppCore mainAppCore {get; private set;}
 
+        public IApianCrypto apianCrypto;
+
         public BeamApplication(BeamGameNet bgn, IBeamFrontend fe)
         {
             beamGameNet = bgn;
@@ -44,6 +47,7 @@ namespace BeamGameCode
             modeMgr = new LoopModeManager(new BeamModeFactory(), this);
 
             frontend.SetBeamApplication(this);
+            _SetupCrypto();
         }
 
         // IBeamApplication
@@ -66,7 +70,7 @@ namespace BeamGameCode
         {
             // This is NOT *joining* a network. Just setting up the connection
             // Connect is (for now) synchronous
-              beamGameNet.SetupConnection(netConnectionStr);
+              beamGameNet.SetupConnection(apianCrypto.AccountAddress, netConnectionStr);
         }
 
         // Ask to join a Beam network
@@ -302,6 +306,33 @@ namespace BeamGameCode
 
 
         // Utility methods
+        private void _SetupCrypto()
+        {
+            BeamUserSettings userSettings = frontend.GetUserSettings();
+            apianCrypto = EthForApian.Create();
+            string addr = null;
+
+            if ( userSettings.tempSettings.ContainsKey("tempAcct")  && userSettings.tempSettings["tempAcct"] == "true" )
+            {
+                addr =  apianCrypto.CreateAccount();
+                Logger.Info($"_SetupCrypto() - Created new TEMPORARY Eth acct: {addr}");
+
+            } else {
+
+                if (string.IsNullOrEmpty(userSettings.cryptoAcctJSON))
+                {
+                    addr =  apianCrypto.CreateAccount();
+                    string json = apianCrypto.GetJsonForAccount("password");
+                    Logger.Info($"_SetupCrypto() - Created new Eth acct: {addr}");
+                    userSettings.cryptoAcctJSON = json;
+                    UserSettingsMgr.Save(userSettings);
+                } else {
+                    addr = apianCrypto.CreateAccountFromJson("password", userSettings.cryptoAcctJSON);
+                    Logger.Info( $"_SetupCrypto() - Loaded Eth acct: {addr} from settings");
+                }
+            }
+        }
+
         private void _CreateLocalPeer()
         {
             BeamUserSettings settings = frontend.GetUserSettings();

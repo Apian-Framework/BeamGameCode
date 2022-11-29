@@ -68,7 +68,7 @@ namespace BeamGameCode
 
         public BeamGameInfo CreateBeamGameInfo(string gameName, string apianGroupType)
         {
-           string netName = p2p.GetMainChannel()?.Name;
+           string netName = p2p.GetNetworkChannel()?.Name;
             if (netName == null)
             {
                 logger.Error($"CreateBeamGameInfo() - Must join network first"); // TODO: probably ought to assert? Can this be recoverable?
@@ -88,7 +88,7 @@ namespace BeamGameCode
 
         public void JoinExistingGame(BeamGameInfo gameInfo, BeamApian apian, string localData )
         {
-            string netName = p2p.GetMainChannel()?.Name;
+            string netName = p2p.GetNetworkChannel()?.Name;
             if (netName == null)
             {
                 logger.Error($"JoinExistingGame() - Must join network first"); // TODO: probably ought to assert? Can this be recoverable?
@@ -99,7 +99,7 @@ namespace BeamGameCode
 
         public void CreateAndJoinGame(BeamGameInfo gameInfo, BeamApian apian, string localData)
         {
-            string netName = p2p.GetMainChannel()?.Name;
+            string netName = p2p.GetNetworkChannel()?.Name;
             if (netName == null)
             {
                 logger.Error($"CreateAndJoinGame() - Must join network first"); // TODO: probably ought to assert? Can this be recoverable?
@@ -132,7 +132,7 @@ namespace BeamGameCode
 
         public void LeaveGame(string gameId) => LeaveGroup(gameId); // ApianGameNet.LeaveGroup()
 
-        protected override IP2pNet P2pNetFactory(string p2pConnectionString)
+        protected override IP2pNet P2pNetFactory(string localPeerAddress, string p2pConnectionString)
         {
             // P2pConnectionString is <p2p implmentation name>::<imp-dependent connection string>
             // Names are: p2ploopback, p2predis
@@ -160,7 +160,7 @@ namespace BeamGameCode
                     throw( new Exception($"Invalid connection type: {parts[0]}"));
             }
 
-            IP2pNet ip2p = new P2pNetBase(this, carrier);
+            IP2pNet ip2p = new P2pNetBase(this, carrier, localPeerAddress);
 
             // TODO: Since C# ctors can't fail and return null we don;t have a generic
             // "It didn;t work" path. As it stands, the P2pNet ctor will throw and we'll crash.
