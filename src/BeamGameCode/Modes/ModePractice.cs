@@ -160,12 +160,12 @@ namespace BeamGameCode
             await appl.JoinBeamNetAsync(NetworkName);
 
             logger.Info("Practice network joined");
-            BeamGameInfo gameInfo = appl.beamGameNet.CreateBeamGameInfo(ApianGroupName, SinglePeerGroupManager.kGroupType);
+            BeamGameInfo gameInfo = appl.beamGameNet.CreateBeamGameInfo(ApianGroupName, SinglePeerGroupManager.kGroupType, new GroupMemberLimits());
             CreateCorePair(gameInfo);
             appCore.PlayerJoinedEvt += _OnPlayerJoinedEvt;
             appCore.NewBikeEvt += _OnNewBikeEvt;
 
-            appl.CreateAndJoinGame(gameInfo, appCore);
+            appl.CreateAndJoinGame(gameInfo, appCore, false);
             // waiting for OnPlayerJoined()
         }
 #else

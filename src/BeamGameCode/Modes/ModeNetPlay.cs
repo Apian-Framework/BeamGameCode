@@ -285,13 +285,14 @@ namespace BeamGameCode
                     // Create and join
                     if (targetGameExisted)
                         throw new ArgumentException($"Cannot create.  Beam Game \"{gameInfo.GameName}\" already exists");
-                    gameJoinData = await appl.CreateAndJoinGameAsync(gameInfo, appCore, kJoinGameTimeoutMs);
+                    gameJoinData = await appl.CreateAndJoinGameAsync(gameInfo, appCore, kJoinGameTimeoutMs, selection.joinAsValidator);
 
                 } else {
                     // Join existing
                     if (!targetGameExisted)
                         throw new ArgumentException($"Cannot Join.  Beam Game \"{gameInfo.GameName}\" not found");
-                    gameJoinData = await appl.JoinExistingGameAsync(gameInfo, appCore, kJoinGameTimeoutMs);
+
+                    gameJoinData = await appl.JoinExistingGameAsync(gameInfo, appCore, kJoinGameTimeoutMs, selection.joinAsValidator);
 
                     if (!gameJoinData.success)
                         throw new Exception($"Failed to join game: {gameJoinData.failureReason}");

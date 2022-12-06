@@ -1,20 +1,19 @@
 ﻿using System;
+using Newtonsoft.Json;
 using Apian;
 
 namespace BeamGameCode
 {
 
+    [JsonObject(MemberSerialization.OptIn)]
     public class BeamGameInfo : ApianGroupInfo
     {
         public string GameName { get => GroupName; }
-        public int MaxPlayers { get => int.Parse(GroupParams["MaxPlayers"]); }
         public BeamGameInfo(ApianGroupInfo agi) : base(agi) {}
     }
 
     public class BeamGameStatus : ApianGroupStatus
     {
-        public int PlayerCount { get => int.Parse(OtherStatus["PlayerCount"]); set => OtherStatus["PlayerCount"] = $"{value}"; }
-        public int ValidatorCount { get => int.Parse(OtherStatus["ValidatorCount"]); set => OtherStatus["ValidatorCount"] = $"{value}";}
         public BeamGameStatus(ApianGroupStatus ags) : base(ags) {}
     }
 
@@ -43,9 +42,12 @@ namespace BeamGameCode
 
     public class GameSelectedEventArgs : EventArgs {
         public enum ReturnCode {kCreate, kJoin, kCancel};
-        public ReturnCode result;
+
         public BeamGameInfo gameInfo;
-        public GameSelectedEventArgs( BeamGameInfo gi, ReturnCode r) { gameInfo = gi; result = r; }
+        public ReturnCode result;
+        public bool joinAsValidator; // deson't mean much on "cancel"
+        public GameSelectedEventArgs( BeamGameInfo gi, ReturnCode r, bool jav) { gameInfo = gi; result = r; joinAsValidator=jav; }
+
     }
 
     public class GameAnnounceEventArgs : EventArgs {
@@ -80,7 +82,7 @@ namespace BeamGameCode
 
         void OnNetworkReady(); // tell the FE that the net is ready to work with
 
-        void OnGameSelected(BeamGameInfo gameInfo, GameSelectedEventArgs.ReturnCode result);
+        void OnGameSelected( GameSelectedEventArgs selectionArgs);
 
         // Events
         event EventHandler<PeerJoinedEventArgs> PeerJoinedEvt;

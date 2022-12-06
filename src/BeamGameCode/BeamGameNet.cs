@@ -19,9 +19,9 @@ namespace BeamGameCode
         void JoinBeamNet(string netName, BeamNetworkPeer localPeer);
         void LeaveBeamNet();
 
-        BeamGameInfo CreateBeamGameInfo( string gameName, string apianGroupType);
-        void CreateAndJoinGame(BeamGameInfo gameInfo, BeamApian apian, string localData);
-        void JoinExistingGame(BeamGameInfo gameInfo, BeamApian apian, string localData );
+        BeamGameInfo CreateBeamGameInfo( string gameName, string apianGroupType, GroupMemberLimits limits);
+        void CreateAndJoinGame(BeamGameInfo gameInfo, BeamApian apian, string localData, bool joinAsValidator);
+        void JoinExistingGame(BeamGameInfo gameInfo, BeamApian apian, string localData, bool joinAsValidator);
         void LeaveGame(string gameId);
 
         void SendBikeCreateDataReq(string groupId, IBike ib);
@@ -31,8 +31,8 @@ namespace BeamGameCode
         // MultiThreaded - or at last uses System/Threading
 #if !SINGLE_THREADED
         Task<PeerJoinedNetworkData> JoinBeamNetAsync(string netName, BeamNetworkPeer localPeer);
-        Task<PeerJoinedGroupData> CreateAndJoinGameAsync(BeamGameInfo gameInfo, BeamApian apian, string localData, int timeoutMs);
-        Task<PeerJoinedGroupData> JoinExistingGameAsync(BeamGameInfo gameInfo, BeamApian apian, string localData, int timeoutMs);
+        Task<PeerJoinedGroupData> CreateAndJoinGameAsync(BeamGameInfo gameInfo, BeamApian apian, string localData, int timeoutMs, bool joinAsValidator);
+        Task<PeerJoinedGroupData> JoinExistingGameAsync(BeamGameInfo gameInfo, BeamApian apian, string localData, int timeoutMs, bool joinAsValidator);
 #endif
     }
 
@@ -66,7 +66,7 @@ namespace BeamGameCode
 
         public void LeaveBeamNet() => LeaveNetwork();
 
-        public BeamGameInfo CreateBeamGameInfo(string gameName, string apianGroupType)
+        public BeamGameInfo CreateBeamGameInfo(string gameName, string apianGroupType, GroupMemberLimits memberLimits)
         {
            string netName = p2p.GetNetworkChannel()?.Name;
             if (netName == null)
@@ -79,14 +79,12 @@ namespace BeamGameCode
             groupChanInfo.name = gameName;
             groupChanInfo.id = $"{netName}/{gameName}";  // FIXME: use IDs instead of names
 
-            ApianGroupInfo groupInfo = new ApianGroupInfo(apianGroupType, groupChanInfo, LocalPeerAddr(), gameName);
-
-            groupInfo.GroupParams["MaxPlayers"] = "4";
+            ApianGroupInfo groupInfo = new ApianGroupInfo(apianGroupType, groupChanInfo, LocalPeerAddr(), gameName, memberLimits);
 
             return new BeamGameInfo(groupInfo);
         }
 
-        public void JoinExistingGame(BeamGameInfo gameInfo, BeamApian apian, string localData )
+        public void JoinExistingGame(BeamGameInfo gameInfo, BeamApian apian, string localData, bool joinAsValidator)
         {
             string netName = p2p.GetNetworkChannel()?.Name;
             if (netName == null)
@@ -94,10 +92,10 @@ namespace BeamGameCode
                 logger.Error($"JoinExistingGame() - Must join network first"); // TODO: probably ought to assert? Can this be recoverable?
                 return;
             }
-            base.JoinExistingGroup(gameInfo, apian, localData);
+            base.JoinExistingGroup(gameInfo, apian, localData, joinAsValidator);
         }
 
-        public void CreateAndJoinGame(BeamGameInfo gameInfo, BeamApian apian, string localData)
+        public void CreateAndJoinGame(BeamGameInfo gameInfo, BeamApian apian, string localData, bool joinAsValidator)
         {
             string netName = p2p.GetNetworkChannel()?.Name;
             if (netName == null)
@@ -106,7 +104,7 @@ namespace BeamGameCode
                 return;
             }
 
-            base.CreateAndJoinGroup(gameInfo, apian, localData);
+            base.CreateAndJoinGroup(gameInfo, apian, localData, joinAsValidator);
         }
 
 #if !SINGLE_THREADED
@@ -119,14 +117,14 @@ namespace BeamGameCode
             return await JoinNetworkAsync(chan, beamNetworkHelloData);
         }
 
-        public async Task<PeerJoinedGroupData> JoinExistingGameAsync(BeamGameInfo gameInfo, BeamApian apian, string localData, int timeoutMs)
+        public async Task<PeerJoinedGroupData> JoinExistingGameAsync(BeamGameInfo gameInfo, BeamApian apian, string localData, int timeoutMs, bool joinAsValidator)
         {
-            return await base.JoinExistingGroupAsync(gameInfo, apian, localData, timeoutMs);
+            return await base.JoinExistingGroupAsync(gameInfo, apian, localData, timeoutMs,  joinAsValidator);
         }
 
-        public async Task<PeerJoinedGroupData> CreateAndJoinGameAsync(BeamGameInfo gameInfo, BeamApian apian, string localData, int timeoutMs)
+        public async Task<PeerJoinedGroupData> CreateAndJoinGameAsync(BeamGameInfo gameInfo, BeamApian apian, string localData, int timeoutMs, bool joinAsValidator)
         {
-            return await base.CreateAndJoinGroupAsync(gameInfo, apian, localData, timeoutMs);
+            return await base.CreateAndJoinGroupAsync(gameInfo, apian, localData, timeoutMs, joinAsValidator);
         }
 #endif
 

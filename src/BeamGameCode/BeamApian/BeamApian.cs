@@ -11,7 +11,7 @@ namespace BeamGameCode
 {
     public class BeamApianPeer : ApianGroupMember
     {
-        public BeamApianPeer(string _peerAddr, string _appHelloData) : base(_peerAddr, _appHelloData) { }
+        public BeamApianPeer(string _peerAddr, string _appHelloData, bool isValidator) : base(_peerAddr, _appHelloData, isValidator) { }
     }
 
     public abstract class BeamApian : ApianBase
@@ -43,9 +43,9 @@ namespace BeamGameCode
             return ApianClock == null ? SystemTime : ApianClock.CurrentTime;
         }
 
-        public override ApianGroupMember CreateGroupMember(string peerAddr, string appMemberDataJson)
+        public override ApianGroupMember CreateGroupMember(string peerAddr, string appMemberDataJson, bool isValidator)
         {
-            return new BeamApianPeer(peerAddr, appMemberDataJson);
+            return new BeamApianPeer(peerAddr, appMemberDataJson, isValidator);
         }
 
         public override void Update()
@@ -55,9 +55,9 @@ namespace BeamGameCode
                 ((BeamAppCore)AppCore)?.Loop();
         }
 
-        protected void AddApianPeer(string peerAddr, string peerHelloData)
+        protected void AddApianPeer(string peerAddr, string peerHelloData, bool isValidator)
         {
-            BeamApianPeer p = new BeamApianPeer(peerAddr, peerHelloData);
+            BeamApianPeer p = new BeamApianPeer(peerAddr, peerHelloData, isValidator);
             apianPeers[peerAddr] = p;
         }
 
@@ -113,7 +113,8 @@ namespace BeamGameCode
                 if (peer.CurStatus == ApianGroupMember.Status.Active)
                 {
                     // In a leader-based ApianGroup the first peer will probably go stright from Joining to Active
-                    SendNewPlayerObs(ApianClock.CurrentTime, BeamPlayer.FromApianJson(peer.AppDataJson));
+                    if (!peer.IsValidator)
+                        SendNewPlayerObs(ApianClock.CurrentTime, BeamPlayer.FromApianJson(peer.AppDataJson));
                 }
                 break;
             case ApianGroupMember.Status.SyncingState:
@@ -121,7 +122,8 @@ namespace BeamGameCode
                 if (peer.CurStatus == ApianGroupMember.Status.Active)
                 {
                     // Most common situation
-                    SendNewPlayerObs(ApianClock.CurrentTime, BeamPlayer.FromApianJson(peer.AppDataJson));
+                    if (!peer.IsValidator)
+                        SendNewPlayerObs(ApianClock.CurrentTime, BeamPlayer.FromApianJson(peer.AppDataJson));
                 }
                 break;
             }

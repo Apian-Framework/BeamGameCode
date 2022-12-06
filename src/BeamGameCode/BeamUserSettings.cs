@@ -121,6 +121,11 @@ namespace BeamGameCode
 
         public Dictionary<string, string> platformSettings; // dict of persistent, but platform-specific, settings
 
+        public string GetTempSetting(string key)
+        {
+            return  tempSettings.ContainsKey(key) ? tempSettings[key] : null;
+        }
+
         public BeamUserSettings()
         {
             logLevels = new Dictionary<string, string>();

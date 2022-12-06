@@ -149,10 +149,10 @@ namespace BeamGameCode
             // ...or the FE might just immediately call OnGameSelected() itself
         }
 
-       public void OnGameSelected(BeamGameInfo gameInfo, GameSelectedEventArgs.ReturnCode result)
+       public void OnGameSelected(GameSelectedEventArgs gameSelectArgs)
         {
-            Logger.Info($"OnGameSelected({gameInfo?.GameName})");
-            GameSelectedEvent?.Invoke(this, new GameSelectedEventArgs(gameInfo, result));
+            Logger.Info($"OnGameSelected({gameSelectArgs.gameInfo?.GameName}): Joining as {(gameSelectArgs.joinAsValidator ? "Validator" : "Player")}  ");
+            GameSelectedEvent?.Invoke(this, gameSelectArgs);
         }
 
 
@@ -161,7 +161,8 @@ namespace BeamGameCode
         public async Task<GameSelectedEventArgs> SelectGameAsync(IDictionary<string, BeamGameAnnounceData> existingGames)
         {
             GameSelectedEventArgs selection = await frontend.SelectGameAsync(existingGames);
-            Logger.Info($"SelectGameAsync() Got result:  GameName: {selection.gameInfo?.GameName} ResultCode: {selection.result}");
+            Logger.Info($"SelectGameAsync() Got result:  GameName: {selection.gameInfo?.GameName} ResultCode: {selection.result}, IsValidator: {selection.joinAsValidator}");
+
             return selection;
         }
 #endif
@@ -173,26 +174,26 @@ namespace BeamGameCode
         // But what the game code really waits for isntead is a PlayerJoinedEvent sent from the AppCore which will come
         // soon thereafter
 
-        public void JoinExistingGame(BeamGameInfo gameInfo, BeamAppCore appCore)
+        public void JoinExistingGame(BeamGameInfo gameInfo, BeamAppCore appCore, bool joinAsValidator)
         {
-            beamGameNet.JoinExistingGame(gameInfo, appCore.apian, MakeBeamPlayer().ApianSerialized() );
+            beamGameNet.JoinExistingGame(gameInfo, appCore.apian, MakeBeamPlayer().ApianSerialized(), joinAsValidator);
         }
 
-        public void CreateAndJoinGame(BeamGameInfo gameInfo, BeamAppCore appCore)
+        public void CreateAndJoinGame(BeamGameInfo gameInfo, BeamAppCore appCore, bool joinAsValidator)
         {
-            beamGameNet.CreateAndJoinGame(gameInfo, appCore?.apian, MakeBeamPlayer().ApianSerialized() );
+            beamGameNet.CreateAndJoinGame(gameInfo, appCore?.apian, MakeBeamPlayer().ApianSerialized(), joinAsValidator);
         }
 
 #if !SINGLE_THREADED
-        public async Task<LocalPeerJoinedGameData> CreateAndJoinGameAsync(BeamGameInfo gameInfo, BeamAppCore appCore, int timeoutMs)
+        public async Task<LocalPeerJoinedGameData> CreateAndJoinGameAsync(BeamGameInfo gameInfo, BeamAppCore appCore, int timeoutMs, bool joinAsValidator)
         {
-            PeerJoinedGroupData joinData = await beamGameNet.CreateAndJoinGameAsync(gameInfo, appCore?.apian, MakeBeamPlayer().ApianSerialized(), timeoutMs);
+            PeerJoinedGroupData joinData = await beamGameNet.CreateAndJoinGameAsync(gameInfo, appCore?.apian, MakeBeamPlayer().ApianSerialized(), timeoutMs,  joinAsValidator);
             return new LocalPeerJoinedGameData(joinData.Success, joinData.GroupInfo.GroupId, joinData.Message);
         }
 
-        public async Task<LocalPeerJoinedGameData> JoinExistingGameAsync(BeamGameInfo gameInfo, BeamAppCore appCore, int timeoutMs)
+        public async Task<LocalPeerJoinedGameData> JoinExistingGameAsync(BeamGameInfo gameInfo, BeamAppCore appCore, int timeoutMs, bool joinAsValidator)
         {
-            PeerJoinedGroupData joinData = await beamGameNet.JoinExistingGameAsync(gameInfo, appCore?.apian, MakeBeamPlayer().ApianSerialized(), timeoutMs);
+            PeerJoinedGroupData joinData = await beamGameNet.JoinExistingGameAsync(gameInfo, appCore?.apian, MakeBeamPlayer().ApianSerialized(), timeoutMs,  joinAsValidator);
             return new LocalPeerJoinedGameData(joinData.Success, joinData.GroupInfo.GroupId, joinData.Message);
         }
 #endif
@@ -262,6 +263,7 @@ namespace BeamGameCode
         }
         public void OnPeerJoinedGroup(PeerJoinedGroupData data)
         {
+            Logger.Info($"OnPeerJoinedGroup() Grp: {data.GroupInfo.GroupId}, Peer: {SID(data.PeerAddr)}, Local: {data?.PeerAddr == LocalPeer.PeerAddr}, Validator: {data.IsValidator}");
             bool isLocalPeer = data?.PeerAddr == LocalPeer.PeerAddr;
             if (isLocalPeer) {
                 CurrentGame = data.GroupInfo as BeamGameInfo;
@@ -312,7 +314,7 @@ namespace BeamGameCode
             apianCrypto = EthForApian.Create();
             string addr = null;
 
-            if ( userSettings.tempSettings.ContainsKey("tempAcct")  && userSettings.tempSettings["tempAcct"] == "true" )
+            if ( userSettings.GetTempSetting("tempAcct")  == "true" )
             {
                 addr =  apianCrypto.CreateAccount();
                 Logger.Info($"_SetupCrypto() - Created new TEMPORARY Eth acct: {addr}");
