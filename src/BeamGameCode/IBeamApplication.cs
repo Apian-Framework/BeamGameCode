@@ -20,7 +20,7 @@ namespace BeamGameCode
     public class BeamGameAnnounceData
     {
         public BeamGameInfo GameInfo { get; }
-        public BeamGameStatus GameStatus { get; }
+        public BeamGameStatus GameStatus { get; set;}
         public BeamGameAnnounceData(GroupAnnounceResult gar)
         {
             GameInfo = new BeamGameInfo(gar.GroupInfo);

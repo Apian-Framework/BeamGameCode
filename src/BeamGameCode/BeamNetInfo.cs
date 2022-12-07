@@ -34,6 +34,21 @@ namespace BeamGameCode
         public void AddGame(BeamGameAnnounceData game) => BeamGames[game.GameInfo.GroupId] = game; // As above, this can be used to update Status
         public void RemoveGame(string gameGroupId) => BeamGames.Remove(gameGroupId);
 
+        public void UpdateAllGamesStatus(IApianGameNet gameNet)
+        {
+            Dictionary<string, ApianGroupStatus> newStatus = new Dictionary<string, ApianGroupStatus>();
+
+            foreach (var gameId in BeamGames.Keys)
+                newStatus[gameId] = gameNet.GetGroupStatus(gameId);
+
+            foreach (var fetchedId in newStatus.Keys)
+            {
+                if (newStatus[fetchedId] != null)
+                    BeamGames[fetchedId].GameStatus =  new BeamGameStatus(newStatus[fetchedId]);
+
+            }
+        }
+
         protected void Reset()
         {
             NetworkChannel = null;
