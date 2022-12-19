@@ -47,6 +47,7 @@ namespace BeamGameCode
         protected P2pNetChannelInfo[] beamChannelData =  {
             //   name, id, dropMs, pingMs, missingMs, syncMs, maxPeers
             new P2pNetChannelInfo(null, null, 10000, 3000, 5000,     0, 0 ), // Main network channel (no clock sync)
+            //new P2pNetChannelInfo(null, null, 10000,    0,    0,     0, 0 ), // Main network channel (no tracking or clock sync)
             new P2pNetChannelInfo(null, null, 15000, 4000, 4500, 15000, 0 )  // gameplay channels - should drop from main channel before it happens here
         };
 
