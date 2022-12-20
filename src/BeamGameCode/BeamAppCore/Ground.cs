@@ -10,15 +10,16 @@ namespace BeamGameCode
     public partial class Ground
     {
         // North is Z, East is X,  Y is up
-        public static float gridSize = 10f; // assume a square grid
+        public static float gridSize = 10f; // 10x10 squares
         public static float minX = -500f;
         public static float maxX = 500f;
         public static float minZ = -500f;
         public static float maxZ = 500f;
 
-        public static readonly int pointsPerAxis = 101;
+        public static int xAxisPoints => (int)((maxX - minX) / gridSize) + 1; // number of points along the axis
+        public static int zAxisPoints => (int)((maxZ - minZ) / gridSize) + 1;
 
-        public static Vector2 zeroPos = new Vector2(0f, 0f);
+          public static Vector2 zeroPos = new Vector2(0f, 0f);
 
         public Ground()
         {
@@ -46,7 +47,7 @@ namespace BeamGameCode
 
         public bool IndicesAreOnMap(int xIdx, int yIdx)
         {
-            return !(xIdx < 0 || yIdx < 0 || xIdx >= pointsPerAxis || yIdx >= pointsPerAxis);
+            return !(xIdx < 0 || yIdx < 0 || xIdx >= xAxisPoints || yIdx >= zAxisPoints);
         }
     }
 }

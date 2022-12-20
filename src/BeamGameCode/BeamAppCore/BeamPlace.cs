@@ -47,9 +47,9 @@ namespace BeamGameCode
             return p;
         }
 
-        public int PosHash { get => xIdx + zIdx * Ground.pointsPerAxis; }
+        public int PosHash { get => xIdx + zIdx * Ground.zAxisPoints; }
 
-        public static int MakePosHash(int xIdx, int zIdx) => xIdx + zIdx * Ground.pointsPerAxis;
+        public static int MakePosHash(int xIdx, int zIdx) => xIdx + zIdx * Ground.zAxisPoints;
 
         public static bool AreAdjacent(BeamPlace p1, BeamPlace p2) => Math.Abs(p1.xIdx - p2.xIdx) + Math.Abs(p1.zIdx - p2.zIdx) == 1; // only one is 1
 

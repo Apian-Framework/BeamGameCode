@@ -59,6 +59,10 @@ namespace BeamGameCode
 				}
 				iter++;
 			}
+
+			// if (iter == 100)
+			// 	Debug.Log($"*************** Didn't find a place for bike!!");
+
 			return newPos;
 		}
 

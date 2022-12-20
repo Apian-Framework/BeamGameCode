@@ -14,6 +14,7 @@ namespace BeamGameCode
         public const int kStartScore = 2000;
         public static readonly float length = 2.0f;
         public static readonly float defaultSpeed =  15.0f;
+        public static readonly float turboSpeedSpeed =  20.0f;
 
         // Constant for bike lifetime
         public string bikeId {get; private set;}
