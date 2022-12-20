@@ -20,7 +20,7 @@ namespace BeamGameCode
 
     public static class UserSettingsMgr
     {
-        public const string currentVersion = "105";
+        public const string currentVersion = "106";
         public const string subFolder = ".beam";
         public const string defaultBaseName= "beamsettings";
         public static string fileBaseName;
@@ -106,7 +106,8 @@ namespace BeamGameCode
         public string version = UserSettingsMgr.currentVersion;
         public string startMode;
         public string screenName;
-        public string p2pConnectionString;
+        public Dictionary<string, string> p2pConnectionSettings; // named connections
+        public string defaultP2pConnection; // a key from p2pConnectionSettings
         public string apianNetworkName;
         public string ethNodeUrl;
         public string cryptoAcctJSON; // serialized encrypted keystore
@@ -139,7 +140,8 @@ namespace BeamGameCode
                 throw( new UserSettingsException($"Invalid source settings version: {source.version} Expected: {version}"));
             startMode = source.startMode;
             screenName = source.screenName;
-            p2pConnectionString = source.p2pConnectionString;
+            p2pConnectionSettings =  new Dictionary<string,string>(source.p2pConnectionSettings);
+            defaultP2pConnection = source.defaultP2pConnection;
             apianNetworkName = source.apianNetworkName;
             ethNodeUrl = source.ethNodeUrl;
             cryptoAcctJSON = source.cryptoAcctJSON;
@@ -162,10 +164,14 @@ namespace BeamGameCode
                 version = UserSettingsMgr.currentVersion,
                 startMode = BeamModeFactory.NetworkModeName,
                 screenName = "Fred Sanford",
-                //p2pConnectionString = "p2predis::newsweasel.com,password=O98nfRVWYYHg7rXpygBCBZWl+znRATaRXTC469SafZU",
-                p2pConnectionString = "p2pmqtt::{\"server\":\"newsweasel.com\",\"user\":\"apian_mqtt\",\"pwd\":\"apian_mqtt_pwd\"}",
+                p2pConnectionSettings = new Dictionary<string, string>()
+                 {
+                    {"NewsWeasel MQTT", "p2pmqtt::{\"server\":\"newsweasel.com\",\"user\":\"apian_mqtt\",\"pwd\":\"apian_mqtt_pwd\"}"},
+                    {"NewsWeasel Redis", "p2predis::newsweasel.com,password=O98nfRVWYYHg7rXpygBCBZWl+znRATaRXTC469SafZU"},
+                    {"Sparky MQTT", "p2pmqtt::{\"server\":\"sparkyx\"}"}
+                 },
+                defaultP2pConnection = "NewsWeasel MQTT",
                 apianNetworkName = "BeamNet1",
-                //p2pConnectionString = "p2predis::192.168.1.195,password=sparky-redis79",
                 ethNodeUrl = "https://rinkeby.infura.io/v3/7653fb1ed226443c98ce85d402299735",
                 cryptoAcctJSON = "",
                 localPlayerCtrlType = BikeFactory.AiCtrl,
