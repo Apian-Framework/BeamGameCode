@@ -20,7 +20,7 @@ namespace BeamGameCode
         {
             BeamGameInfo bgi = GroupInfo as BeamGameInfo;
 
-            if ( GroupMgr.GetMember(bgi.GroupCreatorAddr ) == null) // this is wrong. But leaderSez doesn't work anyway
+            if ( GroupMgr.GetMember(bgi.GroupCreatorAddr ) == null) // this is wrong. But it's not called
                 return (false, $"Creator Peer {bgi.GroupCreatorAddr} not present");
 
             return (true, "");
