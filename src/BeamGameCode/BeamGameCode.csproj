@@ -11,20 +11,20 @@
   <ItemGroup>
       <ProjectReference Include="..\..\..\ApianAppUtils\src\ModalApplication\ModalApplication.csproj" />
 
-      <PackageReference Include="Apian"  Version="1.0.1" Condition="'$(ApianSource)' == 'package'" />
-      <ProjectReference Include="..\..\..\Apian.Net\src\Apian\Apian.csproj" Condition="'$(ApianSource)' != 'package'"/>
+      <PackageReference Include="Apian"  Version="1.0.1" Condition="'$(ApianNetSource)' == 'package'" />
+      <ProjectReference Include="$(ApianNetSource)\src\Apian\Apian.csproj" Condition="'$(ApianNetSource)' != 'package'"/>
 
       <PackageReference Include="P2pNet.Base"  Version="1.0.2" Condition="'$(P2pNetSource)' == 'package'" />
-      <ProjectReference Include="..\..\..\P2pNet\src\P2pNet.Base\P2pNet.Base.csproj" Condition="'$(P2pNetSource)' != 'package'"/>
+      <ProjectReference Include="$(P2pNetSource)\src\P2pNet.Base\P2pNet.Base.csproj" Condition="'$(P2pNetSource)' != 'package'"/>
 
       <PackageReference Include="P2pNet.Redis"  Version="1.0.3" Condition="'$(P2pNetSource)' == 'package'" />
-      <ProjectReference Include="..\..\..\P2pNet\src\P2pNet.Redis\P2pNet.Redis.csproj" Condition="'$(P2pNetSource)' != 'package'"/>
+      <ProjectReference Include="$(P2pNetSource)\src\P2pNet.Redis\P2pNet.Redis.csproj" Condition="'$(P2pNetSource)' != 'package'"/>
 
-      <ProjectReference Include="..\..\..\P2pNet\src\P2pNet.Mqtt\P2pNet.Mqtt.csproj" />
+      <ProjectReference Include="$(P2pNetSource)\src\P2pNet.Mqtt\P2pNet.Mqtt.csproj" />
 
-      <ProjectReference Include="..\..\..\P2pNet\src\P2pNet.ActiveMq\P2pNet.ActiveMq.csproj" />
+      <ProjectReference Include="$(P2pNetSource)\src\P2pNet.ActiveMq\P2pNet.ActiveMq.csproj" />
 
-      <ProjectReference Include="..\..\..\ApianCrypto\src\EthForApian\EthForApian.csproj" />
+      <ProjectReference Include="$(ApianCryptoSource)\src\EthForApian\EthForApian.csproj" />
 
   </ItemGroup>
 
