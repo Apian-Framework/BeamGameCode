@@ -1,7 +1,10 @@
 <Project>
 
-  <!-- import parent Directory.Build.Props if there is one -->
-  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.Props', '$(MSBuildThisFileDirectory)../'))" />
+  <!-- import parent Directory.Build.props if there is one -->
+  <PropertyGroup>
+    <ParentBuildProps>$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))</ParentBuildProps>
+  </PropertyGroup>
+  <Import Condition="$(ParentBuildProps)!=''" Project="$(ParentBuildProps)" />
 
   <PropertyGroup>
     <!-- Set up locations for /obj and /bin  -->
@@ -9,7 +12,7 @@
     <BaseIntermediateOutputPath>$(SolutionDir)obj\$(MSBuildProjectName)\</BaseIntermediateOutputPath>
     <BaseOutputPath>$(SolutionDir)bin\$(MSBuildProjectName)\</BaseOutputPath>
 
-    <!-- Default locations of Apian code modules if not already set by parent Directory.Build.Props -->
+    <!-- Default locations of Apian code modules if not already set by parent Directory.Build.props -->
     <ApianCryptoSource Condition="'$(ApianCryptoSource)'==''" >$(SolutionDir)\..\ApianCrypto</ApianCryptoSource>
     <ApianNetSource Condition="'$(ApianNetSource)'==''" >$(SolutionDir)\..\Apian.Net</ApianNetSource>
     <P2pNetSource Condition="'$(P2pNetSource)'==''" >$(SolutionDir)\..\P2pNet</P2pNetSource>
