@@ -182,14 +182,14 @@ namespace BeamGameCode
             {
                 logger.Info("Splash network joined");
                 // Create gameInstance and associated Apian
-                BeamGameInfo gameInfo = appl.beamGameNet.CreateBeamGameInfo(ApianGroupName, SinglePeerGroupManager.kGroupType);
+                BeamGameInfo gameInfo = appl.beamGameNet.CreateBeamGameInfo(ApianGroupName, SinglePeerGroupManager.kGroupType, new GroupMemberLimits());
                 // Create gameInstance and associated Apian
                 CreateCorePair(gameInfo);
 
                 appCore.PlayerJoinedEvt += _OnPlayerJoinedEvt;
                 appCore.NewBikeEvt += _OnNewBikeEvt;
 
-                appl.CreateAndJoinGame(gameInfo, appCore);
+                appl.CreateAndJoinGame(gameInfo, appCore, false);
                 _CurrentState = ModeState.JoiningGroup;
                 // waiting for OnPlayerJoined(localplayer)
             } else {

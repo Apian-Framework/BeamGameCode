@@ -112,12 +112,12 @@ namespace BeamGameCode
                 break;
             case kJoiningExistingGame:
                 logger.Verbose($"{(ModeName())}: SetState: kJoiningExistingGame");
-                _JoinExistingGame(startParam as BeamGameInfo);
+                _JoinExistingGame(startParam as GameSelectedEventArgs);
                 _loopFunc = _JoinGameLoop;
                 break;
             case kCreatingAndJoiningGame:
                 logger.Verbose($"{(ModeName())}: SetState: kCreatingAndJoiningGame");
-                _CreateAndJoinGame(startParam as BeamGameInfo);
+                _CreateAndJoinGame(startParam as GameSelectedEventArgs);
                 _loopFunc = _JoinGameLoop;
                 break;
             case kWaitingForMembers:
@@ -343,25 +343,25 @@ namespace BeamGameCode
                 if (targetGameExisted)
                     _SetState(kFailed,$"Cannot create.  Beam Game \"{gameInfo.GameName}\" already exists");
                 else
-                    _SetState(kCreatingAndJoiningGame, gameInfo);
+                    _SetState(kCreatingAndJoiningGame, selection);
 
             } else {
                     // Join existing
                 if (!targetGameExisted)
                     _SetState(kFailed,$"Cannot Join.  Beam Game \"{gameInfo.GameName}\" not found");
                 else
-                    _SetState(kJoiningExistingGame, gameInfo);
+                    _SetState(kJoiningExistingGame, selection);
             }
         }
 
-        private void _CreateAndJoinGame(BeamGameInfo info)
+        private void _CreateAndJoinGame(GameSelectedEventArgs selection)
         {
-            appl.CreateAndJoinGame(info, appCore); // now waiting for OnPlayerJoined for the local player
+            appl.CreateAndJoinGame(selection.gameInfo, appCore, selection.joinAsValidator); // now waiting for OnPlayerJoined for the local player
         }
 
-        private void _JoinExistingGame(BeamGameInfo gameInfo)
+        private void _JoinExistingGame(GameSelectedEventArgs selection)
         {
-            appl.JoinExistingGame(gameInfo, appCore); // now waiting for OnPlayerJoined for the local player
+            appl.JoinExistingGame(selection.gameInfo, appCore, selection.joinAsValidator); // now waiting for OnPlayerJoined for the local player
         }
 
 #endif
