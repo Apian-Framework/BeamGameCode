@@ -321,16 +321,24 @@ namespace BeamGameCode
 
             } else {
 
-                if (string.IsNullOrEmpty(userSettings.cryptoAcctJSON))
+                if (string.IsNullOrEmpty(userSettings.defaultEphemAcctAddr))
                 {
+                    // create a new acct
                     addr =  apianCrypto.CreateAccount();
-                    string json = apianCrypto.GetJsonForAccount("password");
+                    string json = apianCrypto.GetJsonForAccount("password"); // FIXME. Really!!!!
                     Logger.Info($"_SetupCrypto() - Created new Eth acct: {addr}");
-                    userSettings.cryptoAcctJSON = json;
+                    userSettings.defaultEphemAcctAddr = addr;
+                    userSettings.cryptoEphemAcctJSON[addr] = json;
                     UserSettingsMgr.Save(userSettings);
                 } else {
-                    addr = apianCrypto.CreateAccountFromJson("password", userSettings.cryptoAcctJSON);
-                    Logger.Info( $"_SetupCrypto() - Loaded Eth acct: {addr} from settings");
+                    // look up the default one
+                    if (userSettings.cryptoEphemAcctJSON.ContainsKey(userSettings.defaultEphemAcctAddr))
+                    {
+                        addr = apianCrypto.CreateAccountFromJson("password", userSettings.cryptoEphemAcctJSON[userSettings.defaultEphemAcctAddr]);
+                        Logger.Info( $"_SetupCrypto() - Loaded Eth acct: {addr} from settings");
+                    } else {
+                        throw new Exception("_SetupCrypto(): No serialized keystore found for default address {userSettings.defaultEphemAcctAddr}");
+                    }
                 }
             }
         }

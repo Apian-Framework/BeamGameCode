@@ -20,7 +20,7 @@ namespace BeamGameCode
 
     public static class UserSettingsMgr
     {
-        public const string currentVersion = "106";
+        public const string currentVersion = "107";
         public const string subFolder = ".beam";
         public const string defaultBaseName= "beamsettings";
         public static string fileBaseName;
@@ -100,17 +100,32 @@ namespace BeamGameCode
 
     }
 
+    // public class BlockchainInfo
+    // {
+    //     // TODO: should this live soewhere else?
+    //     public string RpcUrl;
+    //     public int ChainId;
+    //     public string Currency; // "ETH", "xDAI", etc. This assumes that "decimals" for the chain is always 18.
+
+    //     public BlockchainInfo() {} // default ctor for NewtonSoft
+    // }
+
 
     public class BeamUserSettings
     {
         public string version = UserSettingsMgr.currentVersion;
         public string startMode;
         public string screenName;
-        public Dictionary<string, string> p2pConnectionSettings; // named connections
+        public Dictionary<string, string> p2pConnectionSettings; // named connections. settings are connection-specific and are usually json
+        public Dictionary<string, string> blockchainInfos; // chain info, keyed by an arbitrary name
+        public Dictionary<string, string> cryptoEphemAcctJSON; // eecrypted ephemeral acct keystores
+
         public string defaultP2pConnection; // a key from p2pConnectionSettings
+        public string defaultBlockchain; // key into blockchainInfos
+        public string defaultEphemAcctAddr; // address (key into cryptoEphemAcctJSON)
+        public string permAcctAddr; // address
+
         public string apianNetworkName;
-        public string ethNodeUrl;
-        public string cryptoAcctJSON; // serialized encrypted keystore
         public string localPlayerCtrlType;
         public int aiBikeCount; // in addition to localPLayerBike, spawn this many AIs (and respawn to keep the number up)
         public bool regenerateAiBikes; // create new ones when old ones get blown up
@@ -129,6 +144,9 @@ namespace BeamGameCode
 
         public BeamUserSettings()
         {
+            p2pConnectionSettings =  new Dictionary<string,string>();
+            blockchainInfos = new Dictionary<string,string>();
+            cryptoEphemAcctJSON = new Dictionary<string, string>();
             logLevels = new Dictionary<string, string>();
             tempSettings = new Dictionary<string, string>();
             platformSettings = new Dictionary<string, string>();
@@ -140,11 +158,15 @@ namespace BeamGameCode
                 throw( new UserSettingsException($"Invalid source settings version: {source.version} Expected: {version}"));
             startMode = source.startMode;
             screenName = source.screenName;
+            blockchainInfos = new Dictionary<string,string>(source.blockchainInfos);
             p2pConnectionSettings =  new Dictionary<string,string>(source.p2pConnectionSettings);
+            p2pConnectionSettings =  new Dictionary<string,string>(source.p2pConnectionSettings);
+            cryptoEphemAcctJSON = new Dictionary<string, string>(source.cryptoEphemAcctJSON);
             defaultP2pConnection = source.defaultP2pConnection;
             apianNetworkName = source.apianNetworkName;
-            ethNodeUrl = source.ethNodeUrl;
-            cryptoAcctJSON = source.cryptoAcctJSON;
+            defaultBlockchain = source.defaultBlockchain;
+            permAcctAddr = source.permAcctAddr;
+            defaultEphemAcctAddr = source.defaultEphemAcctAddr;
             localPlayerCtrlType = source.localPlayerCtrlType;
             aiBikeCount = source.aiBikeCount;
             regenerateAiBikes = source.regenerateAiBikes;
@@ -164,16 +186,25 @@ namespace BeamGameCode
                 version = UserSettingsMgr.currentVersion,
                 startMode = BeamModeFactory.NetworkModeName,
                 screenName = "Fred Sanford",
+                blockchainInfos = new Dictionary<string,string>()
+                {
+                    {"ETH MainNet", "{\"RpcUrl\": \"https://mainnet.infura.io/v3/6f03e0922a574b58867988f047fd3cfc\", \"ChainId\": 1, \"Currency\": \"ETH\"}"},
+                    {"ETH Gorli", "{\"RpcUrl\": \"https://goerli.infura.io/v3/6f03e0922a574b58867988f047fd3cfc\", \"ChainId\": 3, \"Currency\": \"ETH\"}"},
+                    {"Gnosis Main", "{\"RpcUrl\": \"https://rpc.gnosischain.com\", \"ChainId\": 100, \"Currency\": \"xDAI\"}"},
+                    {"Gnosis Chaido", "{\"RpcUrl\": \"https://rpc.chiadochain.net\", \"ChainId\": 10200, \"Currency\": \"xDAI\"}"}
+                },
                 p2pConnectionSettings = new Dictionary<string, string>()
-                 {
+                {
                     {"NewsWeasel MQTT", "p2pmqtt::{\"server\":\"newsweasel.com\",\"user\":\"apian_mqtt\",\"pwd\":\"apian_mqtt_pwd\"}"},
                     {"NewsWeasel Redis", "p2predis::newsweasel.com,password=O98nfRVWYYHg7rXpygBCBZWl+znRATaRXTC469SafZU"},
                     {"Sparky MQTT", "p2pmqtt::{\"server\":\"sparkyx\"}"}
-                 },
+                },
+                cryptoEphemAcctJSON = new Dictionary<string, string>(),
                 defaultP2pConnection = "NewsWeasel MQTT",
+                defaultBlockchain = "Eth MainNet",
+                defaultEphemAcctAddr = "", // app should ask crypto module what the actual current addr is
+                permAcctAddr = "", // perm is mostly for reference, really
                 apianNetworkName = "BeamNet1",
-                ethNodeUrl = "https://rinkeby.infura.io/v3/7653fb1ed226443c98ce85d402299735",
-                cryptoAcctJSON = "",
                 localPlayerCtrlType = BikeFactory.AiCtrl,
                 aiBikeCount = 2,
                 regenerateAiBikes = false,
