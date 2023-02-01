@@ -104,7 +104,7 @@ namespace BeamGameCode
             case kStartingUp:
                 logger.Verbose($"{(ModeName())}: SetState: kStartingUp");
                 try {
-                    string connectionStr =  settings.p2pConnectionSettings[settings.defaultP2pConnection];
+                    string connectionStr =  settings.p2pConnectionSettings[settings.curP2pConnection];
                     appl.SetupNetwork(connectionStr);
                 } catch (Exception ex) {
                     _SetState(kFailed, ex.Message);
@@ -201,7 +201,7 @@ namespace BeamGameCode
         private async void _AsyncStartup()
         {
             try {
-                string connectionStr =  settings.p2pConnectionSettings[settings.defaultP2pConnection];
+                string connectionStr =  settings.p2pConnectionSettings[settings.curP2pConnection];
                 appl.SetupNetwork(connectionStr); // should be async? GameNet.Connect() currently is not
                 GameNet.PeerJoinedNetworkData netJoinData = await appl.JoinBeamNetAsync(settings.apianNetworkName);
 

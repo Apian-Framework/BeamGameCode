@@ -118,11 +118,11 @@ namespace BeamGameCode
         public string screenName;
         public Dictionary<string, string> p2pConnectionSettings; // named connections. settings are connection-specific and are usually json
         public Dictionary<string, string> blockchainInfos; // chain info, keyed by an arbitrary name
-        public Dictionary<string, string> cryptoEphemAcctJSON; // eecrypted ephemeral acct keystores
+        public Dictionary<string, string> gameAcctJSON; // eecrypted ephemeral acct keystores
 
-        public string defaultP2pConnection; // a key from p2pConnectionSettings
-        public string defaultBlockchain; // key into blockchainInfos
-        public string defaultEphemAcctAddr; // address (key into cryptoEphemAcctJSON)
+        public string curP2pConnection; // a key from p2pConnectionSettings
+        public string curBlockchain; // key into blockchainInfos
+        public string gameAcctAddr; // address (key into gameAcctJSON)
         public string permAcctAddr; // address
 
         public string apianNetworkName;
@@ -146,7 +146,7 @@ namespace BeamGameCode
         {
             p2pConnectionSettings =  new Dictionary<string,string>();
             blockchainInfos = new Dictionary<string,string>();
-            cryptoEphemAcctJSON = new Dictionary<string, string>();
+            gameAcctJSON = new Dictionary<string, string>();
             logLevels = new Dictionary<string, string>();
             tempSettings = new Dictionary<string, string>();
             platformSettings = new Dictionary<string, string>();
@@ -161,12 +161,12 @@ namespace BeamGameCode
             blockchainInfos = new Dictionary<string,string>(source.blockchainInfos);
             p2pConnectionSettings =  new Dictionary<string,string>(source.p2pConnectionSettings);
             p2pConnectionSettings =  new Dictionary<string,string>(source.p2pConnectionSettings);
-            cryptoEphemAcctJSON = new Dictionary<string, string>(source.cryptoEphemAcctJSON);
-            defaultP2pConnection = source.defaultP2pConnection;
+            gameAcctJSON = new Dictionary<string, string>(source.gameAcctJSON);
+            curP2pConnection = source.curP2pConnection;
             apianNetworkName = source.apianNetworkName;
-            defaultBlockchain = source.defaultBlockchain;
+            curBlockchain = source.curBlockchain;
             permAcctAddr = source.permAcctAddr;
-            defaultEphemAcctAddr = source.defaultEphemAcctAddr;
+            gameAcctAddr = source.gameAcctAddr;
             localPlayerCtrlType = source.localPlayerCtrlType;
             aiBikeCount = source.aiBikeCount;
             regenerateAiBikes = source.regenerateAiBikes;
@@ -199,10 +199,10 @@ namespace BeamGameCode
                     {"NewsWeasel Redis", "p2predis::newsweasel.com,password=O98nfRVWYYHg7rXpygBCBZWl+znRATaRXTC469SafZU"},
                     {"Sparky MQTT", "p2pmqtt::{\"server\":\"sparkyx\"}"}
                 },
-                cryptoEphemAcctJSON = new Dictionary<string, string>(),
-                defaultP2pConnection = "NewsWeasel MQTT",
-                defaultBlockchain = "Eth MainNet",
-                defaultEphemAcctAddr = "", // app should ask crypto module what the actual current addr is
+                gameAcctJSON = new Dictionary<string, string>(),
+                curP2pConnection = "NewsWeasel MQTT",
+                curBlockchain = "Eth MainNet",
+                gameAcctAddr = "", // app should ask crypto module what the actual current addr is
                 permAcctAddr = "", // perm is mostly for reference, really
                 apianNetworkName = "BeamNet1",
                 localPlayerCtrlType = BikeFactory.AiCtrl,
