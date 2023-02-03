@@ -39,6 +39,8 @@ namespace BeamGameCode
             base.Start(param);
             appl.AddAppCore(null);
 
+            appl.SetupCryptoAcct(true);
+
 #if !SINGLE_THREADED
             DoAsyncSetupAndStartJoin();
 #else

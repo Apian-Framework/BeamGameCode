@@ -53,6 +53,10 @@ namespace BeamGameCode
 
             appl.frontend?.OnStartMode(this);
 
+            _loopFunc = _DoNothingLoop;
+
+            appl.SetupCryptoAcct(); // this takes a while if restoring a keystore
+
             _SetState(kStartingUp);
         }
 

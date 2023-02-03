@@ -10,7 +10,6 @@ using static UniLog.UniLogger; // for SID()
 using P2pNet; // just for PeerClockSuncInfo. Kind alame.
 using GameNet;
 using Apian;
-using ApianCrypto;
 
 #if !SINGLE_THREADED
 using System.Threading.Tasks;
@@ -35,7 +34,6 @@ namespace BeamGameCode
         public UniLogger Logger;
         public BeamAppCore mainAppCore {get; private set;}
 
-        public IApianCrypto apianCrypto;
 
         public BeamApplication(BeamGameNet bgn, IBeamFrontend fe)
         {
@@ -47,7 +45,6 @@ namespace BeamGameCode
             modeMgr = new LoopModeManager(new BeamModeFactory(), this);
 
             frontend.SetBeamApplication(this);
-            _SetupCrypto();
         }
 
         // IBeamApplication
@@ -65,12 +62,51 @@ namespace BeamGameCode
         // Tasks initiated by request from game modes
         //
 
+        public void SetupCryptoAcct(bool forceTemp = false)
+        {
+            // Decrypting a save keystore is very slow (some seeconds) so single-peer modes like the
+            // splash and practice one should create a temp acct. A fake one from a know private key
+            // would work, too - but forceTemp == true is simpler.
+            BeamUserSettings userSettings = frontend.GetUserSettings();
+            string addr = null;
+
+            if ( userSettings.GetTempSetting("tempAcct")  == "true" || forceTemp )
+
+            {
+                beamGameNet.SetupNewCryptoAccount();
+                addr = beamGameNet.CryptoAccountAddress();
+                Logger.Info($"SetupCryptoAcct() - Created new TEMPORARY Eth acct: {addr}");
+
+            } else {
+
+                if (string.IsNullOrEmpty(userSettings.gameAcctAddr))
+                {
+                    // create a new acct
+                    string json = beamGameNet.SetupNewCryptoAccount("password");
+                    addr = beamGameNet.CryptoAccountAddress();
+                    Logger.Info($"SetupCryptoAcct() - Created new Eth acct: {addr}");
+                    userSettings.gameAcctAddr = addr;
+                    userSettings.gameAcctJSON[addr] = json;
+                    UserSettingsMgr.Save(userSettings);
+                } else {
+                    // look up the default one
+                    if (userSettings.gameAcctJSON.ContainsKey(userSettings.gameAcctAddr))
+                    {
+                        addr = beamGameNet.RestoreCryptoAccount(userSettings.gameAcctJSON[userSettings.gameAcctAddr], "password" );
+                        Logger.Info( $"SetupCryptoAcct() - Loaded Eth acct: {addr} from settings");
+                    } else {
+                        throw new Exception("SetupCryptoAcct(): No serialized keystore found for default address {userSettings.gameAcctAddr}");
+                    }
+                }
+            }
+        }
+
         // Connect / Join network
         public void SetupNetwork(string netConnectionStr)
         {
             // This is NOT *joining* a network. Just setting up the connection
             // Connect is (for now) synchronous
-              beamGameNet.SetupConnection(apianCrypto.AccountAddress, netConnectionStr);
+              beamGameNet.SetupConnection(beamGameNet.CryptoAccountAddress(), netConnectionStr); // TODO: make this less ugly
         }
 
         // Ask to join a Beam network
@@ -308,40 +344,7 @@ namespace BeamGameCode
 
 
         // Utility methods
-        private void _SetupCrypto()
-        {
-            BeamUserSettings userSettings = frontend.GetUserSettings();
-            apianCrypto = EthForApian.Create();
-            string addr = null;
 
-            if ( userSettings.GetTempSetting("tempAcct")  == "true" )
-            {
-                addr =  apianCrypto.CreateAccount();
-                Logger.Info($"_SetupCrypto() - Created new TEMPORARY Eth acct: {addr}");
-
-            } else {
-
-                if (string.IsNullOrEmpty(userSettings.gameAcctAddr))
-                {
-                    // create a new acct
-                    addr =  apianCrypto.CreateAccount();
-                    string json = apianCrypto.GetJsonForAccount("password"); // FIXME. Really!!!!
-                    Logger.Info($"_SetupCrypto() - Created new Eth acct: {addr}");
-                    userSettings.gameAcctAddr = addr;
-                    userSettings.gameAcctJSON[addr] = json;
-                    UserSettingsMgr.Save(userSettings);
-                } else {
-                    // look up the default one
-                    if (userSettings.gameAcctJSON.ContainsKey(userSettings.gameAcctAddr))
-                    {
-                        addr = apianCrypto.CreateAccountFromJson("password", userSettings.gameAcctJSON[userSettings.gameAcctAddr]);
-                        Logger.Info( $"_SetupCrypto() - Loaded Eth acct: {addr} from settings");
-                    } else {
-                        throw new Exception("_SetupCrypto(): No serialized keystore found for default address {userSettings.gameAcctAddr}");
-                    }
-                }
-            }
-        }
 
         private void _CreateLocalPeer()
         {
