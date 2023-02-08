@@ -35,10 +35,12 @@ namespace BeamGameCode
         // mode substates
         protected const int kStartingUp = 0;
 #if SINGLE_THREADED
-        protected const int kJoiningNet = 2;
-        protected const int kCheckingForGames = 3;
+        protected const int kSettingUpCrypto = 1;
+        protected const int kSettingUpNet = 2;
+        protected const int kJoiningNet = 3;
+        protected const int kCheckingForGames = 4;
 #endif
-        protected const int kConnectedAndReady = 4;
+        protected const int kConnectedAndReady = 5;
         protected const int kFailed = 9;
 
 		public override void Start(object param = null)
@@ -55,7 +57,9 @@ namespace BeamGameCode
 
             _loopFunc = _DoNothingLoop;
 
-            appl.SetupCryptoAcct(); // this takes a while if restoring a keystore
+            appl.CreateCryptoInstance(); // Do on main thread
+
+            appl.ConnectToChain();
 
             _SetState(kStartingUp);
         }
@@ -107,6 +111,27 @@ namespace BeamGameCode
 #else
             case kStartingUp:
                 logger.Verbose($"{(ModeName())}: SetState: kStartingUp");
+                try {
+                    // Is there any startup stuff?
+                } catch (Exception ex) {
+                    _SetState(kFailed, ex.Message);
+                    return;
+                }
+                _SetState(kSettingUpCrypto);
+                break;
+            case kSettingUpCrypto:
+                logger.Verbose($"{(ModeName())}: SetState: kSettingUpCrypto");
+                try {
+                    appl.SetupCryptoAcct(); // this takes a while if restoring a keystore
+                    appl.GetChainId(); // results in ChainIdEvt
+                } catch (Exception ex) {
+                    _SetState(kFailed, ex.Message);
+                    return;
+                }
+                _SetState(kSettingUpNet);
+                break;
+            case kSettingUpNet:
+                logger.Verbose($"{(ModeName())}: SetState: kSettingUpNet");
                 try {
                     string connectionStr =  settings.p2pConnectionSettings[settings.curP2pConnection];
                     appl.SetupNetwork(connectionStr);
@@ -205,6 +230,11 @@ namespace BeamGameCode
         private async void _AsyncStartup()
         {
             try {
+
+                await appl.SetupCryptoAcctAsync(); // this takes a while if restoring a keystore
+
+                appl.GetChainId(); // results in ChainIdEvt which frontend will react to (otherwise we'd use GetChainIdAsync() )
+
                 string connectionStr =  settings.p2pConnectionSettings[settings.curP2pConnection];
                 appl.SetupNetwork(connectionStr); // should be async? GameNet.Connect() currently is not
                 GameNet.PeerJoinedNetworkData netJoinData = await appl.JoinBeamNetAsync(settings.apianNetworkName);

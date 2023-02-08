@@ -24,6 +24,10 @@ namespace BeamGameCode
         public event EventHandler<PeerLeftEventArgs> PeerLeftEvt;
         public event EventHandler<GameAnnounceEventArgs> GameAnnounceEvt;
         public event EventHandler<GameSelectedEventArgs> GameSelectedEvent;
+        public event EventHandler<ChainAccountBalanceEventArgs> ChainAccountBalanceEvt;
+        public event EventHandler<ChainIdEventArgs> ChainIdEvt;
+        public event EventHandler<ChainBlockNumberEventArgs> ChainBlockNumberEvt;
+
 
         public LoopModeManager modeMgr {get; private set;}
         public IBeamFrontend frontend {get; private set;}
@@ -61,6 +65,13 @@ namespace BeamGameCode
         //
         // Tasks initiated by request from game modes
         //
+
+#if !SINGLE_THREADED
+        public async Task SetupCryptoAcctAsync()
+        {
+            await Task.Run(() => SetupCryptoAcct());
+        }
+#endif
 
         public void SetupCryptoAcct(bool forceTemp = false)
         {
@@ -100,6 +111,61 @@ namespace BeamGameCode
                 }
             }
         }
+
+        private string  _CurSettingsChainInfoJson()
+        {
+            BeamUserSettings userSettings = frontend.GetUserSettings();
+
+            if (string.IsNullOrEmpty(userSettings.curBlockchain))
+                throw new Exception("_CurSettingsChainInfoJson(): Current Blockchain not set.");
+
+            if (!userSettings.blockchainInfos.ContainsKey(userSettings.curBlockchain))
+                throw new Exception($"_CurSettingsChainInfoJson(): No serialized chainInfo for chain {userSettings.curBlockchain}");
+
+            return userSettings.blockchainInfos[userSettings.curBlockchain];
+        }
+
+        public void CreateCryptoInstance()
+        {
+            beamGameNet.CreateCryptoInstance();
+        }
+
+        public void ConnectToChain()
+        {
+            string chainInfoJson = _CurSettingsChainInfoJson();
+            beamGameNet.ConnectToBlockchain(chainInfoJson);
+        }
+
+       public void DisconnectFromChain()
+        {
+            beamGameNet.DisconnectFromBlockchain();
+
+        }
+
+
+        // These result in async event invocations
+        public void GetChainId() =>  beamGameNet.GetChainId();
+        public void GetChainBlockNumber() =>  beamGameNet.GetChainBlockNumber();
+        public void GetChainAccountBalance(string address) =>  beamGameNet.GetChainAccountBalance(address);
+
+#if !SINGLE_THREADED
+        // Or use the async/await version
+        // public async Task ConnectToChainAsync()
+        // {
+        //     string chainInfoJson = _CurSettingsChainInfoJson();
+        //     await beamGameNet.ConnectToBlockchainAsync(chainInfoJson);
+        // }
+
+        public async Task<int> GetChainIdAsync() => await beamGameNet.GetChainIdAsync();
+        public async Task<int> GetChainBlockNumberAsync() => await beamGameNet.GetChainBlockNumberAsync();
+        public async Task<int> GetChainAccountBalanceAsync(string address) => await beamGameNet.GetChainAccountBalanceAsync(address);
+#endif
+
+
+
+        //
+        // Beamnet
+        //
 
         // Connect / Join network
         public void SetupNetwork(string netConnectionStr)
@@ -342,9 +408,26 @@ namespace BeamGameCode
         public void OnPeerSync(string channel, string peerAddr, PeerClockSyncInfo syncInfo) {} // stubbed
         // TODO: Be nice to be able to default-stub this somewhere.
 
+        // IApianGameNetClient (chain stuff)
+        public void OnChainId(int chainId)
+        {
+            Logger.Info($"OnChainId({chainId})");
+            ChainIdEvt?.Invoke(this, new ChainIdEventArgs(chainId));
+        }
+
+        public void OnChainBlockNumber(int blockNumber)
+        {
+            Logger.Info($"OnChainBlockNumber({blockNumber})");
+            ChainBlockNumberEvt?.Invoke(this, new ChainBlockNumberEventArgs(blockNumber));
+        }
+
+        public void OnChainAcctBalance(string addr, int balance)
+        {
+            Logger.Info($"OnChainAcctBalance() Addr: {addr}, Balance: {balance}");
+            ChainAccountBalanceEvt?.Invoke(this, new ChainAccountBalanceEventArgs(addr, balance));
+        }
 
         // Utility methods
-
 
         private void _CreateLocalPeer()
         {

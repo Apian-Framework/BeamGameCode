@@ -100,16 +100,6 @@ namespace BeamGameCode
 
     }
 
-    // public class BlockchainInfo
-    // {
-    //     // TODO: should this live soewhere else?
-    //     public string RpcUrl;
-    //     public int ChainId;
-    //     public string Currency; // "ETH", "xDAI", etc. This assumes that "decimals" for the chain is always 18.
-
-    //     public BlockchainInfo() {} // default ctor for NewtonSoft
-    // }
-
 
     public class BeamUserSettings
     {
@@ -201,9 +191,9 @@ namespace BeamGameCode
                 },
                 gameAcctJSON = new Dictionary<string, string>(),
                 curP2pConnection = "NewsWeasel MQTT",
-                curBlockchain = "Eth MainNet",
-                gameAcctAddr = "", // app should ask crypto module what the actual current addr is
-                permAcctAddr = "", // perm is mostly for reference, really
+                curBlockchain = "Gnosis Chaido",
+                gameAcctAddr = "",
+                permAcctAddr = "",
                 apianNetworkName = "BeamNet1",
                 localPlayerCtrlType = BikeFactory.AiCtrl,
                 aiBikeCount = 2,

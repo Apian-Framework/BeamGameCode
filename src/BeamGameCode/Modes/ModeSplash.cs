@@ -38,7 +38,7 @@ namespace BeamGameCode
             logger.Info("Starting Splash");
             base.Start(param);
             appl.AddAppCore(null);
-
+            appl.CreateCryptoInstance();
             appl.SetupCryptoAcct(true);
 
 #if !SINGLE_THREADED

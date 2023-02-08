@@ -34,7 +34,7 @@ namespace BeamGameCode
             logger.Info("Starting Practice");
             base.Start();
             appl.AddAppCore(null);
-
+            appl.CreateCryptoInstance();
             appl.SetupCryptoAcct(true);
 
 #if !SINGLE_THREADED

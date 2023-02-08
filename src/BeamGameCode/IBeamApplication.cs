@@ -42,7 +42,6 @@ namespace BeamGameCode
 
     public class GameSelectedEventArgs : EventArgs {
         public enum ReturnCode {kCreate, kJoin, kCancel};
-
         public BeamGameInfo gameInfo;
         public ReturnCode result;
         public bool joinAsValidator; // deson't mean much on "cancel"
@@ -55,6 +54,21 @@ namespace BeamGameCode
         public GameAnnounceEventArgs( BeamGameAnnounceData gd) { gameData = gd; }
     }
 
+    public class ChainIdEventArgs : EventArgs {
+        public int chainId;
+        public ChainIdEventArgs(int id) { chainId = id; }
+    }
+
+    public class ChainBlockNumberEventArgs : EventArgs {
+        public int blockNumber;
+        public ChainBlockNumberEventArgs(int id) { blockNumber = id; }
+    }
+
+    public class ChainAccountBalanceEventArgs : EventArgs {
+        public string address;
+        public int balance;
+        public ChainAccountBalanceEventArgs(string a, int b) { address = a; balance = b;}
+    }
 
     public class LocalPeerJoinedGameData {
         public bool success;
@@ -88,6 +102,9 @@ namespace BeamGameCode
         event EventHandler<PeerJoinedEventArgs> PeerJoinedEvt;
         event EventHandler<PeerLeftEventArgs> PeerLeftEvt;
         event EventHandler<GameAnnounceEventArgs> GameAnnounceEvt;
+        event EventHandler<ChainAccountBalanceEventArgs> ChainAccountBalanceEvt;
+        event EventHandler<ChainIdEventArgs> ChainIdEvt;
+        event EventHandler<ChainBlockNumberEventArgs> ChainBlockNumberEvt;
 
     }
 
