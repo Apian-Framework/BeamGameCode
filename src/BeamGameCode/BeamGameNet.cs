@@ -78,7 +78,7 @@ namespace BeamGameCode
 
             P2pNetChannelInfo groupChanInfo = new P2pNetChannelInfo(beamChannelData[kBeamGameChannelInfo]);
             groupChanInfo.name = gameName;
-            groupChanInfo.id = $"{netName}/{gameName}";  // FIXME: use IDs instead of names
+            groupChanInfo.id = System.Guid.NewGuid().ToString("N");  // TODO: maybe use a crypto 256-bit rand?
 
             ApianGroupInfo groupInfo = new ApianGroupInfo(apianGroupType, groupChanInfo, LocalPeerAddr(), gameName, memberLimits);
 

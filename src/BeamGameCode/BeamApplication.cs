@@ -304,7 +304,7 @@ namespace BeamGameCode
         {
             if (CurrentGame != null)
             {
-                Logger.Info($"LeaveGame() - leaving game {CurrentGame.GroupId}");
+                Logger.Info($"LeaveGame() - leaving game {CurrentGame.GroupFriendlyId}");
                 beamGameNet.LeaveGame(CurrentGame.GroupId);
                 CurrentGame = null;
             }
@@ -365,7 +365,7 @@ namespace BeamGameCode
         }
         public void OnPeerJoinedGroup(PeerJoinedGroupData data)
         {
-            Logger.Info($"OnPeerJoinedGroup() Grp: {data.GroupInfo.GroupId}, Peer: {SID(data.PeerAddr)}, Local: {data?.PeerAddr == LocalPeer.PeerAddr}, Validator: {data.IsValidator}");
+            Logger.Info($"OnPeerJoinedGroup() Grp: {data.GroupInfo.GroupFriendlyId}, Peer: {SID(data.PeerAddr)}, Local: {data?.PeerAddr == LocalPeer.PeerAddr}, Validator: {data.IsValidator}");
             bool isLocalPeer = data?.PeerAddr == LocalPeer.PeerAddr;
             if (isLocalPeer) {
                 CurrentGame = data.GroupInfo as BeamGameInfo;
@@ -451,7 +451,7 @@ namespace BeamGameCode
         {
             Heading heading = BikeFactory.PickRandomHeading();
             Vector2 pos = BikeFactory.PositionForNewBike( mainAppCore.CoreState, mainAppCore.CurrentRunningGameTime, heading, Ground.zeroPos, Ground.gridSize * 10 );
-            string bikeId = Guid.NewGuid().ToString();
+            string bikeId = Guid.NewGuid().ToString("N");
             return  new BaseBike(mainAppCore.CoreState, bikeId, peerAddr, name, t, ctrlType, mainAppCore.CurrentRunningGameTime, pos, heading);
         }
 

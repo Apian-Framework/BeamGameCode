@@ -196,7 +196,7 @@ namespace BeamGameCode
                 permAcctAddr = "",
                 apianNetworkName = "BeamNet1",
                 localPlayerCtrlType = BikeFactory.AiCtrl,
-                aiBikeCount = 2,
+                aiBikeCount = 0,
                 regenerateAiBikes = false,
                 defaultLogLevel = "Warn",
                 logLevels = new Dictionary<string, string>() {
