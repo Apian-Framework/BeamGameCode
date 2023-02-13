@@ -34,6 +34,12 @@ namespace BeamGameCode
         public PeerJoinedEventArgs(string g, BeamNetworkPeer p) {channelId=g; peer=p;}
     }
 
+    public class JoinRejectedEventArgs : EventArgs {
+        public string channelId;
+        public string reason;
+        public JoinRejectedEventArgs(string s, string r) {channelId=s; reason=r;}
+    }
+
     public class PeerLeftEventArgs : EventArgs {
         public string channelId;
         public string peerAddr;
@@ -100,6 +106,7 @@ namespace BeamGameCode
 
         // Events
         event EventHandler<PeerJoinedEventArgs> PeerJoinedEvt;
+        event EventHandler<JoinRejectedEventArgs> JoinRejectedEvt;
         event EventHandler<PeerLeftEventArgs> PeerLeftEvt;
         event EventHandler<GameAnnounceEventArgs> GameAnnounceEvt;
         event EventHandler<ChainAccountBalanceEventArgs> ChainAccountBalanceEvt;

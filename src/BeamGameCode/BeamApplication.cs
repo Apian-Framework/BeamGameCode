@@ -21,6 +21,7 @@ namespace BeamGameCode
     public class BeamApplication : ILoopingApp, IBeamApplication
     {
         public event EventHandler<PeerJoinedEventArgs> PeerJoinedEvt;
+        public event EventHandler<JoinRejectedEventArgs> JoinRejectedEvt;
         public event EventHandler<PeerLeftEventArgs> PeerLeftEvt;
         public event EventHandler<GameAnnounceEventArgs> GameAnnounceEvt;
         public event EventHandler<GameSelectedEventArgs> GameSelectedEvent;
@@ -402,11 +403,23 @@ namespace BeamGameCode
             NetInfo?.RemovePeer(peerAddr);
             PeerLeftEvt?.Invoke(this, new PeerLeftEventArgs(netId, peerAddr)); // Event instance might be gone
         }
+
+        // Covers both network and group/channels, and probably arrives after OnWhateverJoined() notification
+        public void OnJoinRejected(string channelId, string failureReason)
+        {
+           JoinRejectedEvt?.Invoke(this, new JoinRejectedEventArgs(channelId, failureReason));
+        }
+
+
         // Apian handles these at the game level. Not sure what would be useful here.
         public void OnPeerMissing(string peerAddr, string netId) { }
         public void OnPeerReturned(string peerAddr, string netId){ }
+        public void OnPeerJoinedChannel(string _addr, string _chan, string _data ) {}
+        public void OnPeerLeftChannel(string _addr, string _chan ) {} //
+
         public void OnPeerSync(string channel, string peerAddr, PeerClockSyncInfo syncInfo) {} // stubbed
         // TODO: Be nice to be able to default-stub this somewhere.
+
 
         // IApianGameNetClient (chain stuff)
         public void OnChainId(int chainId)

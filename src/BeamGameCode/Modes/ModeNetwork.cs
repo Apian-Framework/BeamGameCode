@@ -50,6 +50,7 @@ namespace BeamGameCode
             appl.PeerJoinedEvt += _OnPeerJoinedNetEvt;
             appl.PeerLeftEvt += _OnPeerLeftNetEvt;
             appl.GameAnnounceEvt += _OnGameAnnounceEvt;
+            appl.JoinRejectedEvt += _OnJoinRejectedEvt;
 
             appl.AddAppCore(null); // reset
 
@@ -82,6 +83,7 @@ namespace BeamGameCode
         }
 
 		public override object End() {
+            appl.JoinRejectedEvt -= _OnJoinRejectedEvt;
             appl.PeerJoinedEvt -= _OnPeerJoinedNetEvt;
             appl.PeerLeftEvt -= _OnPeerLeftNetEvt;
             appl.GameAnnounceEvt -= _OnGameAnnounceEvt;
@@ -98,6 +100,9 @@ namespace BeamGameCode
 
         private void _SetState(int newState, object startParam = null)
         {
+            if (_curState == kFailed)
+                return; // can't go anywhere from failed.
+
             _curStateSecs = 0;
             _curState = newState;
             _loopFunc = _DoNothingLoop; // default
@@ -210,6 +215,11 @@ namespace BeamGameCode
                 _SetState(kCheckingForGames);
             }
 #endif
+        }
+        private void _OnJoinRejectedEvt(object sender, JoinRejectedEventArgs rj)
+        {
+            logger.Info($"{(ModeName())} - _OnJoinRejectedEvt() - Reason: {rj.reason}");
+            _SetState(kFailed, $"Failed to join network: {rj.reason}");
         }
 
         private void _OnPeerLeftNetEvt(object sender, PeerLeftEventArgs ga)
