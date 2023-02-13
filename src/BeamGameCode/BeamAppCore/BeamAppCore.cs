@@ -26,8 +26,6 @@ namespace BeamGameCode
         public BeamPlayer LocalPlayer { get; private set; }
         public long CurrentRunningGameTime => apian.CurrentRunningApianTime();
 
-        // public long NextCheckpointMs; FIXME: appears unused
-
         // Not sure where this oughta be. The Loop() methd gets passed a "frameSecs" float that is based on
         // Whatever clck the driver is using. We want everything in the GameInstance to be based on the shared "ApianClock"
         // So - when Loop() is called we are going to read Apian.CurrentApianTime and stash that value to use "next frame"

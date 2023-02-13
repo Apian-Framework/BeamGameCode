@@ -162,11 +162,6 @@ namespace BeamGameCode
             base.ApplyStashedApianCommand(cmd);
         }
 
-
-        // State checkpoints
-
-
-
         public void SendNewPlayerObs(long timeStamp, BeamPlayer newPlayer)
         {
             Logger.Debug($"SendNewPlayerObs()");
