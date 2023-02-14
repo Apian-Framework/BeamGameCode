@@ -47,10 +47,10 @@ namespace BeamGameCode
 
         protected BeamCoreMessageDeserializer coreMsgDeser;
 
-        public BeamAppCore()
+        public BeamAppCore(string sessionId)
         {
             logger = UniLogger.GetLogger("AppCore");
-            CoreState = new BeamCoreState();
+            CoreState = new BeamCoreState(sessionId);
             OnNewCoreState();
 
             coreMsgDeser = new BeamCoreMessageDeserializer();

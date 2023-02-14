@@ -42,7 +42,7 @@ namespace BeamGameCode
         protected void CreateCorePair(BeamGameInfo gameInfo)
         {
             // Create gameinstance and ApianInstance
-            appCore = new BeamAppCore();
+            appCore = new BeamAppCore( gameInfo.GroupId);
             BeamApian apian = BeamApianFactory.Create(gameInfo.GroupType, appl.beamGameNet, appCore);
             appl.AddAppCore(appCore);
         }

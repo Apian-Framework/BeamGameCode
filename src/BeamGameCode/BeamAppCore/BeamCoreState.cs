@@ -44,9 +44,13 @@ namespace BeamGameCode
         //
         // Here's the actual base state data:
         //
+
+        // Data to serialize
         public Dictionary<string, BeamPlayer> Players { get; private set; }
         public Dictionary<string, IBike> Bikes { get; private set; }
         public Dictionary<int, BeamPlace> ActivePlaces { get; private set; } //  BeamPlace.PosHash() -indexed Dict of places.
+        // end data to serialize
+
 
         // Ancillary data (initialize to empty if loading state data)
         protected Stack<BeamPlace> freePlaces; // re-use released/expired ones
@@ -57,8 +61,9 @@ namespace BeamGameCode
         protected List<BeamPlace> _placesToRemove; // Same goes for places.
         protected Dictionary<int, BeamPlace> _reportedTimedOutPlaces; // places that have been reported as timed out, but not removed yet
 
-        public BeamCoreState()
+        public BeamCoreState(string sessionId) : base(sessionId)
         {
+
             Players = new Dictionary<string, BeamPlayer>();
             Bikes = new Dictionary<string, IBike>();
             Ground = new Ground();
@@ -173,9 +178,9 @@ namespace BeamGameCode
         }
 
 
-        public static BeamCoreState FromApianSerialized( long seqNum,  string stateHash,  string serializedData)
+        public static BeamCoreState FromApianSerialized(long seqNum,  string stateHash,  string serializedData)
         {
-            BeamCoreState newState = new BeamCoreState();
+            BeamCoreState newState = new BeamCoreState(null); // sessionId is in serialized state
 
             JArray sData = JArray.Parse(serializedData);
 
