@@ -76,6 +76,8 @@ namespace BeamGameCode
             apian = ap as BeamApian;
         }
 
+        public override void SetEpochStartHash(string prevHash) => CoreState.SetEpochStartHash(prevHash);
+
         public override ApianCoreMessage DeserializeCoreMessage(ApianWrappedMessage aMsg)
         {
             return coreMsgDeser.FromJSON(aMsg.PayloadMsgType, aMsg.SerializedPayload);
