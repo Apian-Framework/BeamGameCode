@@ -76,7 +76,7 @@ namespace BeamGameCode
             apian = ap as BeamApian;
         }
 
-        public override void SetEpochStartHash(string prevHash) => CoreState.SetEpochStartHash(prevHash);
+        public override void StartEpoch( long epochNum, string startHash)  => CoreState.StartEpoch(epochNum, startHash);
 
         public override ApianCoreMessage DeserializeCoreMessage(ApianWrappedMessage aMsg)
         {
@@ -112,6 +112,7 @@ namespace BeamGameCode
 
         public override string DoCheckpointCoreState(long seqNum, long checkPointTime)
         {
+
             // TODO: Is imestamp necessary?
             logger.Info($"DoCheckpointCoreState() seqNum: {seqNum}, timestamp: {checkPointTime}, Now: {FrameApianTime}");
             string stateJson = CoreState.ApianSerialized(new BeamCoreState.SerialArgs(seqNum,checkPointTime));
@@ -123,10 +124,15 @@ namespace BeamGameCode
         }
         public override void ApplyCheckpointStateData(long seqNum,  long timeStamp,  string stateHash,  string serializedData)
         {
-            logger.Debug($"ApplyStateData() Seq#: seqNum ApianTime: {timeStamp}");
+            logger.Debug($"ApplyStateData() Seq#: {seqNum} ApianTime: {timeStamp}");
 
             UpdateFrameTime(timeStamp);
             CoreState = BeamCoreState.FromApianSerialized(seqNum,  stateHash,  serializedData);
+            // Initialize as beginning of NEXT epoch
+            CoreState.StartEpoch(CoreState.EpochNum+1, stateHash);
+
+            logger.Warn($"ApplyStateData() Epoch: {CoreState.EpochNum}, StartHash: {CoreState.EpochStartHash}, Msg hash: {stateHash}");
+
             OnNewCoreState(); // send NewCoreStateEvt
 
             foreach (BeamPlayer p in CoreState.Players.Values)
@@ -139,6 +145,9 @@ namespace BeamGameCode
             foreach (IBike ib in CoreState.Bikes.Values)
                 NewBikeEvt?.Invoke(this, new BikeEventArgs(ib));
         }
+
+        public override ApianCoreState GetCoreState() => CoreState;
+
 
         protected override void OnNewCoreState(ApianCoreState _ = null)
         {
