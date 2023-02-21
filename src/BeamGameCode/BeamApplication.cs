@@ -74,6 +74,18 @@ namespace BeamGameCode
         }
 #endif
 
+        public string CreateNewPersistentGameAcct(BeamUserSettings userSettings)
+        {
+            // create a new acct and put 'em in settings
+            string json = beamGameNet.SetupNewCryptoAccount("password");
+            string addr = beamGameNet.CryptoAccountAddress();
+            Logger.Info($"CreateNewPersistentGameAcct() - Created new Eth acct: {addr}");
+            userSettings.gameAcctAddr = addr;
+            userSettings.gameAcctJSON[addr] = json;
+            UserSettingsMgr.Save(userSettings);
+            return addr;
+        }
+
         public void SetupCryptoAcct(bool forceTemp = false)
         {
             // Decrypting a save keystore is very slow (some seeconds) so single-peer modes like the
@@ -83,7 +95,6 @@ namespace BeamGameCode
             string addr = null;
 
             if ( userSettings.GetTempSetting("tempAcct")  == "true" || forceTemp )
-
             {
                 beamGameNet.SetupNewCryptoAccount();
                 addr = beamGameNet.CryptoAccountAddress();
@@ -93,13 +104,7 @@ namespace BeamGameCode
 
                 if (string.IsNullOrEmpty(userSettings.gameAcctAddr))
                 {
-                    // create a new acct
-                    string json = beamGameNet.SetupNewCryptoAccount("password");
-                    addr = beamGameNet.CryptoAccountAddress();
-                    Logger.Info($"SetupCryptoAcct() - Created new Eth acct: {addr}");
-                    userSettings.gameAcctAddr = addr;
-                    userSettings.gameAcctJSON[addr] = json;
-                    UserSettingsMgr.Save(userSettings);
+                    addr = CreateNewPersistentGameAcct(userSettings);
                 } else {
                     // look up the default one
                     if (userSettings.gameAcctJSON.ContainsKey(userSettings.gameAcctAddr))
