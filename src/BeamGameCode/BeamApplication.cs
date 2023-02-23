@@ -112,7 +112,7 @@ namespace BeamGameCode
                         addr = beamGameNet.RestoreCryptoAccount(userSettings.gameAcctJSON[userSettings.gameAcctAddr], "password" );
                         Logger.Info( $"SetupCryptoAcct() - Loaded Eth acct: {addr} from settings");
                     } else {
-                        throw new Exception("SetupCryptoAcct(): No serialized keystore found for default address {userSettings.gameAcctAddr}");
+                        throw new Exception($"SetupCryptoAcct(): No serialized keystore found for default address {userSettings.gameAcctAddr}");
                     }
                 }
             }

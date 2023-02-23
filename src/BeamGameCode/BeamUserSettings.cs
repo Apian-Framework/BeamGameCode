@@ -150,7 +150,6 @@ namespace BeamGameCode
             screenName = source.screenName;
             blockchainInfos = new Dictionary<string,string>(source.blockchainInfos);
             p2pConnectionSettings =  new Dictionary<string,string>(source.p2pConnectionSettings);
-            p2pConnectionSettings =  new Dictionary<string,string>(source.p2pConnectionSettings);
             gameAcctJSON = new Dictionary<string, string>(source.gameAcctJSON);
             curP2pConnection = source.curP2pConnection;
             apianNetworkName = source.apianNetworkName;
