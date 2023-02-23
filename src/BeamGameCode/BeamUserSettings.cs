@@ -181,17 +181,17 @@ namespace BeamGameCode
                     {"ETH MainNet", "{\"RpcUrl\": \"https://mainnet.infura.io/v3/6f03e0922a574b58867988f047fd3cfc\", \"ChainId\": 1, \"Currency\": \"ETH\"}"},
                     {"ETH Gorli", "{\"RpcUrl\": \"https://goerli.infura.io/v3/6f03e0922a574b58867988f047fd3cfc\", \"ChainId\": 3, \"Currency\": \"ETH\"}"},
                     {"Gnosis Main", "{\"RpcUrl\": \"https://rpc.gnosischain.com\", \"ChainId\": 100, \"Currency\": \"xDAI\"}"},
-                    {"Gnosis Chaido", "{\"RpcUrl\": \"https://rpc.chiadochain.net\", \"ChainId\": 10200, \"Currency\": \"xDAI\"}"}
+                    {"Gnosis Chiado", "{\"RpcUrl\": \"https://rpc.chiadochain.net\", \"ChainId\": 10200, \"Currency\": \"xDAI\"}"}
                 },
                 p2pConnectionSettings = new Dictionary<string, string>()
                 {
-                    {"NewsWeasel MQTT", "p2pmqtt::{\"server\":\"newsweasel.com\",\"user\":\"apian_mqtt\",\"pwd\":\"apian_mqtt_pwd\"}"},
-                    {"NewsWeasel Redis", "p2predis::newsweasel.com,password=O98nfRVWYYHg7rXpygBCBZWl+znRATaRXTC469SafZU"},
+                    {"PokeyHedgehog MQTT", "p2pmqtt::{\"server\":\"pokeyhedgehog.com\",\"user\":\"apian_mqtt\",\"pwd\":\"apian_mqtt_pwd\"}"},
+                    {"PokeyHedgehog Redis", "p2predis::pokeyhedgehog.com,password=Dga2JfGoKfDv02xWY0bYNrYaFPeBTVmXLPGDKq1xA"},
                     {"Sparky MQTT", "p2pmqtt::{\"server\":\"sparkyx\"}"}
                 },
                 gameAcctJSON = new Dictionary<string, string>(),
                 curP2pConnection = "NewsWeasel MQTT",
-                curBlockchain = "Gnosis Chaido",
+                curBlockchain = "Gnosis Chiado",
                 gameAcctAddr = "",
                 permAcctAddr = "",
                 apianNetworkName = "BeamNet1",
