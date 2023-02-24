@@ -192,7 +192,7 @@ namespace BeamGameCode
                 curP2pConnection = "NewsWeasel MQTT",
                 curBlockchain = "Gnosis Chiado",
                 gameAcctAddr = "",
-                permAcctAddr = "",
+                permAcctAddr = "0x1234567890123456789012345678901234567890",
                 apianNetworkName = "BeamNet1",
                 localPlayerCtrlType = BikeFactory.AiCtrl,
                 aiBikeCount = 0,
