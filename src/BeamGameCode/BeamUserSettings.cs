@@ -189,7 +189,7 @@ namespace BeamGameCode
                     {"Sparky MQTT", "p2pmqtt::{\"server\":\"sparkyx\"}"}
                 },
                 gameAcctJSON = new Dictionary<string, string>(),
-                curP2pConnection = "NewsWeasel MQTT",
+                curP2pConnection = "PokeyHedgehog MQTT",
                 curBlockchain = "Gnosis Chiado",
                 gameAcctAddr = "",
                 permAcctAddr = "0x1234567890123456789012345678901234567890",
