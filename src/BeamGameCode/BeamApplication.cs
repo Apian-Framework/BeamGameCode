@@ -104,13 +104,20 @@ namespace BeamGameCode
 
                 if (string.IsNullOrEmpty(userSettings.gameAcctAddr))
                 {
+                    // nothing is set. create a new one
                     addr = CreateNewPersistentGameAcct(userSettings);
                 } else {
                     // look up the default one
                     if (userSettings.gameAcctJSON.ContainsKey(userSettings.gameAcctAddr))
                     {
-                        addr = beamGameNet.RestoreCryptoAccount(userSettings.gameAcctJSON[userSettings.gameAcctAddr], "password" );
-                        Logger.Info( $"SetupCryptoAcct() - Loaded Eth acct: {addr} from settings");
+                        // Is it already current? (decrypting a keystore takes a lot of work)
+                        if ( beamGameNet.CryptoAccountAddress() != userSettings.gameAcctAddr)
+                        {
+                            addr = beamGameNet.RestoreCryptoAccount(userSettings.gameAcctJSON[userSettings.gameAcctAddr], "password" );
+                            Logger.Info( $"SetupCryptoAcct() - Loaded Eth acct: {addr} from settings");
+                        }
+                        else
+                            Logger.Info( $"SetupCryptoAcct() - Acct: {addr} already loaded");
                     } else {
                         throw new Exception($"SetupCryptoAcct(): No serialized keystore found for default address {userSettings.gameAcctAddr}");
                     }
@@ -133,7 +140,7 @@ namespace BeamGameCode
 
         public void CreateCryptoInstance()
         {
-            beamGameNet.CreateCryptoInstance();
+//            beamGameNet.CreateCryptoInstance();
         }
 
         public void ConnectToChain()
