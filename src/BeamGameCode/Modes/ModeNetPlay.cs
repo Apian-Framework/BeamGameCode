@@ -37,12 +37,13 @@ namespace BeamGameCode
         protected const int kCreatingAndJoiningGame = 6;
         protected const int kWaitingForMembers = 7;
 #endif
-        protected const int kPlaying = 8;
-        protected const int kFailed = 9;
+        protected const int kSettlingAfterJoin = 8;
+        protected const int kPlaying = 9;
+        protected const int kFailed = 10;
 
         protected const float kRespawnCheckInterval = 1.3f;
-
-        protected const int kJoinGameTimeoutMs = 5000;
+        protected const int kJoinGameTimeoutMs = 10000; // 10 secs
+        protected const int kJoinGameSettleMs = 2000; // <- after NewPlayer message shows wait this long before creating bike and stuff jsut in case we get "un-synced"
 
 		public override void Start(object param = null)
         {
@@ -100,7 +101,7 @@ namespace BeamGameCode
                 _AsyncStartup();
                 break;
 #else
-      case kStartingUp:
+            case kStartingUp:
                 logger.Verbose($"{(ModeName())}: SetState: kStartingUp");
                 _SetState(kSelectingGame);
                 break;
@@ -124,6 +125,10 @@ namespace BeamGameCode
                 logger.Verbose($"{(ModeName())}: SetState: kWaitingForMembers");
                 break;
 #endif
+            case kSettlingAfterJoin:
+                logger.Verbose($"{(ModeName())}: SetState: kSettlingAfterJoin");
+                _loopFunc = _SettleAfterJoinLoop;
+                break;
             case kPlaying:
                 logger.Verbose($"{(ModeName())}: SetState: kPlaying");
                 SpawnPlayerBike();
@@ -167,6 +172,15 @@ namespace BeamGameCode
             }
        }
 
+       private void _SettleAfterJoinLoop(float frameSecs)
+        {
+            // wait a little while before requesting new bika and all in case
+            // there's in/out of sync jiggling
+            if (_curStateSecs * 1000f > kJoinGameSettleMs)
+            {
+                _SetState(kPlaying);
+            }
+       }
 
         private void _FailedLoop(float frameSecs)
         {
@@ -207,7 +221,8 @@ namespace BeamGameCode
             logger.Info($"{(ModeName())} - OnPlayerJoinedEvt() - {(isLocal?"Local":"Remote")} Member Joined: {ga.player.Name}, ID: {SID(ga.player.PlayerAddr)}");
             if (ga.player.PlayerAddr == appl.LocalPeer.PeerAddr)
             {
-                _SetState(kPlaying);
+                //_SetState(kPlaying);
+                _SetState(kSettlingAfterJoin); // wait a little while before starting to play
             }
         }
 
