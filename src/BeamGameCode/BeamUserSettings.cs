@@ -20,7 +20,7 @@ namespace BeamGameCode
 
     public static class UserSettingsMgr
     {
-        public const string currentVersion = "107";
+        public const string currentVersion = "108";
         public const string subFolder = ".beam";
         public const string defaultBaseName= "beamsettings";
         public static string fileBaseName;
