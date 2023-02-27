@@ -174,7 +174,7 @@ namespace BeamGameCode
             return new BeamUserSettings() {
                 version = UserSettingsMgr.currentVersion,
                 startMode = BeamModeFactory.NetworkModeName,
-                screenName = "Fred Sanford",
+                screenName = "Beam Player",
                 blockchainInfos = new Dictionary<string,string>()
                 {
                     {"ETH MainNet", "{\"RpcUrl\": \"https://mainnet.infura.io/v3/6f03e0922a574b58867988f047fd3cfc\", \"ChainId\": 1, \"Currency\": \"ETH\"}"},
