@@ -60,7 +60,7 @@ namespace BeamGameCode
 
             appl.CreateCryptoInstance(); // Do on main thread
 
-            appl.ConnectToChain();
+            appl.ConnectToChain(); // not async
 
             _SetState(kStartingUp);
         }
