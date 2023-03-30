@@ -78,7 +78,7 @@ jobs:
       working-directory: main
 
     - name: Test # See the test project .csproj file for property definitions
-      run: dotnet test ./tests/${{env.SUBPROJECT}}.Tests  --verbosity normal
+      run: dotnet test ./tests/${{env.SUBPROJECT}}.Tests --verbosity normal
       working-directory: main
 
     - name: Checkout CI badges

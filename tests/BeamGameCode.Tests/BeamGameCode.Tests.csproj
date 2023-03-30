@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="coverlet.msbuild"  Version="2.9.0">
+    <PackageReference Include="coverlet.msbuild" Version="2.9.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
@@ -31,7 +31,7 @@
   </PropertyGroup>
 
   <Target Name="GenerateHtmlCoverageReport" AfterTargets="GenerateCoverageResultAfterTest"
-      Condition="Exists('./coverage/coverage.cobertura.xml')">
+        Condition="Exists('./coverage/coverage.cobertura.xml')">
     <Message Text="Generating coverage report from @(CoverletReport)" />
     <!-- Docs: https://github.com/danielpalme/ReportGenerator -->
     <ReportGenerator ReportFiles="./coverage/coverage.cobertura.xml" TargetDirectory="./coverage/reports"
