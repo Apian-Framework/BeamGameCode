@@ -35,6 +35,7 @@ namespace BeamGameCode
         public BeamNetworkPeer LocalPeer { get; private set; }
         public BeamNetInfo NetInfo { get; private set;}  // BeamApplication keeps this updated as best as possible
         public BeamGameInfo CurrentGame { get; private set; }
+        public bool LocalPeerIsCurrentGameValidator {get; private set;}
 
         public UniLogger Logger;
         public BeamAppCore mainAppCore {get; private set;}
@@ -320,6 +321,7 @@ namespace BeamGameCode
                 Logger.Info($"LeaveGame() - leaving game {CurrentGame.GroupFriendlyId}");
                 beamGameNet.LeaveGame(CurrentGame.GroupId);
                 CurrentGame = null;
+                LocalPeerIsCurrentGameValidator = false;
             }
 
         }
@@ -382,6 +384,7 @@ namespace BeamGameCode
             bool isLocalPeer = data?.PeerAddr == LocalPeer.PeerAddr;
             if (isLocalPeer) {
                 CurrentGame = data.GroupInfo as BeamGameInfo;
+                LocalPeerIsCurrentGameValidator = data.IsValidator;
             }
         }
 
