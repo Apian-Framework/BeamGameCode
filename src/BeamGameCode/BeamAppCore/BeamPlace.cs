@@ -57,7 +57,6 @@ namespace BeamGameCode
         public Vector2 GetPos()
         {
             return PlacePos(xIdx,zIdx);
-
         }
 
         public static Vector2 PlacePos(int x, int z)
