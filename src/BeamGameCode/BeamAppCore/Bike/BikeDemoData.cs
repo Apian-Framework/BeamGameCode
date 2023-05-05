@@ -26,7 +26,7 @@ namespace BeamGameCode
 
         public static Team RandomTeam()
         {
-            return Team.teamData[(int)UnityEngine.Random.Range(0,Team.teamData.Count)];
+            return Team.teamData[(int)UnityEngine.Random.Range(1.0f,Team.teamData.Count)]; // 0 is kTeamNone
         }
 
     }

@@ -38,6 +38,8 @@ namespace BeamGameCode
         public event EventHandler PlacesClearedEvt;
         public event EventHandler<PlaceReportEventArgs> PlaceClaimObsEvt; // exact timestamp is the long
         public event EventHandler<PlaceReportEventArgs> PlaceHitObsEvt;
+        public event EventHandler<BeamSquareEventArgs> SquareAddEvt; // called w/ base place
+        public event EventHandler<BeamSquareEventArgs> SquareDelEvt;
 
      	    public Ground Ground { get; private set; } // TODO: Is there any mutable state here anymore? NO
 
@@ -51,8 +53,9 @@ namespace BeamGameCode
         public Dictionary<int, BeamPlace> ActivePlaces { get; private set; } //  BeamPlace.PosHash() -indexed Dict of places.
         // end data to serialize
 
-
         // Ancillary data (initialize to empty if loading state data)
+        public Dictionary<int, Team> ActiveSquares; // squares are redundant and can be constructed by examining ActivePlaces
+
         protected Stack<BeamPlace> freePlaces; // re-use released/expired ones
 
         // TODO: Is there an elegant way to get rid of these next 3 "side effect" members and still do what they do?
@@ -83,6 +86,7 @@ namespace BeamGameCode
         protected void InitPlaces()
         {
             ActivePlaces = new Dictionary<int, BeamPlace>();
+            ActiveSquares = new Dictionary<int, Team>();
             freePlaces = new Stack<BeamPlace>();
             _reportedTimedOutPlaces  = new Dictionary<int, BeamPlace>(); // check this before reporting. delete entry when removed.
         }
@@ -206,6 +210,8 @@ namespace BeamGameCode
             newState.Bikes = newBikes;
             newState.ActivePlaces = newPlaces;
 
+            newState.RebuildSquares();
+
             return newState;
         }
 
@@ -266,6 +272,18 @@ namespace BeamGameCode
             p.zIdx = zIdx;
             p.bike = bike;
             ActivePlaces[p.PosHash] = p;
+
+            (bool ne, bool nw, bool sw, bool se) = PlaceIsInSquares(p);
+
+            if (ne)
+                AddSquare( BeamPlace.MakePosHash(p.xIdx, p.zIdx), bike.team);
+            if (nw)
+                AddSquare( BeamPlace.MakePosHash(p.xIdx-1, p.zIdx), bike.team);
+            if (sw)
+                AddSquare( BeamPlace.MakePosHash(p.xIdx-1, p.zIdx-1), bike.team);
+            if (se)
+                AddSquare( BeamPlace.MakePosHash(p.xIdx, p.zIdx-1), bike.team);
+
             return p;
         }
 
@@ -273,12 +291,24 @@ namespace BeamGameCode
         {
             if (p != null)
             {
+                (bool ne, bool nw, bool sw, bool se) = PlaceIsInSquares(p);
+
+                if (ne)
+                    RemoveSquare( BeamPlace.MakePosHash(p.xIdx, p.zIdx));
+                if (nw)
+                    RemoveSquare( BeamPlace.MakePosHash(p.xIdx-1, p.zIdx));
+                if (sw)
+                    RemoveSquare( BeamPlace.MakePosHash(p.xIdx-1, p.zIdx-1));
+                if (se)
+                    RemoveSquare( BeamPlace.MakePosHash(p.xIdx, p.zIdx-1));
+
                 Logger.Verbose($"RemoveActivePlace({p.GetPos().ToString()}) Bike: {SID(p.bike?.bikeId)}");
                 PlaceFreedEvt?.Invoke(this, new BeamPlaceEventArgs(p) );
                 freePlaces.Push(p); // add to free list
                 ActivePlaces.Remove(p.PosHash);
                 _reportedTimedOutPlaces.Remove(p.PosHash);
                 p.bike = null; // this is the only reference it holds
+
             }
         }
 
@@ -300,6 +330,82 @@ namespace BeamGameCode
             return ActivePlaces.Values.Where(p => p.bike?.bikeId == ib.bikeId).ToList();
         }
 
+        //
+        // Squares are defined by the ActivePlaces, but it's handy to have a separate dict for them
+        //
+
+        protected void RebuildSquares()
+        {
+            ActiveSquares = new Dictionary<int, Team>();
+
+            foreach( KeyValuePair<int,BeamPlace> kp in ActivePlaces ) {
+                if (PlaceIsBaseForSquare(kp.Value))
+                    AddSquare(kp.Key, kp.Value.bike.team);
+            }
+        }
+
+        protected void AddSquare(int posHash, Team t)
+        {
+            if (!ActiveSquares.ContainsKey(posHash))
+            {
+                ActiveSquares[posHash] = t;
+                SquareAddEvt?.Invoke(this, new BeamSquareEventArgs(posHash, t));
+            }
+        }
+
+        protected void RemoveSquare(int posHash)
+        {
+            SquareDelEvt?.Invoke(this, new BeamSquareEventArgs(posHash, null));
+            ActiveSquares.Remove(posHash);
+        }
+
+        private int[] xAround = {1,1,0,-1,-1,-1,0,1}; // x offsets starting with [x+1, z] going ariund clockwise
+        private int[] zAround = {0,1,1,1,0,-1,-1,-1}; // same for z offsets in a square around [x,z] = [0,0]
+
+
+        public bool PlaceIsBaseForSquare(BeamPlace p)
+        {
+            // returns true if p is the southwest (-x,-z) corner of a square
+            // TODO: would be quicker to have a quick exit of the implied Linq iters on first failure.
+
+            IList<bool> samesAround = Enumerable.Range(0, 3)  // 0,1, and 2 are the (x+1,z), (x+1,z+1), (x,z+1) neighbors
+                .Select(i => GetPlace(p.xIdx + xAround[i], p.zIdx + zAround[i])?.bike)
+                .Select(b => b?.team.TeamID == p.bike.team.TeamID).ToList();
+            return samesAround[0] && samesAround[1] && samesAround[2];
+        }
+
+
+        public bool PlaceIsInSquare(BeamPlace p)
+        {
+            // returns true if p is in 1 or more squares
+            IList<bool> samesAround = Enumerable.Range(0, 8)
+                .Select(i => GetPlace(p.xIdx + xAround[i], p.zIdx + zAround[i])?.bike)
+                .Select(b => b?.team.TeamID == p.bike.team.TeamID).ToList();
+
+            return samesAround[0] && samesAround[1] && samesAround[2]
+                || samesAround[2] && samesAround[3] && samesAround[4]
+                || samesAround[4] && samesAround[5] && samesAround[6]
+                || samesAround[6] && samesAround[7] && samesAround[0];
+        }
+
+
+
+        public (bool,bool,bool,bool) PlaceIsInSquares(BeamPlace p)
+        {
+            // returns a tuple in quadrant order of true/false if there are squares
+
+            IList<bool> samesAround = Enumerable.Range(0, 8)
+                .Select(i => GetPlace(p.xIdx + xAround[i], p.zIdx + zAround[i])?.bike)
+                .Select(b => b?.team.TeamID == p.bike.team.TeamID).ToList();
+
+            return ( samesAround[0] && samesAround[1] && samesAround[2],
+                     samesAround[2] && samesAround[3] && samesAround[4],
+                     samesAround[4] && samesAround[5] && samesAround[6],
+                     samesAround[6] && samesAround[7] && samesAround[0] );
+        }
+
+
+
         // public List<BeamPlace> PlacesForBike(IBike ib)
         // {
         //     return activePlaces.Values.Where(p =>
@@ -315,7 +421,13 @@ namespace BeamGameCode
         //         } ).ToList();
         // }
 
-        public BeamPlace GetPlace(int xIdx, int zIdx) => ActivePlaces.GetValueOrDefault(BeamPlace.MakePosHash(xIdx,zIdx), null);
+        public BeamPlace GetPlace(int xIdx, int zIdx) {
+            BeamPlace ret = null;
+            try {
+                ret = ActivePlaces.GetValueOrDefault(BeamPlace.MakePosHash(xIdx,zIdx), null);
+            } catch (Exception e) { }
+            return ret;
+        }
 
         public BeamPlace GetPlace(Vector2 pos)
         {

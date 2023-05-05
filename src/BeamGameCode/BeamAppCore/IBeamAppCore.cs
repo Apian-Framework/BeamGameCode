@@ -48,6 +48,12 @@ namespace BeamGameCode
         public PlaceHitEventArgs(BeamPlace _p, IBike _ib) { p=_p; ib=_ib; }
     }
 
+    public class BeamSquareEventArgs : EventArgs
+    {
+        public int posHash;
+        public Team team;
+        public BeamSquareEventArgs(int _ph, Team t) { posHash=_ph; team=t; }
+    }
 
     public interface IBeamAppCore : IApianAppCore
     {

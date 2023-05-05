@@ -4,15 +4,17 @@ using UnityEngine;
 namespace BeamGameCode
 {
     public enum TeamID {
-        kSharks = 0,
-        kCatfish = 1,
-        kWhales = 2,
-        kOrcas = 3
+        kNone = 0,
+        kSharks = 1,
+        kCatfish = 2,
+        kWhales = 3,
+        kOrcas = 4
     }
 
     public class Team
     {
         public static readonly List<Team> teamData = new List<Team>() {
+            null,
             new Team(TeamID.kSharks, "Sharks", "yellow"),
             new Team(TeamID.kCatfish,"Catfish", "red"),
             new Team(TeamID.kWhales,"Whales", "cyan"),

@@ -61,6 +61,8 @@ namespace BeamGameCode
         void OnPlaceClaimedEvt(object sender, BeamPlaceEventArgs place);
         // Places
         void OnPlaceHitEvt(object sender, PlaceHitEventArgs args);
+        void OnSquareAddEvt(object sender, BeamSquareEventArgs args);
+        void OnSquareDelEvt(object sender, BeamSquareEventArgs args);
         // scoring
         // void OnScoreEvent(string bikeId, ScoreEvent evt, Ground.Place place); Need this?
 
