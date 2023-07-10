@@ -19,7 +19,7 @@ namespace BeamGameCode
         void JoinBeamNet(string netName, BeamNetworkPeer localPeer);
         void LeaveBeamNet();
 
-        BeamGameInfo CreateBeamGameInfo( string gameName, string apianGroupType, GroupMemberLimits limits);
+        BeamGameInfo CreateBeamGameInfo( string gameName, string apianGroupType, string AnchorPostAlgo, GroupMemberLimits limits);
         void CreateAndJoinGame(BeamGameInfo gameInfo, BeamApian apian, string localData, bool joinAsValidator);
         void JoinExistingGame(BeamGameInfo gameInfo, BeamApian apian, string localData, bool joinAsValidator);
         void LeaveGame(string gameId);
@@ -67,7 +67,7 @@ namespace BeamGameCode
 
         public void LeaveBeamNet() => LeaveNetwork();
 
-        public BeamGameInfo CreateBeamGameInfo(string gameName, string apianGroupType, GroupMemberLimits memberLimits)
+        public BeamGameInfo CreateBeamGameInfo(string gameName, string apianGroupType, string anchorPostAlgo, GroupMemberLimits memberLimits)
         {
            string netName = p2p.GetNetworkChannel()?.Name;
             if (netName == null)
@@ -78,9 +78,11 @@ namespace BeamGameCode
 
             P2pNetChannelInfo groupChanInfo = new P2pNetChannelInfo(beamChannelData[kBeamGameChannelInfo]);
             groupChanInfo.name = gameName;
-            groupChanInfo.id = System.Guid.NewGuid().ToString("N");  // TODO: maybe use a crypto 256-bit rand?
 
-            ApianGroupInfo groupInfo = new ApianGroupInfo(apianGroupType, groupChanInfo, LocalPeerAddr(), gameName, memberLimits);
+            groupChanInfo.id = System.Guid.NewGuid().ToString("N");  // NOTE: THIS is the unique Apian Session ID
+            // TODO: maybe use a crypto 256-bit rand?
+
+            ApianGroupInfo groupInfo = new ApianGroupInfo(apianGroupType, groupChanInfo, LocalPeerAddr(), gameName, anchorPostAlgo, memberLimits);
 
             return new BeamGameInfo(groupInfo);
         }

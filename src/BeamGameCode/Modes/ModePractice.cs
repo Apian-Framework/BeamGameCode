@@ -162,7 +162,7 @@ namespace BeamGameCode
             await appl.JoinBeamNetAsync(NetworkName);
 
             logger.Info("Practice network joined");
-            BeamGameInfo gameInfo = appl.beamGameNet.CreateBeamGameInfo(ApianGroupName, SinglePeerGroupManager.kGroupType, new GroupMemberLimits());
+            BeamGameInfo gameInfo = appl.beamGameNet.CreateBeamGameInfo(ApianGroupName, SinglePeerGroupManager.kGroupType, ApianGroupInfo.AnchorPostsNone, new GroupMemberLimits());
             CreateCorePair(gameInfo);
             appCore.PlayerJoinedEvt += _OnPlayerJoinedEvt;
             appCore.NewBikeEvt += _OnNewBikeEvt;
@@ -198,7 +198,7 @@ namespace BeamGameCode
             {
                 logger.Info("Practice network joined");
                 // Create gameInstance and associated Apian
-                BeamGameInfo gameInfo = appl.beamGameNet.CreateBeamGameInfo(ApianGroupName, SinglePeerGroupManager.kGroupType, new GroupMemberLimits());
+                BeamGameInfo gameInfo = appl.beamGameNet.CreateBeamGameInfo(ApianGroupName, SinglePeerGroupManager.kGroupType, ApianGroupInfo.AnchorPostsNone, new GroupMemberLimits());
                 // Create gameInstance and associated Apian
                 CreateCorePair(gameInfo);
 
