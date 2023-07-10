@@ -405,7 +405,6 @@ namespace BeamGameCode
         }
 
 
-
         // public List<BeamPlace> PlacesForBike(IBike ib)
         // {
         //     return activePlaces.Values.Where(p =>
@@ -425,7 +424,7 @@ namespace BeamGameCode
             BeamPlace ret = null;
             try {
                 ret = ActivePlaces.GetValueOrDefault(BeamPlace.MakePosHash(xIdx,zIdx), null);
-            } catch (Exception e) { }
+            } catch (Exception ) { }
             return ret;
         }
 
