@@ -10,6 +10,7 @@ using static UniLog.UniLogger; // for SID()
 using P2pNet; // just for PeerClockSuncInfo. Kind alame.
 using GameNet;
 using Apian;
+using ApianCrypto;
 
 #if !SINGLE_THREADED
 using System.Threading.Tasks;
@@ -78,11 +79,11 @@ namespace BeamGameCode
         public string CreateNewPersistentGameAcct(BeamUserSettings userSettings)
         {
             // create a new acct and put 'em in settings
-            string json = beamGameNet.SetupNewCryptoAccount("password");
+            string keyStoreJson = beamGameNet.SetupNewCryptoAccount("password");
             string addr = beamGameNet.CryptoAccountAddress();
             Logger.Info($"CreateNewPersistentGameAcct() - Created new Eth acct: {addr}");
             userSettings.gameAcctAddr = addr;
-            userSettings.gameAcctJSON[addr] = json;
+            userSettings.gameAcctJSON[addr] = new PersistentAccount(PersistentAccount.AvailTypes.V3Keystore, addr, keyStoreJson).ToJson();
             UserSettingsMgr.Save(userSettings);
             return addr;
         }
@@ -97,7 +98,8 @@ namespace BeamGameCode
 
             if ( userSettings.GetTempSetting("tempAcct")  == "true" || forceTemp )
             {
-                beamGameNet.SetupNewCryptoAccount();
+                // Create/set temp account
+                beamGameNet.SetupNewCryptoAccount(); // no password, so no data to save/restore the account is returned
                 addr = beamGameNet.CryptoAccountAddress();
                 Logger.Info($"SetupCryptoAcct() - Created new TEMPORARY Eth acct: {addr}");
 
@@ -106,6 +108,7 @@ namespace BeamGameCode
                 if (string.IsNullOrEmpty(userSettings.gameAcctAddr))
                 {
                     // nothing is set. create a new one
+                    // TODO: needs to fetch password
                     addr = CreateNewPersistentGameAcct(userSettings);
                 } else {
                     // look up the default one
@@ -114,13 +117,16 @@ namespace BeamGameCode
                         // Is it already current? (decrypting a keystore takes a lot of work)
                         if ( beamGameNet.CryptoAccountAddress() != userSettings.gameAcctAddr)
                         {
-                            addr = beamGameNet.RestoreCryptoAccount(userSettings.gameAcctJSON[userSettings.gameAcctAddr], "password" );
+                            PersistentAccount pAcct = PersistentAccount.FromJson(userSettings.gameAcctJSON[userSettings.gameAcctAddr]);
+
+                            // TODO: needs actual password if it's a keystore
+                            addr = beamGameNet.RestoreCryptoAccount(pAcct, "password" );
                             Logger.Info( $"SetupCryptoAcct() - Loaded Eth acct: {addr} from settings");
                         }
                         else
                             Logger.Info( $"SetupCryptoAcct() - Acct: {addr} already loaded");
                     } else {
-                        throw new Exception($"SetupCryptoAcct(): No serialized keystore found for default address {userSettings.gameAcctAddr}");
+                        throw new Exception($"SetupCryptoAcct(): No serialized account data found for default address {userSettings.gameAcctAddr}");
                     }
                 }
             }

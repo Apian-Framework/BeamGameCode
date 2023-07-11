@@ -124,7 +124,7 @@ namespace BeamGameCode
         public string screenName;
         public Dictionary<string, string> p2pConnectionSettings; // named connections. settings are connection-specific and are usually json
         public Dictionary<string, string> blockchainInfos; // chain info, keyed by an arbitrary name
-        public Dictionary<string, string> gameAcctJSON; // eecrypted ephemeral acct keystores
+        public Dictionary<string, string> gameAcctJSON; // address => serialized ApianCrypto.PersistenAccount
 
         public string curP2pConnection; // a key from p2pConnectionSettings
         public string curBlockchain; // key into blockchainInfos
