@@ -145,10 +145,10 @@ namespace BeamGameCode
             return userSettings.blockchainInfos[userSettings.curBlockchain];
         }
 
-        public void CreateCryptoInstance()
-        {
+//        public void CreateCryptoInstance()
+//         {
 //            beamGameNet.CreateCryptoInstance();
-        }
+//         }
 
         public void ConnectToChain()
         {
@@ -459,6 +459,11 @@ namespace BeamGameCode
         {
             Logger.Info($"OnChainAcctBalance() Addr: {addr}, Balance: {balance}");
             ChainAccountBalanceEvt?.Invoke(this, new ChainAccountBalanceEventArgs(addr, balance));
+        }
+
+        public void OnSessionRegistered(string sessId, string txHash)
+        {
+            Logger.Info($"OnSessionRegistration() Session: {sessId},  TxHash: {txHash}");
         }
 
         // Utility methods

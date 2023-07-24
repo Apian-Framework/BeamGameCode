@@ -36,11 +36,12 @@ namespace BeamGameCode
         protected const int kStartingUp = 0;
 #if SINGLE_THREADED
         protected const int kSettingUpCrypto = 1;
-        protected const int kSettingUpNet = 2;
-        protected const int kJoiningNet = 3;
-        protected const int kCheckingForGames = 4;
+        protected const int kConnectingToChain = 2;
+        protected const int kSettingUpNet = 3;
+        protected const int kJoiningNet = 4;
+        protected const int kCheckingForGames = 5;
 #endif
-        protected const int kConnectedAndReady = 5;
+        protected const int kConnectedAndReady = 6;
         protected const int kFailed = 9;
 
 		public override void Start(object param = null)
@@ -57,10 +58,6 @@ namespace BeamGameCode
             appl.frontend?.OnStartMode(this);
 
             _loopFunc = _DoNothingLoop;
-
-            appl.CreateCryptoInstance(); // Do on main thread
-
-            appl.ConnectToChain(); // not async
 
             _SetState(kStartingUp);
         }
@@ -128,6 +125,16 @@ namespace BeamGameCode
                 logger.Verbose($"{(ModeName())}: SetState: kSettingUpCrypto");
                 try {
                     appl.SetupCryptoAcct(); // this takes a while if restoring a keystore
+                } catch (Exception ex) {
+                    _SetState(kFailed, ex.Message);
+                    return;
+                }
+                _SetState(kConnectingToChain);
+                break;
+            case kConnectingToChain:
+                logger.Verbose($"{(ModeName())}: SetState: kConnectingToChain");
+                try {
+                    appl.ConnectToChain(); // not async
                     appl.GetChainId(); // results in ChainIdEvt
                 } catch (Exception ex) {
                     _SetState(kFailed, ex.Message);
@@ -242,6 +249,8 @@ namespace BeamGameCode
             try {
 
                 await appl.SetupCryptoAcctAsync(); // this takes a while if restoring a keystore
+
+                appl.ConnectToChain(); // not async
 
                 appl.GetChainId(); // results in ChainIdEvt which frontend will react to (otherwise we'd use GetChainIdAsync() )
 

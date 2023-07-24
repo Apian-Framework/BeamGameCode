@@ -38,7 +38,7 @@ namespace BeamGameCode
             logger.Info("Starting Splash");
             base.Start(param);
             appl.AddAppCore(null);
-            appl.CreateCryptoInstance();
+            //appl.CreateCryptoInstance();
             appl.SetupCryptoAcct(true);
 
 #if !SINGLE_THREADED
@@ -148,7 +148,7 @@ namespace BeamGameCode
             await appl.JoinBeamNetAsync(NetworkName);
 
             logger.Info("Splash network joined");
-            BeamGameInfo gameInfo = appl.beamGameNet.CreateBeamGameInfo(ApianGroupName, SinglePeerGroupManager.kGroupType, ApianGroupInfo.AnchorPostsNone, new GroupMemberLimits());
+            BeamGameInfo gameInfo = appl.beamGameNet.CreateBeamGameInfo(ApianGroupName, SinglePeerGroupManager.kGroupType, null, ApianGroupInfo.AnchorPostsNone, new GroupMemberLimits());
             CreateCorePair(gameInfo);
             appCore.PlayerJoinedEvt += _OnPlayerJoinedEvt;
             appCore.NewBikeEvt += _OnNewBikeEvt;
@@ -184,7 +184,7 @@ namespace BeamGameCode
             {
                 logger.Info("Splash network joined");
                 // Create gameInstance and associated Apian
-                BeamGameInfo gameInfo = appl.beamGameNet.CreateBeamGameInfo(ApianGroupName, SinglePeerGroupManager.kGroupType, ApianGroupInfo.AnchorPostsNone, new GroupMemberLimits());
+                BeamGameInfo gameInfo = appl.beamGameNet.CreateBeamGameInfo(ApianGroupName, SinglePeerGroupManager.kGroupType, null, ApianGroupInfo.AnchorPostsNone, new GroupMemberLimits());
                 // Create gameInstance and associated Apian
                 CreateCorePair(gameInfo);
 

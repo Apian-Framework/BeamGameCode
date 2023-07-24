@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json;
 using static UniLog.UniLogger; // for SID()
 
 namespace BeamGameCode
@@ -90,6 +91,7 @@ namespace BeamGameCode
 
         private void _SetState(int newState, object startParam = null)
         {
+            int prevState = _curState;
             _curStateSecs = 0;
             _curState = newState;
             _loopFunc = _DoNothingLoop; // default
@@ -121,7 +123,7 @@ namespace BeamGameCode
                 _CreateAndJoinGame(startParam as GameSelectedEventArgs);
                 _loopFunc = _JoinGameLoop;
                 break;
-            case kWaitingForMembers:
+            case kWaitingForMembers: // Not used
                 logger.Verbose($"{(ModeName())}: SetState: kWaitingForMembers");
                 break;
 #endif
@@ -137,7 +139,7 @@ namespace BeamGameCode
                 _loopFunc = _PlayLoop;
                 break;
             case kFailed:
-                logger.Warn($"{(ModeName())}: SetState: kFailed  Reason: {(string)startParam}");
+                logger.Warn($"{(ModeName())}: SetState: kFailed. Prev State: {prevState} Reason: {(string)startParam}");
                 appl.frontend.DisplayMessage(MessageSeverity.Error, (string)startParam);
                 _loopFunc = _FailedLoop;
                 break;
@@ -347,6 +349,9 @@ namespace BeamGameCode
             }
 
             BeamGameInfo gameInfo = selection.gameInfo;
+
+            logger.Verbose($"{(ModeName())} - DispatchGameSelection(): info: {(JsonConvert.SerializeObject(selection.gameInfo))}");
+
             _SetupCorePair(gameInfo);
 
             List<string> availGameNames = appl.NetInfo.BeamGames.Values.Select(bgd => bgd.GameInfo.GameName).ToList();
@@ -371,6 +376,7 @@ namespace BeamGameCode
 
         private void _CreateAndJoinGame(GameSelectedEventArgs selection)
         {
+
             appl.CreateAndJoinGame(selection.gameInfo, appCore, selection.joinAsValidator); // now waiting for OnPlayerJoined for the local player
         }
 
