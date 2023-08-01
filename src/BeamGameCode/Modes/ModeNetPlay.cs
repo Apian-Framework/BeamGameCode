@@ -302,6 +302,7 @@ namespace BeamGameCode
                     // Create and join
                     if (targetGameExisted)
                         throw new ArgumentException($"Cannot create.  Beam Game \"{gameInfo.GameName}\" already exists");
+
                     gameJoinData = await appl.CreateAndJoinGameAsync(gameInfo, appCore, kJoinGameTimeoutMs, selection.joinAsValidator);
 
                 } else {
@@ -310,10 +311,11 @@ namespace BeamGameCode
                         throw new ArgumentException($"Cannot Join.  Beam Game \"{gameInfo.GameName}\" not found");
 
                     gameJoinData = await appl.JoinExistingGameAsync(gameInfo, appCore, kJoinGameTimeoutMs, selection.joinAsValidator);
-
-                    if (!gameJoinData.success)
-                        throw new Exception($"Failed to join game: {gameJoinData.failureReason}");
                 }
+
+
+                if (!gameJoinData.success)
+                    throw new Exception($"Failed to join game: {gameJoinData.failureReason}");
 
                 // Now we are waiting for the AppCore to report that the local player has joined the CoreGame
                 // AppCore.PlayerJoinedEvt

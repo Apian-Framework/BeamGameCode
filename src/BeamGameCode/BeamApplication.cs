@@ -402,6 +402,12 @@ namespace BeamGameCode
 
         }
 
+        public void DisplayError(string message, int status = -1, int param = -1)
+        {
+            frontend.DisplayMessage(MessageSeverity.Error, message);
+        }
+
+
         //
         // IGameNetClient
         //
@@ -464,6 +470,11 @@ namespace BeamGameCode
         public void OnSessionRegistered(string sessId, string txHash)
         {
             Logger.Info($"OnSessionRegistration() Session: {sessId},  TxHash: {txHash}");
+        }
+
+        public void OnEpochReported(string sessId, long epochNum, string txHash)
+        {
+            Logger.Info($"OnEpochReported() Session: {sessId}, Epoch #{epochNum} TxHash: {txHash}");
         }
 
         // Utility methods

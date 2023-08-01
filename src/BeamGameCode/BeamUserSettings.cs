@@ -44,8 +44,8 @@ namespace BeamGameCode
             try {
                 settings = JsonConvert.DeserializeObject<BeamUserSettings>(File.ReadAllText(filePath));
                 UniLogger.GetLogger("UserSettings").Info($"Loaded settings from: {filePath}.");
-            } catch(Exception) {
-                UniLogger.GetLogger("UserSettings").Warn($"Old settings not found. Creating Defaults.");
+            } catch(Exception e) {
+                UniLogger.GetLogger("UserSettings").Warn($"Failed to load old settings at {filePath}.\nError: {e.Message}\nCreating Defaults.");
                 settings =  BeamUserSettings.CreateDefault();
             }
 
