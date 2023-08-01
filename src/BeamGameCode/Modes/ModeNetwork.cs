@@ -85,6 +85,7 @@ namespace BeamGameCode
             appl.PeerLeftEvt -= _OnPeerLeftNetEvt;
             appl.GameAnnounceEvt -= _OnGameAnnounceEvt;
 
+            appl.DisconnectFromChain();
             appl.LeaveNetwork();
             appl.TearDownNetwork();
 

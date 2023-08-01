@@ -449,31 +449,35 @@ namespace BeamGameCode
 
 
         // IApianGameNetClient (chain stuff)
-        public void OnChainId(int chainId)
+        public void OnChainId(int chainId, Exception ex)
         {
             Logger.Info($"OnChainId({chainId})");
             ChainIdEvt?.Invoke(this, new ChainIdEventArgs(chainId));
         }
 
-        public void OnChainBlockNumber(int blockNumber)
+        public void OnChainBlockNumber(int blockNumber, Exception ex)
         {
             Logger.Info($"OnChainBlockNumber({blockNumber})");
             ChainBlockNumberEvt?.Invoke(this, new ChainBlockNumberEventArgs(blockNumber));
         }
 
-        public void OnChainAcctBalance(string addr, int balance)
+        public void OnChainAcctBalance(string addr, int balance, Exception ex)
         {
             Logger.Info($"OnChainAcctBalance() Addr: {addr}, Balance: {balance}");
             ChainAccountBalanceEvt?.Invoke(this, new ChainAccountBalanceEventArgs(addr, balance));
         }
 
-        public void OnSessionRegistered(string sessId, string txHash)
+        public void OnSessionRegistered(string sessId, string txHash, Exception ex)
         {
+            if (ex != null)
+                throw ex;
             Logger.Info($"OnSessionRegistration() Session: {sessId},  TxHash: {txHash}");
         }
 
-        public void OnEpochReported(string sessId, long epochNum, string txHash)
+        public void OnEpochReported(string sessId, long epochNum, string txHash, Exception ex)
         {
+            if (ex != null)
+                throw ex;
             Logger.Info($"OnEpochReported() Session: {sessId}, Epoch #{epochNum} TxHash: {txHash}");
         }
 
