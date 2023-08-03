@@ -20,13 +20,14 @@ namespace BeamGameCode
         void LeaveBeamNet();
 
         BeamGameInfo CreateBeamGameInfo( string gameName, string apianGroupType, string anchorAddr, string AnchorPostAlgo, GroupMemberLimits limits);
-        void CreateAndJoinGame(BeamGameInfo gameInfo, BeamApian apian, string localData, bool joinAsValidator);
-        void JoinExistingGame(BeamGameInfo gameInfo, BeamApian apian, string localData, bool joinAsValidator);
+
         void LeaveGame(string gameId);
 
         void SendBikeCreateDataReq(string groupId, IBike ib);
         void SendBikeCommandReq(string groupId, IBike bike, BikeCommand cmd);
         void SendBikeTurnReq(string groupId, IBike bike, long gameTime, TurnDir dir, Vector2 nextPt);
+
+        void CreateAndJoinGame(BeamGameInfo gameInfo, BeamApian apian, string localData, bool joinAsValidator);
 
         // MultiThreaded - or at last uses System/Threading
 #if !SINGLE_THREADED
@@ -95,9 +96,10 @@ namespace BeamGameCode
                 logger.Error($"JoinExistingGame() - Must join network first"); // TODO: probably ought to assert? Can this be recoverable?
                 return;
             }
-            base.JoinExistingGroup(gameInfo, apian, localData, joinAsValidator);
+            base.DoJoinExistingGroup(gameInfo, apian, localData, joinAsValidator);
         }
 
+        // Used by single-peer games
         public void CreateAndJoinGame(BeamGameInfo gameInfo, BeamApian apian, string localData, bool joinAsValidator)
         {
             string netName = p2p.GetNetworkChannel()?.Name;

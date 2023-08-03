@@ -296,11 +296,14 @@ namespace BeamGameCode
         // But what the game code really waits for isntead is a PlayerJoinedEvent sent from the AppCore which will come
         // soon thereafter
 
-        public void JoinExistingGame(BeamGameInfo gameInfo, BeamAppCore appCore, bool joinAsValidator)
-        {
-            beamGameNet.JoinExistingGame(gameInfo, appCore.apian, MakeBeamPlayer().ApianSerialized(), joinAsValidator);
-        }
+        // old SINGLE_THREADED funcs
+        // public void JoinExistingGame(BeamGameInfo gameInfo, BeamAppCore appCore, bool joinAsValidator)
+        // {
+        //     beamGameNet.JoinExistingGame(gameInfo, appCore.apian, MakeBeamPlayer().ApianSerialized(), joinAsValidator);
+        // }
+        //
 
+        // Used in single-peer play
         public void CreateAndJoinGame(BeamGameInfo gameInfo, BeamAppCore appCore, bool joinAsValidator)
         {
             beamGameNet.CreateAndJoinGame(gameInfo, appCore?.apian, MakeBeamPlayer().ApianSerialized(), joinAsValidator);
