@@ -253,7 +253,8 @@ namespace BeamGameCode
 
                 appl.ConnectToChain(); // not async
 
-                appl.GetChainId(); // results in ChainIdEvt which frontend will react to (otherwise we'd use GetChainIdAsync() )
+                int  chainId = await appl.GetChainIdAsync(); // results in ChainIdEvt which frontend will react to (otherwise we'd use GetChainIdAsync() )
+                appl.OnChainId(chainId,  null); // TODO: HHHAAACCKK!!!! &&&&
 
                 string connectionStr =  settings.p2pConnectionSettings[settings.curP2pConnection];
                 appl.SetupNetwork(connectionStr); // should be async? GameNet.Connect() currently is not

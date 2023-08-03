@@ -164,9 +164,9 @@ namespace BeamGameCode
 
 
         // These result in async event invocations
-        public void GetChainId() =>  beamGameNet.GetChainId();
-        public void GetChainBlockNumber() =>  beamGameNet.GetChainBlockNumber();
-        public void GetChainAccountBalance(string address) =>  beamGameNet.GetChainAccountBalance(address);
+        //public void GetChainId() =>  beamGameNet.GetChainId();
+        //public void GetChainBlockNumber() =>  beamGameNet.GetChainBlockNumber();
+        //public void GetChainAccountBalance(string address) =>  beamGameNet.GetChainAccountBalance(address);
 
 #if !SINGLE_THREADED
         // Or use the async/await version
@@ -470,14 +470,20 @@ namespace BeamGameCode
         public void OnSessionRegistered(string sessId, string txHash, Exception ex)
         {
             if (ex != null)
+            {
+                frontend.DisplayMessage(MessageSeverity.Error, ex.Message + (ex.InnerException==null?"":$" [{ex.InnerException}]"));
                 throw ex;
+            }
             Logger.Info($"OnSessionRegistration() Session: {sessId},  TxHash: {txHash}");
         }
 
         public void OnEpochReported(string sessId, long epochNum, string txHash, Exception ex)
         {
             if (ex != null)
+            {
+                frontend.DisplayMessage(MessageSeverity.Error, ex.Message + (ex.InnerException==null?"":$" [{ex.InnerException}]"));
                 throw ex;
+            }
             Logger.Info($"OnEpochReported() Session: {sessId}, Epoch #{epochNum} TxHash: {txHash}");
         }
 
