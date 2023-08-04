@@ -323,13 +323,13 @@ namespace BeamGameCode
             if (p != null && hittingBike != null)
             {
                 hittingBike.UpdatePosFromCommand(msg.TimeStamp, FrameApianTime, p.GetPos(), msg.exitHead);
-                logger.Info($"OnPlaceHitCmd( #{seqNum}, {p.GetPos().ToString()}) Now: {FrameApianTime} Ts: {msg.TimeStamp} Bike: {SID(hittingBike.bikeId)} Pos: {p.GetPos().ToString()}");
+                logger.Verbose($"OnPlaceHitCmd( #{seqNum}, {p.GetPos().ToString()}) Now: {FrameApianTime} Ts: {msg.TimeStamp} Bike: {SID(hittingBike.bikeId)} Pos: {p.GetPos().ToString()}");
                 _ApplyScoreUpdate(msg.TimeStamp, msg.scoreUpdates);
                 PlaceHitEvt?.Invoke(this, new PlaceHitEventArgs(p, hittingBike));
             }
             else
             {
-                logger.Info($"OnPlaceHitCmd(#{seqNum}, {p?.GetPos().ToString()}) Now: {FrameApianTime} Ts: {msg.TimeStamp} Bike: {SID(hittingBike?.bikeId)} Pos: {p?.GetPos().ToString()}");
+                logger.Verbose($"OnPlaceHitCmd(#{seqNum}, {p?.GetPos().ToString()}) Now: {FrameApianTime} Ts: {msg.TimeStamp} Bike: {SID(hittingBike?.bikeId)} Pos: {p?.GetPos().ToString()}");
             }
         }
 
