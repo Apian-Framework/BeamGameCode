@@ -1,4 +1,3 @@
-//#define SINGLE_THREADED
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +14,6 @@ using ApianCrypto;
 #if !SINGLE_THREADED
 using System.Threading.Tasks;
 #endif
-
 
 namespace BeamGameCode
 {

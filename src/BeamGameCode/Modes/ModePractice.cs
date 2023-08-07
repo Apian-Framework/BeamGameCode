@@ -1,4 +1,3 @@
-//#define SINGLE_THREADED
 using System;
 using Apian;
 using static UniLog.UniLogger; // for SID()

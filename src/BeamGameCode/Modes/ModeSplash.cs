@@ -1,4 +1,3 @@
-//#define SINGLE_THREADED
 using System;
 using System.Linq;
 using Apian;
