@@ -31,12 +31,6 @@ namespace BeamGameCode
 
         // mode substates
         protected const int kStartingUp = 0;
-#if SINGLE_THREADED
-        protected const int kSelectingGame = 4;
-        protected const int kJoiningExistingGame = 5;
-        protected const int kCreatingAndJoiningGame = 6;
-        protected const int kWaitingForMembers = 7;
-#endif
         protected const int kSettlingAfterJoin = 8;
         protected const int kPlaying = 9;
         protected const int kFailed = 10;
@@ -96,36 +90,10 @@ namespace BeamGameCode
             _loopFunc = _DoNothingLoop; // default
             switch (newState)
             {
-#if !SINGLE_THREADED
             case kStartingUp:
                 logger.Verbose($"{(ModeName())}: SetState: kStartingUp");
                 _AsyncStartup();
                 break;
-#else
-            case kStartingUp:
-                logger.Verbose($"{(ModeName())}: SetState: kStartingUp");
-                _SetState(kSelectingGame);
-                break;
-            case kSelectingGame:
-                logger.Verbose($"{(ModeName())}: SetState: kSelectingGame");  // waiting for UI to return
-                // BamAppl has a dict of available games keyed by groupId
-                // just need to re-key by gamename
-                _SelectGame(appl.NetInfo.BeamGames.Values.ToDictionary(bgd => bgd.GameInfo.GameName, bgd => bgd));
-                break;
-            case kJoiningExistingGame:
-                logger.Verbose($"{(ModeName())}: SetState: kJoiningExistingGame");
-                _JoinExistingGame(startParam as GameSelectedEventArgs);
-                _loopFunc = _JoinGameLoop;
-                break;
-            case kCreatingAndJoiningGame:
-                logger.Verbose($"{(ModeName())}: SetState: kCreatingAndJoiningGame");
-                _CreateAndJoinGame(startParam as GameSelectedEventArgs);
-                _loopFunc = _JoinGameLoop;
-                break;
-            case kWaitingForMembers: // Not used
-                logger.Verbose($"{(ModeName())}: SetState: kWaitingForMembers");
-                break;
-#endif
             case kSettlingAfterJoin:
                 logger.Verbose($"{(ModeName())}: SetState: kSettlingAfterJoin");
                 _loopFunc = _SettleAfterJoinLoop;
@@ -208,11 +176,6 @@ namespace BeamGameCode
             BeamNetworkPeer p = ga.peer;
             bool isLocal = p.PeerAddr == appl.LocalPeer.PeerAddr;
             logger.Info($"{(ModeName())} - _OnPeerJoinedNetEvt() - {(isLocal?"Local":"Remote")} Peer Joined: {p.Name}, ID: {SID(p.PeerAddr)}");
-
-#if SINGLE_THREADED
-           if (isLocal) // We have already joined
-               logger.Warn($"{(ModeName())} - OnNetJoinedEvt() - Local peer {SID(p.PeerAddr)} has already joind the net");
-#endif
         }
 
 
@@ -268,7 +231,6 @@ namespace BeamGameCode
             return null;
         }
 
-#if !SINGLE_THREADED
         // MultiThreaded code
         private async void _AsyncStartup()
         {
@@ -324,70 +286,6 @@ namespace BeamGameCode
                 return;
             }
         }
-#else
-
-
-        protected void _SelectGame(Dictionary<string, BeamGameAnnounceData> gamesAvail)
-        {
-            appl.GameSelectedEvent += OnGameSelectedEvt;
-            appl.SelectGame(gamesAvail);
-        }
-
-        public void OnGameSelectedEvt(object sender, GameSelectedEventArgs selection)
-        {
-            appl.GameSelectedEvent -= OnGameSelectedEvt; // stop listening
-            logger.Info($"{(ModeName())} - OnGameSelectedEvt(): {selection.gameInfo?.GameName}, result: {selection.result}");
-            DispatchGameSelection(selection);
-        }
-
-        private void DispatchGameSelection(GameSelectedEventArgs selection)
-        {
-            if (selection.result == GameSelectedEventArgs.ReturnCode.kCancel)
-            {
-                appl.OnPopModeReq(null);
-                //_SetState(kFailed,$"DispatchGameSelection() No Game Selected.");
-                return;
-            }
-
-            BeamGameInfo gameInfo = selection.gameInfo;
-
-            logger.Verbose($"{(ModeName())} - DispatchGameSelection(): info: {(JsonConvert.SerializeObject(selection.gameInfo))}");
-
-            _SetupCorePair(gameInfo);
-
-            List<string> availGameNames = appl.NetInfo.BeamGames.Values.Select(bgd => bgd.GameInfo.GameName).ToList();
-
-            bool targetGameExisted = (gameInfo.GameName != null) && availGameNames.Contains(gameInfo.GameName);
-
-            if (selection.result == GameSelectedEventArgs.ReturnCode.kCreate) // Createa and join
-            {
-                if (targetGameExisted)
-                    _SetState(kFailed,$"Cannot create.  Beam Game \"{gameInfo.GameName}\" already exists");
-                else
-                    _SetState(kCreatingAndJoiningGame, selection);
-
-            } else {
-                    // Join existing
-                if (!targetGameExisted)
-                    _SetState(kFailed,$"Cannot Join.  Beam Game \"{gameInfo.GameName}\" not found");
-                else
-                    _SetState(kJoiningExistingGame, selection);
-            }
-        }
-
-        private void _CreateAndJoinGame(GameSelectedEventArgs selection)
-        {
-
-            appl.CreateAndJoinGame(selection.gameInfo, appCore, selection.joinAsValidator); // now waiting for OnPlayerJoined for the local player
-        }
-
-        private void _JoinExistingGame(GameSelectedEventArgs selection)
-        {
-            appl.JoinExistingGame(selection.gameInfo, appCore, selection.joinAsValidator); // now waiting for OnPlayerJoined for the local player
-        }
-
-#endif
-
     }
 }
 

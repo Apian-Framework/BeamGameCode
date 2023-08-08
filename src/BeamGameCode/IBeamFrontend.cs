@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using Apian;
-
-#if !SINGLE_THREADED
 using System.Threading.Tasks;
-#endif
+
 
 namespace BeamGameCode
 {
@@ -30,9 +28,8 @@ namespace BeamGameCode
                                 // which reulsts in a moed change.
                                 // Or a non-interactive FE can just wait a bit than then push ModeNetPlay
 
-#if !SINGLE_THREADED
         Task<GameSelectedEventArgs> SelectGameAsync(IDictionary<string, BeamGameAnnounceData> existingGames);
-#endif
+
         void SelectGame(IDictionary<string, BeamGameAnnounceData> existingGames); // assumes
 
         // Event/message handlers

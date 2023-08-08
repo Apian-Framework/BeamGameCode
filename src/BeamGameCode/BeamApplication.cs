@@ -11,9 +11,8 @@ using GameNet;
 using Apian;
 using ApianCrypto;
 
-#if !SINGLE_THREADED
 using System.Threading.Tasks;
-#endif
+
 
 namespace BeamGameCode
 {
@@ -67,12 +66,11 @@ namespace BeamGameCode
         // Tasks initiated by request from game modes
         //
 
-#if !SINGLE_THREADED
+
         public async Task SetupCryptoAcctAsync()
         {
             await Task.Run(() => SetupCryptoAcct());
         }
-#endif
 
         public string CreateNewPersistentGameAcct(BeamUserSettings userSettings)
         {
@@ -160,13 +158,12 @@ namespace BeamGameCode
 
         }
 
-
-        // These result in async event invocations
+        // These result in  event invocations
         //public void GetChainId() =>  beamGameNet.GetChainId();
         //public void GetChainBlockNumber() =>  beamGameNet.GetChainBlockNumber();
         //public void GetChainAccountBalance(string address) =>  beamGameNet.GetChainAccountBalance(address);
 
-#if !SINGLE_THREADED
+
         // Or use the async/await version
         // public async Task ConnectToChainAsync()
         // {
@@ -177,8 +174,6 @@ namespace BeamGameCode
         public async Task<int> GetChainIdAsync() => await beamGameNet.GetChainIdAsync();
         public async Task<int> GetChainBlockNumberAsync() => await beamGameNet.GetChainBlockNumberAsync();
         public async Task<int> GetChainAccountBalanceAsync(string address) => await beamGameNet.GetChainAccountBalanceAsync(address);
-#endif
-
 
 
         //
@@ -202,7 +197,6 @@ namespace BeamGameCode
             // Returns via OnPeerJoinedNetwork()
         }
 
-#if !SINGLE_THREADED
         // Or use the async/await version
         public async Task<PeerJoinedNetworkData> JoinBeamNetAsync(string networkName)
         {
@@ -210,7 +204,6 @@ namespace BeamGameCode
             _CreateLocalPeer();  // reads stuff from settings  and p2p instance
             return await beamGameNet.JoinBeamNetAsync(networkName, LocalPeer); // this ends up calling OnPeerJoinedNetwork, too.
         }
-#endif
 
         public void LeaveNetwork()
         {
@@ -233,7 +226,6 @@ namespace BeamGameCode
             // assumes caller is collecting them and will time out at some point and continue
         }
 
-#if !SINGLE_THREADED
         // ...or async/await
         public async Task<Dictionary<string, BeamGameAnnounceData>> GetExistingGamesAsync(int waitMs)
         {
@@ -243,7 +235,6 @@ namespace BeamGameCode
             // also, we need the dict keyed by game name
             return NetInfo.BeamGames.Values.ToDictionary(bgd => bgd.GameInfo.GameName, bgd => bgd);
         }
-#endif
 
         // Now that the network is "joined" and there is information regarding how many peers there are
         // and perhaps whether there are games, ask the frontend to notify the now-waiting application
@@ -275,9 +266,6 @@ namespace BeamGameCode
             GameSelectedEvent?.Invoke(this, gameSelectArgs);
         }
 
-
-
-#if !SINGLE_THREADED
         public async Task<GameSelectedEventArgs> SelectGameAsync(IDictionary<string, BeamGameAnnounceData> existingGames)
         {
             GameSelectedEventArgs selection = await frontend.SelectGameAsync(existingGames);
@@ -285,7 +273,6 @@ namespace BeamGameCode
 
             return selection;
         }
-#endif
 
         // Given the specifier for a game to join or create. Join it, or create it and then join it
         // This results on a callback to OnPeerJoinedGroup() with the local peer and the requested game (group)
@@ -294,12 +281,6 @@ namespace BeamGameCode
         // But what the game code really waits for isntead is a PlayerJoinedEvent sent from the AppCore which will come
         // soon thereafter
 
-        // old SINGLE_THREADED funcs
-        // public void JoinExistingGame(BeamGameInfo gameInfo, BeamAppCore appCore, bool joinAsValidator)
-        // {
-        //     beamGameNet.JoinExistingGame(gameInfo, appCore.apian, MakeBeamPlayer().ApianSerialized(), joinAsValidator);
-        // }
-        //
 
         // Used in single-peer play
         public void CreateAndJoinGame(BeamGameInfo gameInfo, BeamAppCore appCore, bool joinAsValidator)
@@ -307,7 +288,6 @@ namespace BeamGameCode
             beamGameNet.CreateAndJoinGame(gameInfo, appCore?.apian, MakeBeamPlayer().ApianSerialized(), joinAsValidator);
         }
 
-#if !SINGLE_THREADED
         public async Task<LocalPeerJoinedGameData> CreateAndJoinGameAsync(BeamGameInfo gameInfo, BeamAppCore appCore, int timeoutMs, bool joinAsValidator)
         {
             PeerJoinedGroupData joinData = await beamGameNet.CreateAndJoinGameAsync(gameInfo, appCore?.apian, MakeBeamPlayer().ApianSerialized(), timeoutMs,  joinAsValidator);
@@ -319,7 +299,6 @@ namespace BeamGameCode
             PeerJoinedGroupData joinData = await beamGameNet.JoinExistingGameAsync(gameInfo, appCore?.apian, MakeBeamPlayer().ApianSerialized(), timeoutMs,  joinAsValidator);
             return new LocalPeerJoinedGameData(joinData.Success, joinData.GroupInfo.GroupId, joinData.Message);
         }
-#endif
 
         public void LeaveGame()
         {

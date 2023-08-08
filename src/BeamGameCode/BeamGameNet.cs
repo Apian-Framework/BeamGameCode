@@ -7,10 +7,7 @@ using P2pNet;
 using Apian;
 using UniLog;
 using static UniLog.UniLogger; // for SID()
-
-#if !SINGLE_THREADED
 using System.Threading.Tasks;
-#endif
 
 namespace BeamGameCode
 {
@@ -30,11 +27,9 @@ namespace BeamGameCode
         void CreateAndJoinGame(BeamGameInfo gameInfo, BeamApian apian, string localData, bool joinAsValidator);
 
         // MultiThreaded - or at last uses System/Threading
-#if !SINGLE_THREADED
         Task<PeerJoinedNetworkData> JoinBeamNetAsync(string netName, BeamNetworkPeer localPeer);
         Task<PeerJoinedGroupData> CreateAndJoinGameAsync(BeamGameInfo gameInfo, BeamApian apian, string localData, int timeoutMs, bool joinAsValidator);
         Task<PeerJoinedGroupData> JoinExistingGameAsync(BeamGameInfo gameInfo, BeamApian apian, string localData, int timeoutMs, bool joinAsValidator);
-#endif
     }
 
     public class BeamGameNet : ApianGameNetBase, IBeamGameNet
@@ -96,7 +91,7 @@ namespace BeamGameCode
                 logger.Error($"JoinExistingGame() - Must join network first"); // TODO: probably ought to assert? Can this be recoverable?
                 return;
             }
-            base.DoJoinExistingGroup(gameInfo, apian, localData, joinAsValidator);
+            base._DoJoinExistingGroup(gameInfo, apian, localData, joinAsValidator);
         }
 
         // Used by single-peer games
@@ -112,7 +107,6 @@ namespace BeamGameCode
             base.CreateAndJoinGroup(gameInfo, apian, localData, joinAsValidator);
         }
 
-#if !SINGLE_THREADED
         public async Task<PeerJoinedNetworkData> JoinBeamNetAsync(string netName, BeamNetworkPeer localPeer )
         {
             P2pNetChannelInfo chan = new P2pNetChannelInfo(beamChannelData[kBeamNetworkChannelInfo]);
@@ -131,7 +125,6 @@ namespace BeamGameCode
         {
             return await base.CreateAndJoinGroupAsync(gameInfo, apian, localData, timeoutMs, joinAsValidator);
         }
-#endif
 
         public void LeaveGame(string gameId) => LeaveGroup(gameId); // ApianGameNet.LeaveGroup()
 

@@ -33,13 +33,6 @@ namespace BeamGameCode
 
         // mode substates
         protected const int kStartingUp = 0;
-#if SINGLE_THREADED
-        protected const int kSettingUpCrypto = 1;
-        protected const int kConnectingToChain = 2;
-        protected const int kSettingUpNet = 3;
-        protected const int kJoiningNet = 4;
-        protected const int kCheckingForGames = 5;
-#endif
         protected const int kConnectedAndReady = 6;
         protected const int kFailed = 9;
 
@@ -105,66 +98,10 @@ namespace BeamGameCode
             _loopFunc = _DoNothingLoop; // default
             switch (newState)
             {
-#if !SINGLE_THREADED
             case kStartingUp:
                 logger.Verbose($"{(ModeName())}: SetState: kStartingUp");
                 _AsyncStartup();
                 break;
-#else
-            case kStartingUp:
-                logger.Verbose($"{(ModeName())}: SetState: kStartingUp");
-                try {
-                    // Is there any startup stuff?
-                } catch (Exception ex) {
-                    _SetState(kFailed, ex.Message);
-                    return;
-                }
-                _SetState(kSettingUpCrypto);
-                break;
-            case kSettingUpCrypto:
-                logger.Verbose($"{(ModeName())}: SetState: kSettingUpCrypto");
-                try {
-                    appl.SetupCryptoAcct(); // this takes a while if restoring a keystore
-                } catch (Exception ex) {
-                    _SetState(kFailed, ex.Message);
-                    return;
-                }
-                _SetState(kConnectingToChain);
-                break;
-            case kConnectingToChain:
-                logger.Verbose($"{(ModeName())}: SetState: kConnectingToChain");
-                try {
-                    appl.ConnectToChain(); // not async
-                    appl.GetChainId(); // results in ChainIdEvt
-                } catch (Exception ex) {
-                    _SetState(kFailed, ex.Message);
-                    return;
-                }
-                _SetState(kSettingUpNet);
-                break;
-            case kSettingUpNet:
-                logger.Verbose($"{(ModeName())}: SetState: kSettingUpNet");
-                try {
-                    string connectionStr =  settings.p2pConnectionSettings[settings.curP2pConnection];
-                    appl.SetupNetwork(connectionStr);
-                } catch (Exception ex) {
-                    _SetState(kFailed, ex.Message);
-                    return;
-                }
-                _SetState(kJoiningNet);
-                break;
-            case kJoiningNet:
-                logger.Verbose($"{(ModeName())}: SetState: kJoiningNet");
-                _JoinNetwork();
-                break;
-
-            case kCheckingForGames:
-                logger.Verbose($"{(ModeName())}: SetState: kCheckingForGames");
-                _CheckForGames();
-                _loopFunc = _CheckingForGamesLoop;
-                break;
-
-#endif
             case kConnectedAndReady:
                logger.Verbose($"{(ModeName())}: SetState: kConnectedAndReady");
                 appl.OnNetworkReady(); // appl will tell the FE, which will do something
@@ -195,18 +132,6 @@ namespace BeamGameCode
             //if (_curStateSecs > 5)
         }
 
-#if SINGLE_THREADED
-        protected void _CheckingForGamesLoop(float frameSecs)
-        {
-            if (_curStateSecs > kListenForGamesSecs)
-            {
-                // Stop listening for games and ask the FE to choose one
-                appl.GameAnnounceEvt += _OnGameAnnounceEvt;
-                _SetState(kConnectedAndReady);
-            }
-        }
-#endif
-
         // Event handlers
 
         private void _OnPeerJoinedNetEvt(object sender, PeerJoinedEventArgs ga)
@@ -215,13 +140,6 @@ namespace BeamGameCode
             bool isLocal = p.PeerAddr == appl.LocalPeer.PeerAddr;
             logger.Info($"{(ModeName())} - _OnPeerJoinedNetEvt() - {(isLocal?"Local":"Remote")} Peer Joined: {p.Name}, ID: {SID(p.PeerAddr)}");
 
-#if SINGLE_THREADED
-            // Async startup already calls getExistingGamesAsync() then goes to _setState(kConnectedAndReady)
-            if (isLocal)
-            {
-                _SetState(kCheckingForGames);
-            }
-#endif
         }
         private void _OnJoinRejectedEvt(object sender, JoinRejectedEventArgs rj)
         {
@@ -242,7 +160,6 @@ namespace BeamGameCode
 
         // util code
 
-#if !SINGLE_THREADED
         // MultiThreaded code
         private async void _AsyncStartup()
         {
@@ -269,23 +186,6 @@ namespace BeamGameCode
                 return;
             }
         }
-#else
-        // Single threaded (Unity WebGL, for instance)
-        private void _JoinNetwork()
-        {
-            appl.JoinBeamNet(settings.apianNetworkName);
-            // Wait for _OnPeerJoinedNetEvt()
-        }
-
-
-       private void _CheckForGames()
-        {
-            logger.Info($"{(ModeName())} - _CheckForGames() - checking...");
-            appl.GameAnnounceEvt += _OnGameAnnounceEvt;
-            appl.ListenForGames();
-        }
-#endif
-
     }
 }
 
