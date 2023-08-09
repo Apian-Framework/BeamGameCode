@@ -282,12 +282,6 @@ namespace BeamGameCode
         // soon thereafter
 
 
-        // Used in single-peer play
-        public void CreateAndJoinGame(BeamGameInfo gameInfo, BeamAppCore appCore, bool joinAsValidator)
-        {
-            beamGameNet.CreateAndJoinGame(gameInfo, appCore?.apian, MakeBeamPlayer().ApianSerialized(), joinAsValidator);
-        }
-
         public async Task<LocalPeerJoinedGameData> CreateAndJoinGameAsync(BeamGameInfo gameInfo, BeamAppCore appCore, int timeoutMs, bool joinAsValidator)
         {
             PeerJoinedGroupData joinData = await beamGameNet.CreateAndJoinGameAsync(gameInfo, appCore?.apian, MakeBeamPlayer().ApianSerialized(), timeoutMs,  joinAsValidator);
