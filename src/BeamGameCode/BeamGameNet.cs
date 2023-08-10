@@ -81,16 +81,6 @@ namespace BeamGameCode
             return new BeamGameInfo(groupInfo);
         }
 
-        public void JoinExistingGame(BeamGameInfo gameInfo, BeamApian apian, string localData, bool joinAsValidator)
-        {
-            string netName = p2p.GetNetworkChannel()?.Name;
-            if (netName == null)
-            {
-                logger.Error($"JoinExistingGame() - Must join network first"); // TODO: probably ought to assert? Can this be recoverable?
-                return;
-            }
-            base._DoJoinExistingGroup(gameInfo, apian, localData, joinAsValidator);
-        }
 
         public async Task<PeerJoinedNetworkData> JoinBeamNetAsync(string netName, BeamNetworkPeer localPeer )
         {
