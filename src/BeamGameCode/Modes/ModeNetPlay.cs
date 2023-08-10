@@ -65,20 +65,22 @@ namespace BeamGameCode
                 appCore.RespawnPlayerEvt -= _OnRespawnPlayerEvt;
             }
         }
-		public override object End() => _DoCleanup();
+		public override object End()
+        {
+            _DoCleanup();
+             appl.frontend?.OnEndMode(this);
+             return null;
+        }
 
 
-
-        private object _DoCleanup()
+        private void _DoCleanup()
         {
             appl.PeerJoinedEvt -= _OnPeerJoinedNetEvt;
             _UnsubscribeFromAppCoreEvents();
-            appl.frontend?.OnEndMode(this);
-            appCore?.End();
-            appl.LeaveGame();
+            appCore?.End(); // see below: should happen in GameNet.LeaveGame() /ApianInst.ShutDown() or whatever
+            appl.LeaveGame(); //TODO: THis should call GameNet.LeaveGame(), which should do ALL of this stuff
             appl.AddAppCore(null); // nulls FE.appCore, too
-            return null;
-        }
+         }
 
         // Loopfuncs
 
@@ -108,6 +110,7 @@ namespace BeamGameCode
             case kFailed:
                 logger.Warn($"{(ModeName())}: SetState: kFailed. Prev State: {prevState} Reason: {(string)startParam}");
                 appl.frontend.DisplayMessage(MessageSeverity.Error, (string)startParam);
+                _DoCleanup();
                 _loopFunc = _FailedLoop;
                 break;
             default:
@@ -131,15 +134,6 @@ namespace BeamGameCode
                 }
             }
         }
-
-       private void _JoinGameLoop(float frameSecs)
-        {
-            if (_curStateSecs * 1000f > kJoinGameTimeoutMs )
-            {
-                appl.LeaveGame(); // leaves/closes group
-                _SetState(kFailed, "Join Game failed: Timeout");
-            }
-       }
 
        private void _SettleAfterJoinLoop(float frameSecs)
         {
