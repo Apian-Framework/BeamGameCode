@@ -228,7 +228,7 @@ namespace BeamGameCode
         // MultiThreaded code
         private async void _AsyncStartup()
         {
-            try {
+            //try {
 
                 Dictionary<string, BeamGameAnnounceData> gamesAvail = appl.NetInfo.BeamGames.Values.ToDictionary(bgd => bgd.GameInfo.GameName, bgd => bgd);
 
@@ -275,10 +275,10 @@ namespace BeamGameCode
                 // Now we are waiting for the AppCore to report that the local player has joined the CoreGame
                 // AppCore.PlayerJoinedEvt
 
-            } catch (Exception ex) {
-                _SetState(kFailed, ex.Message);
-                return;
-            }
+           // } catch (Exception ex) {
+           //     _SetState(kFailed, ex.Message);
+           //     return;
+           // }
         }
     }
 }

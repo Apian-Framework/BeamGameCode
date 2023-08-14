@@ -133,29 +133,29 @@ namespace BeamGameCode
             BeamUserSettings userSettings = frontend.GetUserSettings();
 
             if (string.IsNullOrEmpty(userSettings.curBlockchain))
-                throw new Exception("_CurSettingsChainInfoJson(): Current Blockchain not set.");
+                return null;
 
-            if (!userSettings.blockchainInfos.ContainsKey(userSettings.curBlockchain))
+            if (userSettings.blockchainInfos.TryGetValue(userSettings.curBlockchain, out string chainJson)) {
+                return chainJson;
+            } else {
                 throw new Exception($"_CurSettingsChainInfoJson(): No serialized chainInfo for chain {userSettings.curBlockchain}");
+            }
 
-            return userSettings.blockchainInfos[userSettings.curBlockchain];
         }
-
-//        public void CreateCryptoInstance()
-//         {
-//            beamGameNet.CreateCryptoInstance();
-//         }
 
         public void ConnectToChain()
         {
             string chainInfoJson = _CurSettingsChainInfoJson();
-            beamGameNet.ConnectToBlockchain(chainInfoJson);
+
+            if ( !string.IsNullOrEmpty(chainInfoJson))
+                    beamGameNet.ConnectToBlockchain(chainInfoJson);
+            else
+                Logger.Error($"ConnectToChain() - No blockchain specified");
         }
 
        public void DisconnectFromChain()
         {
             beamGameNet.DisconnectFromBlockchain();
-
         }
 
         // These result in  event invocations

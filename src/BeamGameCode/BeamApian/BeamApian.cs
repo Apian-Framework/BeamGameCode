@@ -113,8 +113,9 @@ namespace BeamGameCode
                 if (peer.CurStatus == ApianGroupMember.Status.Active)
                 {
                     // In a leader-based ApianGroup the first peer will probably go stright from Joining to Active
-                    if (!peer.IsValidator)
+                    if (!peer.IsValidator) {
                         SendNewPlayerObs(ApianClock.CurrentTime, BeamPlayer.FromApianJson(peer.AppDataJson));
+                    }
                 }
                 break;
             case ApianGroupMember.Status.SyncingState:
@@ -122,8 +123,9 @@ namespace BeamGameCode
                 if (peer.CurStatus == ApianGroupMember.Status.Active)
                 {
                     // Most common situation
-                    if (!peer.IsValidator)
+                    if (!peer.IsValidator) {
                         SendNewPlayerObs(ApianClock.CurrentTime, BeamPlayer.FromApianJson(peer.AppDataJson));
+                    }
                 }
                 break;
             }

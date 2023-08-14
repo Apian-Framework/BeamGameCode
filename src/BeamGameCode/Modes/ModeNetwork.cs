@@ -167,10 +167,13 @@ namespace BeamGameCode
 
                 await appl.SetupCryptoAcctAsync(); // this takes a while if restoring a keystore
 
-                appl.ConnectToChain(); // not async
-
-                int  chainId = await appl.GetChainIdAsync(); // results in ChainIdEvt which frontend will react to (otherwise we'd use GetChainIdAsync() )
-                appl.OnChainId(chainId,  null); // TODO: HHHAAACCKK!!!! &&&&
+                if (!string.IsNullOrEmpty(settings.curBlockchain))
+                {
+                    appl.ConnectToChain(); // not async
+                    int  chainId = await appl.GetChainIdAsync(); // results in ChainIdEvt which frontend will react to (otherwise we'd use GetChainIdAsync() )
+                    appl.OnChainId(chainId,  null); // TODO: HHHAAACCKK!!!! &&&&
+                } else
+                    logger.Warn($"_AsyncStartup() - No blockchain specified. Proceeding without one.");
 
                 string connectionStr =  settings.p2pConnectionSettings[settings.curP2pConnection];
                 appl.SetupNetwork(connectionStr); // should be async? GameNet.Connect() currently is not
