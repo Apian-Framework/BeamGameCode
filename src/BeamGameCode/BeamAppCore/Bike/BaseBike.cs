@@ -322,7 +322,7 @@ namespace BeamGameCode
             if (p == null)
             {
                 int xIdx, zIdx;
-                (xIdx, zIdx) = Ground.NearestGridIndices(pos);
+                (xIdx, zIdx) = gameData.Ground.NearestGridIndices(pos);
                 // is it on the map?
                 if (gameData.Ground.IndicesAreOnMap(xIdx, zIdx))
                 {

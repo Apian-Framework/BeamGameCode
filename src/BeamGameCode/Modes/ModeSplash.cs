@@ -125,7 +125,7 @@ namespace BeamGameCode
             await appl.JoinBeamNetAsync(NetworkName);
 
             logger.Info("Splash network joined");
-            BeamGameInfo gameInfo = appl.beamGameNet.CreateBeamGameInfo(ApianGroupName, SinglePeerGroupManager.kGroupType, null, ApianGroupInfo.AnchorPostsNone, new GroupMemberLimits());
+            BeamGameInfo gameInfo = appl.beamGameNet.CreateBeamGameInfo(ApianGroupName, SinglePeerGroupManager.kGroupType, null, ApianGroupInfo.AnchorPostsNone, new GroupMemberLimits(), 100, 100);
             CreateCorePair(gameInfo);
             appCore.PlayerJoinedEvt += _OnPlayerJoinedEvt;
             appCore.NewBikeEvt += _OnNewBikeEvt;

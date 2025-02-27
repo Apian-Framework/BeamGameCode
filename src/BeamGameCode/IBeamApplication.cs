@@ -9,7 +9,16 @@ namespace BeamGameCode
     public class BeamGameInfo : ApianGroupInfo
     {
         public string GameName { get => GroupName; }
+
+        public int BlockCntX { get => int.Parse(OtherProperties["BlockCntX"]); set => OtherProperties["BlockCntX"] = value.ToString(); }
+        public int BlockCntZ { get => int.Parse(OtherProperties["BlockCntZ"]); set => OtherProperties["BlockCntZ"] = value.ToString(); }
+
         public BeamGameInfo(ApianGroupInfo agi) : base(agi) {}
+        public BeamGameInfo(ApianGroupInfo agi, int blockCntX, int blockCntZ) : base(agi)
+        {
+            BlockCntX = blockCntX;
+            BlockCntZ = blockCntZ;
+        }
     }
 
     public class BeamGameStatus : ApianGroupStatus
@@ -23,7 +32,7 @@ namespace BeamGameCode
         public BeamGameStatus GameStatus { get; set;}
         public BeamGameAnnounceData(GroupAnnounceResult gar)
         {
-            GameInfo = new BeamGameInfo(gar.GroupInfo);
+            GameInfo = new BeamGameInfo(gar.GroupInfo); // groupInfo alread has BeamGameInfo stuff in OtherProperties
             GameStatus = new BeamGameStatus(gar.GroupStatus);
         }
     }
@@ -94,6 +103,8 @@ namespace BeamGameCode
         BeamNetInfo NetInfo {get;}
         BeamNetworkPeer LocalPeer { get;}
 
+        // &&& This block seems to be mostly related to being a "mode" application.
+        // Which is not an Apian thing at all.
         void ExitApplication(); // relatively controlled exit via modeMgr
         int CurrentGameModeId();
         void OnSwitchModeReq(int newModeId, object modeParam);

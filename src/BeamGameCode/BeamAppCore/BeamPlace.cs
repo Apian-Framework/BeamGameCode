@@ -8,12 +8,15 @@ namespace BeamGameCode
 {
     public class BeamPlace : IApianCoreData
     {
+        // PosHash is an int, upper word z, lower word x.
+        public static int PosHashMaxSize = 16384; //
         public static long kLifeTimeMs = 15000; // TODO: Maybe should be per-bike and increase with time?
 
         public int xIdx; // x index into array.
         public int zIdx;
         public IBike bike;
         public long expirationTimeMs; // ApianTime
+        protected Ground gInst; // I kinda hate having this here
 
         public class SerialArgs
         {
@@ -47,27 +50,27 @@ namespace BeamGameCode
             return p;
         }
 
-        public int PosHash { get => xIdx + zIdx * Ground.zAxisPoints; }
+        public int PosHash { get => xIdx + zIdx * PosHashMaxSize; }
 
-        public static int MakePosHash(int xIdx, int zIdx) => xIdx + zIdx * Ground.zAxisPoints;
+        public static int MakePosHash(int xIdx, int zIdx) => xIdx + zIdx * PosHashMaxSize;
 
         public static void PosHashToIdx(int posHash, out int xIdx, out int zIdx)
         {
-            zIdx = posHash / Ground.zAxisPoints;
-            xIdx = posHash - zIdx * Ground.zAxisPoints;
+            zIdx = posHash / PosHashMaxSize;
+            xIdx = posHash - zIdx * PosHashMaxSize;
         }
 
         public static bool AreAdjacent(BeamPlace p1, BeamPlace p2) => Math.Abs(p1.xIdx - p2.xIdx) + Math.Abs(p1.zIdx - p2.zIdx) == 1; // only one is 1
 
 
-        public Vector2 GetPos()
+        public Vector2 GetPos(Ground g)
         {
-            return PlacePos(xIdx,zIdx);
+            return PlacePos(g, xIdx,zIdx);
         }
 
-        public static Vector2 PlacePos(int x, int z)
+        public static Vector2 PlacePos(Ground g, int x, int z)
         {
-            return new Vector2(x*Ground.gridSize+Ground.minX,z*Ground.gridSize+Ground.minZ);
+            return new Vector2(x*Ground.gridSize + g.minX,z*Ground.gridSize + g.minZ);
         }
     }
 }

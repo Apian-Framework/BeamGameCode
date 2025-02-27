@@ -76,7 +76,6 @@ namespace BeamGameCode
             return null;
         }
 
-
         protected string SpawnPlayerBike()
         {
             // Create one the first time
@@ -140,8 +139,11 @@ namespace BeamGameCode
             appl.SetupNetwork("p2ploopback");
             await appl.JoinBeamNetAsync(NetworkName);
 
+            BeamUserSettings settings = appl.frontend.GetUserSettings();
+
             logger.Info("Practice network joined");
-            BeamGameInfo gameInfo = appl.beamGameNet.CreateBeamGameInfo(ApianGroupName, SinglePeerGroupManager.kGroupType, null, ApianGroupInfo.AnchorPostsNone, new GroupMemberLimits());
+            BeamGameInfo gameInfo = appl.beamGameNet.CreateBeamGameInfo(ApianGroupName, SinglePeerGroupManager.kGroupType, null, ApianGroupInfo.AnchorPostsNone,
+                new GroupMemberLimits(), settings.blockCntX, settings.blockCntZ);
             CreateCorePair(gameInfo);
             appCore.PlayerJoinedEvt += _OnPlayerJoinedEvt;
             appCore.NewBikeEvt += _OnNewBikeEvt;

@@ -20,8 +20,8 @@ namespace BeamGameCode
 
     public static class UserSettingsMgr
     {
-        public const string currentVersion = "109";
-        public const string prevVersion = "108";
+        public const string currentVersion = "110";
+        public const string prevVersion = "109";
         public const string subFolder = ".beam";
         public const string defaultBaseName= "beamsettings";
         public static string fileBaseName;
@@ -57,7 +57,7 @@ namespace BeamGameCode
                 if (settings.version == prevVersion)
                 {
                     UniLogger.GetLogger("UserSettings").Warn($"Settings are version: {settings.version}. Updating to version: {currentVersion}.");
-                    settings = Update108To109(filePath);
+                    settings = Update109To110(filePath);
                 }
                 else
                     throw( new UserSettingsException($"Invalid settings version: {settings.version}. Expected: {currentVersion}"));
@@ -66,9 +66,9 @@ namespace BeamGameCode
             return settings;
         }
 
-        public static BeamUserSettings Update108To109(string filePath)
+        public static BeamUserSettings Update109To110(string filePath)
         {
-            BeamUserSettings_v108 oldSettings = JsonConvert.DeserializeObject<BeamUserSettings_v108>(File.ReadAllText(filePath));
+            BeamUserSettings_v109 oldSettings = JsonConvert.DeserializeObject<BeamUserSettings_v109>(File.ReadAllText(filePath));
             return new BeamUserSettings(oldSettings);
         }
 
@@ -137,6 +137,9 @@ namespace BeamGameCode
         public int aiBikeCount; // in addition to localPLayerBike, spawn this many AIs (and respawn to keep the number up)
         public bool regenerateAiBikes; // create new ones when old ones get blown up
 
+        public int blockCntX; // grid size
+        public int blockCntZ;
+
         public string defaultLogLevel;
 
         public Dictionary<string, string> logLevels;
@@ -177,13 +180,15 @@ namespace BeamGameCode
             localPlayerCtrlType = source.localPlayerCtrlType;
             aiBikeCount = source.aiBikeCount;
             regenerateAiBikes = source.regenerateAiBikes;
+            blockCntX = source.blockCntX;
+            blockCntZ = source.blockCntZ;
             defaultLogLevel = source.defaultLogLevel;
             logLevels = source.logLevels ?? new Dictionary<string, string>();
             tempSettings = source.tempSettings ?? new Dictionary<string, string>();
             platformSettings = source.platformSettings ?? new Dictionary<string, string>();
         }
 
-      public BeamUserSettings(BeamUserSettings_v108 source)
+      public BeamUserSettings(BeamUserSettings_v109 source)
         {
             startMode = source.startMode;
             screenName = source.screenName;
@@ -202,9 +207,11 @@ namespace BeamGameCode
             logLevels = source.logLevels ?? new Dictionary<string, string>();
             tempSettings = source.tempSettings ?? new Dictionary<string, string>();
             platformSettings = source.platformSettings ?? new Dictionary<string, string>();
-
-            // 108 ->109 added 1 new field
             anchorContractAddr = "";
+
+            // 109 ->110 added 1 new field
+            blockCntX = 100;
+            blockCntZ = 100;
         }
 
 
@@ -241,6 +248,10 @@ namespace BeamGameCode
                 localPlayerCtrlType = BikeFactory.AiCtrl,
                 aiBikeCount = 0,
                 regenerateAiBikes = false,
+
+                blockCntX = 100,
+                blockCntZ = 100,
+
                 defaultLogLevel = "Warn",
                 logLevels = new Dictionary<string, string>() {
                     {"UserSettings", UniLogger.LevelNames[UniLogger.Level.Info]},
@@ -257,18 +268,18 @@ namespace BeamGameCode
 
     }
 
-
-    public class BeamUserSettings_v108
+    public class BeamUserSettings_v109
     {
-        public string version = UserSettingsMgr.prevVersion; // v108
+        public string version = "109";
         public string startMode;
         public string screenName;
         public Dictionary<string, string> p2pConnectionSettings; // named connections. settings are connection-specific and are usually json
         public Dictionary<string, string> blockchainInfos; // chain info, keyed by an arbitrary name
-        public Dictionary<string, string> gameAcctJSON; // eecrypted ephemeral acct keystores
+        public Dictionary<string, string> gameAcctJSON; // address => serialized ApianCrypto.PersistenAccount
 
         public string curP2pConnection; // a key from p2pConnectionSettings
         public string curBlockchain; // key into blockchainInfos
+        public string anchorContractAddr; // added v109
         public string gameAcctAddr; // address (key into gameAcctJSON)
         public string permAcctAddr; // address
 
@@ -289,7 +300,7 @@ namespace BeamGameCode
             return  tempSettings.ContainsKey(key) ? tempSettings[key] : null;
         }
 
-        public BeamUserSettings_v108()
+        public BeamUserSettings_v109()
         {
             p2pConnectionSettings =  new Dictionary<string,string>();
             blockchainInfos = new Dictionary<string,string>();
@@ -299,76 +310,6 @@ namespace BeamGameCode
             platformSettings = new Dictionary<string, string>();
         }
 
-        public BeamUserSettings_v108(BeamUserSettings source)
-        {
-            if (version != source.version)
-                throw( new UserSettingsException($"Invalid source settings version: {source.version} Expected: {version}"));
-            startMode = source.startMode;
-            screenName = source.screenName;
-            blockchainInfos = new Dictionary<string,string>(source.blockchainInfos);
-            p2pConnectionSettings =  new Dictionary<string,string>(source.p2pConnectionSettings);
-            gameAcctJSON = new Dictionary<string, string>(source.gameAcctJSON);
-            curP2pConnection = source.curP2pConnection;
-            apianNetworkName = source.apianNetworkName;
-            curBlockchain = source.curBlockchain;
-            permAcctAddr = source.permAcctAddr;
-            gameAcctAddr = source.gameAcctAddr;
-            localPlayerCtrlType = source.localPlayerCtrlType;
-            aiBikeCount = source.aiBikeCount;
-            regenerateAiBikes = source.regenerateAiBikes;
-            defaultLogLevel = source.defaultLogLevel;
-            logLevels = source.logLevels ?? new Dictionary<string, string>();
-            tempSettings = source.tempSettings ?? new Dictionary<string, string>();
-            platformSettings = source.platformSettings ?? new Dictionary<string, string>();
-        }
-
-        public static BeamUserSettings CreateDefault()
-        {
-#if UNITY_WEBGL && !UNITY_EDITOR
-            // WebGL defaults are read from a static file.
-            return JsonConvert.DeserializeObject<BeamUserSettings>(UserSettingsMgr.Get_WebGLDefaultSettings());
-#else
-            return new BeamUserSettings() {
-                version = UserSettingsMgr.currentVersion,
-                startMode = BeamModeFactory.NetworkModeName,
-                screenName = "Beam Player",
-                blockchainInfos = new Dictionary<string,string>()
-                {
-                    {"ETH MainNet", "{\"RpcUrl\": \"https://mainnet.infura.io/v3/6f03e0922a574b58867988f047fd3cfc\", \"ChainId\": 1, \"Currency\": \"ETH\"}"},
-                    {"ETH Gorli", "{\"RpcUrl\": \"https://goerli.infura.io/v3/6f03e0922a574b58867988f047fd3cfc\", \"ChainId\": 3, \"Currency\": \"ETH\"}"},
-                    {"Gnosis Main", "{\"RpcUrl\": \"https://rpc.gnosischain.com\", \"ChainId\": 100, \"Currency\": \"xDAI\"}"},
-                    {"Gnosis Chiado", "{\"RpcUrl\": \"https://rpc.chiadochain.net\", \"ChainId\": 10200, \"Currency\": \"xDAI\"}"}
-                },
-                p2pConnectionSettings = new Dictionary<string, string>()
-                {
-                    {"PokeyHedgehog MQTT", "p2pmqtt::{\"server\":\"pokeyhedgehog.com\",\"user\":\"apian_mqtt\",\"pwd\":\"apian_mqtt_pwd\"}"},
-                    {"PokeyHedgehog Redis", "p2predis::pokeyhedgehog.com,password=Dga2JfGoKfDv02xWY0bYNrYaFPeBTVmXLPGDKq1xA"},
-                    {"Sparky MQTT", "p2pmqtt::{\"server\":\"sparkyx\"}"}
-                },
-                gameAcctJSON = new Dictionary<string, string>(),
-                curP2pConnection = "PokeyHedgehog MQTT",
-                curBlockchain = "Gnosis Chiado",
-                gameAcctAddr = "",
-                permAcctAddr = "0x1234567890123456789012345678901234567890",
-                apianNetworkName = "BeamNet1",
-                localPlayerCtrlType = BikeFactory.AiCtrl,
-                aiBikeCount = 0,
-                regenerateAiBikes = false,
-                defaultLogLevel = "Warn",
-                logLevels = new Dictionary<string, string>() {
-                    {"UserSettings", UniLogger.LevelNames[UniLogger.Level.Info]},
-                    {"P2pNet", UniLogger.LevelNames[UniLogger.Level.Warn]},
-                    {"GameNet", UniLogger.LevelNames[UniLogger.Level.Warn]},
-                    {"GameInstance", UniLogger.LevelNames[UniLogger.Level.Warn]},
-                    {"BeamMode", UniLogger.LevelNames[UniLogger.Level.Warn]},
-                },
-                tempSettings = new Dictionary<string, string>(),
-                platformSettings = new Dictionary<string, string>()
-            };
-#endif
-        }
-
     }
-
 
 }

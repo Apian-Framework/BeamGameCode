@@ -7,23 +7,51 @@ using UnityEngine;
 
 namespace BeamGameCode
 {
-    public partial class Ground
+    public partial class Ground : IApianCoreData
     {
         // North is Z, East is X,  Y is up
         public static float gridSize = 10f; // 10x10 squares
-        public static float minX = -500f;
-        public static float maxX = 500f;
-        public static float minZ = -500f;
-        public static float maxZ = 500f;
 
-        public static int xAxisPoints => (int)((maxX - minX) / gridSize) + 1; // number of points along the axis
-        public static int zAxisPoints => (int)((maxZ - minZ) / gridSize) + 1;
+        public int BlockCntX;
+        public int BlockCntZ;
+        public float minX;
+        public float maxX;
+        public float minZ;
+        public float maxZ;
 
-          public static Vector2 zeroPos = new Vector2(0f, 0f);
+        public  int xAxisPoints => (int)((maxX - minX) / gridSize) + 1; // number of points along the axis
+        public  int zAxisPoints => (int)((maxZ - minZ) / gridSize) + 1;
 
-        public Ground()
+        public static Vector2 zeroPos = new Vector2(0f, 0f);
+
+        protected Ground() {} // FIXME hide default constructor - just while changing some constsnts to isntance properties
+
+        public Ground(int blockCntX, int blockCntZ)
         {
+            BlockCntX = blockCntX;
+            BlockCntZ = blockCntZ;
 
+            maxX = gridSize * blockCntX/2;
+            minX = -maxX;
+            maxZ = gridSize * blockCntZ / 2;
+            minZ = -maxZ;
+        }
+
+        // Custom compact json
+        public static Ground FromApianJson(string jsonData)
+        {
+            object[] data = JsonConvert.DeserializeObject<object[]>(jsonData);
+
+            return new Ground(
+                (int)(long)data[0],  // have to cast to long first, then int
+                (int)(long)data[1]);
+        }
+
+        public string ApianSerialized(object args=null)
+        {
+            return  JsonConvert.SerializeObject(new object[]{
+                BlockCntX,
+                BlockCntZ });
         }
 
         public static Vector2 NearestGridPoint(Vector2 pos)
@@ -32,7 +60,7 @@ namespace BeamGameCode
             return new Vector2( Mathf.Round(pos.x * invGridSize) * gridSize, Mathf.Round(pos.y * invGridSize) * gridSize);
         }
 
-        public static (int,int) NearestGridIndices(Vector2 pos)
+        public (int,int) NearestGridIndices(Vector2 pos)
         {
             Vector2 gridPos  = NearestGridPoint(pos);
             return ((int)Mathf.Floor((gridPos.x - minX) / gridSize) , (int)Mathf.Floor((gridPos.y - minZ) / gridSize ));

@@ -41,17 +41,21 @@ namespace BeamGameCode
         public event EventHandler<BeamSquareEventArgs> SquareAddEvt; // called w/ base place
         public event EventHandler<BeamSquareEventArgs> SquareDelEvt;
 
-     	    public Ground Ground { get; private set; } // TODO: Is there any mutable state here anymore? NO
+     	    public Ground Ground { get; private set; }
 
         //
         // Here's the actual base state data:
         //
 
+        //
         // Data to serialize
+        //
         public Dictionary<string, BeamPlayer> Players { get; private set; }
         public Dictionary<string, IBike> Bikes { get; private set; }
         public Dictionary<int, BeamPlace> ActivePlaces { get; private set; } //  BeamPlace.PosHash() -indexed Dict of places.
+        //
         // end data to serialize
+        //
 
         // Ancillary data (initialize to empty if loading state data)
         public Dictionary<int, Team> ActiveSquares; // squares are redundant and can be constructed by examining ActivePlaces
@@ -64,12 +68,12 @@ namespace BeamGameCode
         protected List<BeamPlace> _placesToRemove; // Same goes for places.
         protected Dictionary<int, BeamPlace> _reportedTimedOutPlaces; // places that have been reported as timed out, but not removed yet
 
-        public BeamCoreState(string sessionId) : base(sessionId)
+        public BeamCoreState(string sessionId, int blockCntX, int blockCntZ) : base(sessionId)
         {
 
             Players = new Dictionary<string, BeamPlayer>();
             Bikes = new Dictionary<string, IBike>();
-            Ground = new Ground();
+            Ground = new Ground(blockCntX, blockCntZ);
             InitPlaces();
 
             ResetRemovalSideEffects();
@@ -175,6 +179,7 @@ namespace BeamGameCode
 
             return  JsonConvert.SerializeObject(new object[]{
                 ApianSerializedBaseData(), // serialize all of the AppCoreBase data
+                Ground.ApianSerialized(),
                 playersData,
                 bikesData,
                 placesData
@@ -184,28 +189,32 @@ namespace BeamGameCode
 
         public static BeamCoreState FromApianSerialized(long seqNum,  string stateHash,  string serializedData)
         {
-            BeamCoreState newState = new BeamCoreState(null); // sessionId is in serialized state
+            BeamCoreState newState = new BeamCoreState(null,10,10); // sessionId and block counts are in serialized state
+            // TODO: should there be a default ctor?
 
             JArray sData = JArray.Parse(serializedData);
 
             newState.ApplyDeserializedBaseData((string)sData[0]); // Populate the base ApianCoreState  data
             long newSeq = newState.CommandSequenceNumber; // got applied above
 
-            Dictionary<string, BeamPlayer> newPlayers = (sData[1] as JArray)
+            Ground newGround = Ground.FromApianJson((string)sData[1]); // just a json string
+
+            Dictionary<string, BeamPlayer> newPlayers = (sData[2] as JArray)
                 .Select( s => BeamPlayer.FromApianJson((string)s))
                 .ToDictionary(p => p.PlayerAddr);
 
             List<string> playerAddrs = newPlayers.Values.OrderBy(p => p.PlayerAddr).Select((p) => p.PlayerAddr).ToList(); // to replace array indices in bikes
-            Dictionary<string, IBike> newBikes = (sData[2] as JArray)
+            Dictionary<string, IBike> newBikes = (sData[3] as JArray)
                 .Select( s => (IBike)BaseBike.FromApianJson((string)s, newState, playerAddrs))
                 .ToDictionary(p => p.bikeId);
 
             List<string> bikeIds = newBikes.Values.OrderBy(p => p.bikeId).Select((p) => p.bikeId).ToList(); // to replace array indices in places
-            Dictionary<int, BeamPlace> newPlaces = (sData[3] as JArray)
+            Dictionary<int, BeamPlace> newPlaces = (sData[4] as JArray)
                 .Select( s => BeamPlace.FromApianJson((string)s, bikeIds, newBikes))
                 .ToDictionary(p => p.PosHash);
 
 
+            newState.Ground = newGround;
             newState.Players = newPlayers;
             newState.Bikes = newBikes;
             newState.ActivePlaces = newPlaces;
@@ -302,7 +311,7 @@ namespace BeamGameCode
                 if (se)
                     RemoveSquare( BeamPlace.MakePosHash(p.xIdx, p.zIdx-1));
 
-                Logger.Verbose($"RemoveActivePlace({p.GetPos().ToString()}) Bike: {SID(p.bike?.bikeId)}");
+                Logger.Verbose($"RemoveActivePlace({p.GetPos(Ground).ToString()}) Bike: {SID(p.bike?.bikeId)}");
                 PlaceFreedEvt?.Invoke(this, new BeamPlaceEventArgs(p) );
                 freePlaces.Push(p); // add to free list
                 ActivePlaces.Remove(p.PosHash);

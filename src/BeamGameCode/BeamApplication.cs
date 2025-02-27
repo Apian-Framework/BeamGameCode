@@ -484,7 +484,9 @@ namespace BeamGameCode
         public BaseBike CreateBaseBike(string ctrlType, string peerAddr, string name, Team t)
         {
             Heading heading = BikeFactory.PickRandomHeading();
-            Vector2 pos = BikeFactory.PositionForNewBike( mainAppCore.CoreState, mainAppCore.CurrentRunningGameTime, heading, Ground.zeroPos, Ground.gridSize * 10 );
+            int shortSideBlocks = (int)Mathf.Min(mainAppCore.GetGround().BlockCntX, mainAppCore.GetGround().BlockCntZ);
+            float radius =  Ground.gridSize * Mathf.Min( 10,  shortSideBlocks/2 - 1);
+            Vector2 pos = BikeFactory.PositionForNewBike( mainAppCore.CoreState, mainAppCore.CurrentRunningGameTime, heading, Ground.zeroPos, radius );
             string bikeId = Guid.NewGuid().ToString("N");
             return  new BaseBike(mainAppCore.CoreState, bikeId, peerAddr, name, t, ctrlType, mainAppCore.CurrentRunningGameTime, pos, heading);
         }
